@@ -474,6 +474,37 @@ select.form-control { cursor: pointer; }
 /* ── Dashboard grid ── */
 .dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
 
+/* ── Form action bar (bottom of form pages) ── */
+.form-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 16px 0 8px;
+  border-top: 1.5px solid var(--primary-50);
+}
+.form-action-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+  .form-action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .form-action-row {
+    width: 100%;
+    flex-direction: column;
+  }
+  .form-action-row .btn,
+  .form-action-bar > .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* ── Client dashboard: quick-actions 4-col grid ── */
 .client-quick-grid {
   display: grid;

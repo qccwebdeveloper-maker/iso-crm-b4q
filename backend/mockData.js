@@ -307,30 +307,67 @@ module.exports = {
 const LEADS = [
   {
     _id: 'l1', leadId: 'LEAD-001', companyName: 'Trinetra Enterprises', contactPerson: 'Vikas Mani',
-    email: 'vikas@trinetra.com', mobile: '9911069754', address: '123 Industrial Area, New Delhi',
-    city: 'New Delhi', state: 'Delhi', country: 'India', isoStandard: 'ISO 9001:2015',
-    source: 'Website', status: 'new', priority: 'high',
+    email: 'vikas@trinetra.com', mobile: '9911069754', city: 'New Delhi', state: 'Delhi', country: 'India',
+    isoStandard: 'ISO 9001:2015', source: 'Website', status: 'new', priority: 'high',
     notes: 'Interested in QMS certification for manufacturing unit.',
-    assignedAuditor: null, assignedReviewer: null, convertedToApplication: null,
+    assignedTo: 'u5', convertedToApplication: null,
     createdAt: new Date('2024-11-01'), updatedAt: new Date('2024-11-01'),
   },
   {
     _id: 'l2', leadId: 'LEAD-002', companyName: 'Workforce India Services', contactPerson: 'Ravi Sharma',
-    email: 'ravi@workforceindia.com', mobile: '9911069755', address: '456 Tech Park, Bangalore',
-    city: 'Bangalore', state: 'Karnataka', country: 'India', isoStandard: 'ISO 45001:2018',
-    source: 'Referral', status: 'contacted', priority: 'medium',
+    email: 'ravi@workforceindia.com', mobile: '9911069755', city: 'Bangalore', state: 'Karnataka', country: 'India',
+    isoStandard: 'ISO 45001:2018', source: 'Referral', status: 'contacted', priority: 'medium',
     notes: 'Looking for OHSMS certification. Demo done.',
-    assignedAuditor: 'u3', assignedReviewer: null, convertedToApplication: null,
+    assignedTo: 'u5', convertedToApplication: null,
     createdAt: new Date('2024-11-05'), updatedAt: new Date('2024-11-08'),
   },
   {
     _id: 'l3', leadId: 'LEAD-003', companyName: 'SafeFood Processors Ltd', contactPerson: 'Priya Nair',
-    email: 'priya@safefood.com', mobile: '8989879239', address: '789 Food Park, Chennai',
-    city: 'Chennai', state: 'Tamil Nadu', country: 'India', isoStandard: 'ISO 22000:2018',
-    source: 'LinkedIn', status: 'qualified', priority: 'high',
+    email: 'priya@safefood.com', mobile: '8989879239', city: 'Chennai', state: 'Tamil Nadu', country: 'India',
+    isoStandard: 'ISO 22000:2018', source: 'LinkedIn', status: 'qualified', priority: 'high',
     notes: 'Very interested. Waiting for quotation approval.',
-    assignedAuditor: 'u3', assignedReviewer: null, convertedToApplication: null,
+    assignedTo: 'u5', convertedToApplication: null,
     createdAt: new Date('2024-11-10'), updatedAt: new Date('2024-11-12'),
+  },
+  {
+    _id: 'l4', leadId: 'LEAD-004', companyName: 'GreenTech Solutions', contactPerson: 'Anil Verma',
+    email: 'anil@greentech.com', mobile: '9876543210', city: 'Pune', state: 'Maharashtra', country: 'India',
+    isoStandard: 'ISO 14001:2015', source: 'Cold Call', status: 'qualified', priority: 'medium',
+    notes: 'EMS certification for IT company. Board approval pending.',
+    assignedTo: null, convertedToApplication: null,
+    createdAt: new Date('2024-11-15'), updatedAt: new Date('2024-11-16'),
+  },
+  {
+    _id: 'l5', leadId: 'LEAD-005', companyName: 'MediCare Devices Pvt Ltd', contactPerson: 'Sunita Joshi',
+    email: 'sunita@medicare.com', mobile: '9123456780', city: 'Hyderabad', state: 'Telangana', country: 'India',
+    isoStandard: 'ISO 13485:2016', source: 'Trade Show', status: 'converted', priority: 'high',
+    notes: 'Medical device QMS. Converted to application.',
+    assignedTo: 'u5', convertedToApplication: 'app1',
+    createdAt: new Date('2024-10-20'), updatedAt: new Date('2024-11-01'),
+  },
+  {
+    _id: 'l6', leadId: 'LEAD-006', companyName: 'SecureIT Systems', contactPerson: 'Karan Mehta',
+    email: 'karan@secureit.com', mobile: '9988776655', city: 'Mumbai', state: 'Maharashtra', country: 'India',
+    isoStandard: 'ISO 27001:2022', source: 'LinkedIn', status: 'new', priority: 'high',
+    notes: 'ISMS for fintech company. Very promising lead.',
+    assignedTo: null, convertedToApplication: null,
+    createdAt: new Date('2024-11-20'), updatedAt: new Date('2024-11-20'),
+  },
+  {
+    _id: 'l7', leadId: 'LEAD-007', companyName: 'PowerGen Industries', contactPerson: 'Deepak Roy',
+    email: 'deepak@powergen.com', mobile: '9001122334', city: 'Kolkata', state: 'West Bengal', country: 'India',
+    isoStandard: 'ISO 50001:2018', source: 'Email Campaign', status: 'lost', priority: 'low',
+    notes: 'Budget constraints. Follow up in Q2.',
+    assignedTo: 'u5', convertedToApplication: null,
+    createdAt: new Date('2024-10-10'), updatedAt: new Date('2024-11-05'),
+  },
+  {
+    _id: 'l8', leadId: 'LEAD-008', companyName: 'FreshFarm Organics', contactPerson: 'Meena Pillai',
+    email: 'meena@freshfarm.com', mobile: '9445566778', city: 'Coimbatore', state: 'Tamil Nadu', country: 'India',
+    isoStandard: 'ISO 22000:2018', source: 'Referral', status: 'contacted', priority: 'medium',
+    notes: 'Food safety for organic products. Positive response.',
+    assignedTo: null, convertedToApplication: null,
+    createdAt: new Date('2024-11-18'), updatedAt: new Date('2024-11-19'),
   },
 ];
 
@@ -338,12 +375,11 @@ let leadCounter = 4;
 
 function getLeads(filter = {}) {
   let leads = LEADS;
-  if (filter.status) leads = leads.filter(l => l.status === filter.status);
-  if (filter.assignedAuditor) leads = leads.filter(l => l.assignedAuditor === filter.assignedAuditor);
+  if (filter.status)     leads = leads.filter(l => l.status === filter.status);
+  if (filter.assignedTo) leads = leads.filter(l => l.assignedTo === filter.assignedTo);
   return leads.map(l => ({
     ...l,
-    assignedAuditor:  l.assignedAuditor  ? populateUser(l.assignedAuditor)  : null,
-    assignedReviewer: l.assignedReviewer ? populateUser(l.assignedReviewer) : null,
+    assignedTo: l.assignedTo ? populateUser(l.assignedTo) : null,
   })).reverse();
 }
 
@@ -352,8 +388,7 @@ function getLeadById(id) {
   if (!lead) return null;
   return {
     ...lead,
-    assignedAuditor:  lead.assignedAuditor  ? populateUser(lead.assignedAuditor)  : null,
-    assignedReviewer: lead.assignedReviewer ? populateUser(lead.assignedReviewer) : null,
+    assignedTo: lead.assignedTo ? populateUser(lead.assignedTo) : null,
   };
 }
 

@@ -75,7 +75,6 @@ router.post('/:id/convert', protect, authorize('admin', 'sales'), (req, res) => 
     client: clientId,
     organizationName: lead.companyName,
     organizationAbbr: lead.companyName.split(' ').map(w => w[0]).join('').substring(0, 4).toUpperCase(),
-    address1: lead.address || '',
     city: lead.city || '',
     state: lead.state || '',
     country: lead.country || 'India',
@@ -86,16 +85,15 @@ router.post('/:id/convert', protect, authorize('admin', 'sales'), (req, res) => 
     contactEmail: lead.email,
     contactPhone: lead.mobile,
     employeeCount: { headOffice: 0, branches: 0, temporary: 0, total: 0 },
-    adminNotes: `Converted from lead ${lead.leadId}`,
-    assignedAuditor: lead.assignedAuditor?._id || lead.assignedAuditor || null,
-    assignedReviewer: lead.assignedReviewer?._id || lead.assignedReviewer || null,
+    adminNotes: `Converted from lead ${lead.leadId}. Assigned to: ${lead.assignedTo?.name || 'N/A'}`,
     status: 'submitted',
     submittedAt: new Date(),
   };
   const app = createApplication(appData);
   updateLead(req.params.id, { status: 'converted', convertedToApplication: app._id });
-  if (appData.assignedAuditor) {
-    addNotification(appData.assignedAuditor, `Lead ${lead.leadId} converted — Application ${app.applicationId} created and assigned to you`, 'info');
+  const assignedId = lead.assignedTo?._id || lead.assignedTo;
+  if (assignedId) {
+    addNotification(assignedId, `Lead ${lead.leadId} converted — Application ${app.applicationId} created`, 'info');
   }
   res.json({ message: 'Lead converted to application', application: app });
 });

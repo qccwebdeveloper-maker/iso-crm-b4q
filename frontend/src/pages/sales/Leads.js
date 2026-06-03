@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
-import { Plus, Search, UserCheck, Trash2, Edit, Filter, Download, Phone, Mail } from 'lucide-react';
+import { Plus, Search, UserCheck, Trash2, Edit, Filter, Download, Phone, Mail, ArrowRight, CheckCircle } from 'lucide-react';
 
 const STATUS_CONFIG = {
   new:       { label: 'New',       bdg: 'bdg-new',       bg: '#eff6ff' },
@@ -29,11 +29,13 @@ export default function SalesLeads() {
   const [loading,  setLoading]  = useState(true);
   const [search,   setSearch]   = useState('');
   const [statusF,  setStatusF]  = useState('');
-  const [modal,    setModal]    = useState(null);
-  const [assignModal, setAssignModal] = useState(null);
-  const [form,     setForm]     = useState(EMPTY_FORM);
-  const [assignTo, setAssignTo] = useState('');
-  const [saving,   setSaving]   = useState(false);
+  const [modal,        setModal]        = useState(null);
+  const [assignModal,  setAssignModal]  = useState(null);
+  const [convertModal, setConvertModal] = useState(null);
+  const [convertForm,  setConvertForm]  = useState({ scope: '', accreditationBody: 'NABCB' });
+  const [form,         setForm]         = useState(EMPTY_FORM);
+  const [assignTo,     setAssignTo]     = useState('');
+  const [saving,       setSaving]       = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -92,6 +94,16 @@ export default function SalesLeads() {
       load();
     } catch { toast.error('Failed'); }
     finally { setSaving(false); }
+  };
+
+  const convertLead = async () => {
+    if (!convertForm.scope.trim()) return toast.error('Scope is required');
+    setSaving(true);
+    try {
+      await axios.post(`/api/leads/${convertModal._id}/convert`, convertForm);
+      toast.success('Lead converted to application!');
+      setConvertModal(null); setConvertForm({ scope: '', accreditationBody: 'NABCB' }); load();
+    } catch { toast.error('Failed to convert'); } finally { setSaving(false); }
   };
 
   const del = async (id) => {
@@ -181,12 +193,23 @@ export default function SalesLeads() {
                       <td style={{ fontSize: 12.5 }}>{l.assignedTo?.name || <span style={{ color: 'var(--gray-300)' }}>—</span>}</td>
                       <td>
                         <div className="tbl-actions">
-                          <button className="btn btn-secondary btn-sm" onClick={() => { setAssignModal(l); setAssignTo(''); }}>
-                            <UserCheck size={12} /> Assign
+                          <button className="btn btn-ghost btn-sm" title="Assign" onClick={() => { setAssignModal(l); setAssignTo(''); }}>
+                            <UserCheck size={12} />
                           </button>
-                          <button className="btn btn-ghost btn-sm" onClick={() => { setForm({ companyName: l.companyName, contactPerson: l.contactPerson, email: l.email || '', mobile: l.mobile || '', city: l.city || '', state: l.state || '', country: l.country || 'India', isoStandard: l.isoStandard, source: l.source, status: l.status, priority: l.priority, notes: l.notes || '' }); setModal(l); }}>
+                          <button className="btn btn-ghost btn-sm" title="Edit" onClick={() => { setForm({ companyName: l.companyName, contactPerson: l.contactPerson, email: l.email || '', mobile: l.mobile || '', city: l.city || '', state: l.state || '', country: l.country || 'India', isoStandard: l.isoStandard, source: l.source, status: l.status, priority: l.priority, notes: l.notes || '' }); setModal(l); }}>
                             <Edit size={12} />
                           </button>
+                          {!['converted','lost'].includes(l.status) && (
+                            <button className="btn btn-success btn-sm" style={{fontSize:10,gap:4}} title="Convert to Application"
+                              onClick={() => { setConvertModal(l); setConvertForm({ scope: `ISO Certification for ${l.companyName}`, accreditationBody: 'NABCB' }); }}>
+                              <ArrowRight size={11}/> Convert
+                            </button>
+                          )}
+                          {l.status==='converted' && (
+                            <span style={{display:'flex',alignItems:'center',gap:3,fontSize:10,color:'var(--green)',fontWeight:700}}>
+                              <CheckCircle size={11}/> Converted
+                            </span>
+                          )}
                           <button className="btn btn-danger btn-sm" onClick={() => del(l._id)}>
                             <Trash2 size={12} />
                           </button>
@@ -313,6 +336,47 @@ export default function SalesLeads() {
               <button className="btn btn-ghost" onClick={() => setAssignModal(null)}>Cancel</button>
               <button className="btn btn-primary" onClick={handleAssign} disabled={saving}>
                 {saving ? 'Assigning…' : <><UserCheck size={14} /> Assign</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Convert to Application Modal */}
+      {convertModal && (
+        <div className="modal-bg" onClick={() => setConvertModal(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <div className="modal-head">
+              <div className="modal-title"><ArrowRight size={14} style={{ color: 'var(--green)', marginRight: 7, verticalAlign: 'middle' }}/>Convert to Application</div>
+              <button className="modal-close" onClick={() => setConvertModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ background: 'var(--green-50)', border: '1px solid var(--green-200)', borderRadius: 9, padding: '12px 14px', marginBottom: 16 }}>
+                <div style={{ fontWeight: 700, fontSize: 13.5 }}>{convertModal.companyName}</div>
+                <div style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 3 }}>
+                  {convertModal.contactPerson} · {convertModal.isoStandard}
+                  {convertModal.city ? ` · ${convertModal.city}` : ''}
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Scope of Certification *</label>
+                <textarea className="form-control" rows={3}
+                  value={convertForm.scope}
+                  onChange={e => setConvertForm(p => ({ ...p, scope: e.target.value }))}
+                  placeholder="Describe the scope of activities to be certified…" />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Accreditation Body</label>
+                <select className="form-control" value={convertForm.accreditationBody}
+                  onChange={e => setConvertForm(p => ({ ...p, accreditationBody: e.target.value }))}>
+                  {['NABCB','DAkkS','UKAS','NAB','ANAB','JAB','KAN'].map(a => <option key={a}>{a}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={() => setConvertModal(null)}>Cancel</button>
+              <button className="btn btn-success" onClick={convertLead} disabled={saving}>
+                {saving ? 'Converting…' : <><ArrowRight size={13} /> Convert to Application</>}
               </button>
             </div>
           </div>

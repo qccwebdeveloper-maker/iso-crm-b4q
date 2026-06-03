@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
-import { Target, Users, TrendingUp, ChevronRight, Plus, UserCheck, BarChart2, CheckCircle, Clock, Star, Edit, Trash2, Search, Phone } from 'lucide-react';
+import { Target, Users, TrendingUp, ChevronRight, Plus, UserCheck, BarChart2, CheckCircle, Clock, Star, Edit, Trash2, Search, Phone, ArrowRight } from 'lucide-react';
 import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const STATUS_CFG = {
@@ -40,9 +40,11 @@ export default function SalesDashboard() {
   const [modal,   setModal]   = useState(false);
   const [editLead, setEditLead] = useState(null);
   const [form,    setForm]    = useState(EMPTY);
-  const [assignModal, setAssignModal] = useState(null);
-  const [assignTo, setAssignTo] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [assignModal,  setAssignModal]  = useState(null);
+  const [assignTo,     setAssignTo]     = useState('');
+  const [convertModal, setConvertModal] = useState(null);
+  const [convertForm,  setConvertForm]  = useState({ scope: '', accreditationBody: 'NABCB' });
+  const [saving,       setSaving]       = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -101,6 +103,16 @@ export default function SalesDashboard() {
     } catch { toast.error('Failed'); } finally { setSaving(false); }
   };
 
+  const convertLead = async () => {
+    if (!convertForm.scope.trim()) return toast.error('Scope is required');
+    setSaving(true);
+    try {
+      await axios.post(`/api/leads/${convertModal._id}/convert`, convertForm);
+      toast.success(`Lead converted to application!`);
+      setConvertModal(null); setConvertForm({ scope: '', accreditationBody: 'NABCB' }); load();
+    } catch { toast.error('Failed to convert'); } finally { setSaving(false); }
+  };
+
   const teamStats = team.map(m=>({
     ...m,
     leadsCount: leads.filter(l=>l.assignedTo===m._id||l.assignedTo?._id===m._id).length,
@@ -109,32 +121,54 @@ export default function SalesDashboard() {
 
   const TABS = [{id:'overview',label:'📊 Overview'},{id:'leads',label:'🎯 Leads'},{id:'team',label:'👥 Sales Team'}];
 
+  /* ── derived data for overview ── */
+  const sourceBreakdown = SOURCES.map(s=>({ name:s, count:leads.filter(l=>l.source===s).length })).filter(s=>s.count>0).sort((a,b)=>b.count-a.count);
+  const isoBreakdown    = ISO.map(s=>({ name:s.replace(':20','\'').replace('ISO ',''), count:leads.filter(l=>l.isoStandard===s).length })).filter(s=>s.count>0).sort((a,b)=>b.count-a.count);
+  const unassigned      = leads.filter(l=>!l.assignedTo).length;
+  const highPriority    = leads.filter(l=>l.priority==='high'&&l.status!=='converted'&&l.status!=='lost').length;
+  const recentLeads     = [...leads].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,6);
+
   return (
     <Layout title="Sales Dashboard">
+
+      {/* ── Page Header ── */}
       <div className="page-hdr">
-        <div><h1 className="page-title">Sales Dashboard</h1><p className="page-subtitle">Lead management &amp; team overview</p></div>
+        <div>
+          <h1 className="page-title">Sales Dashboard</h1>
+          <p className="page-subtitle">Lead management &amp; team performance overview</p>
+        </div>
         <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
           <button className="btn btn-secondary" onClick={()=>navigate('/sales/leads')}><Target size={13}/> All Leads</button>
           <button className="btn btn-primary" onClick={openAdd}><Plus size={13}/> Add Lead</button>
         </div>
       </div>
 
-      <div className="welcome-card">
+      {/* ── Welcome Banner ── */}
+      <div className="welcome-card" style={{marginBottom:18}}>
         <div className="wc-text" style={{position:'relative',zIndex:1}}>
           <h2>Welcome, {user?.name?.split(' ')[0]} 👋</h2>
-          <p>{leads.filter(l=>!l.assignedTo).length} leads unassigned · {stats.new} new this week</p>
+          <p>{unassigned} leads unassigned · {highPriority > 0 ? `${highPriority} high priority` : 'All priorities managed'}</p>
         </div>
         <div className="wc-stats">
-          {[{v:stats.total,l:'Total Leads'},{v:stats.qualified,l:'Qualified'},{v:stats.converted,l:'Converted'},{v:`${convRate}%`,l:'Conv. Rate'}].map((s,i)=>(
-            <div key={i} className="wc-stat"><div className="wc-stat-v">{s.v}</div><div className="wc-stat-l">{s.l}</div></div>
+          {[
+            {v:stats.total,     l:'Total Leads'  },
+            {v:stats.qualified, l:'Qualified'     },
+            {v:stats.converted, l:'Converted'     },
+            {v:`${convRate}%`,  l:'Conv. Rate'    },
+          ].map((s,i)=>(
+            <div key={i} className="wc-stat">
+              <div className="wc-stat-v">{s.v}</div>
+              <div className="wc-stat-l">{s.l}</div>
+            </div>
           ))}
         </div>
       </div>
 
-      <div className="kpi-grid">
+      {/* ── KPI Cards ── */}
+      <div className="client-kpi-grid" style={{marginBottom:18}}>
         {[
           {label:'Total Leads',    value:stats.total,     icon:Target,     color:'orange'},
-          {label:'Qualified',      value:stats.qualified, icon:Star,       color:'blue'  },
+          {label:'New Leads',      value:stats.new,       icon:Clock,      color:'blue'  },
           {label:'Converted',      value:stats.converted, icon:CheckCircle,color:'green' },
           {label:'Conversion Rate',value:`${convRate}%`,  icon:TrendingUp, color:'teal'  },
         ].map((k,i)=>(
@@ -146,56 +180,132 @@ export default function SalesDashboard() {
         ))}
       </div>
 
-      {/* Tab switcher */}
-      <div style={{display:'flex',gap:4,marginBottom:22,background:'var(--primary-50)',borderRadius:12,padding:4,width:'fit-content',border:'1.5px solid var(--primary-100)',flexWrap:'wrap'}}>
+      {/* ── Tab Switcher ── */}
+      <div style={{display:'flex',gap:4,marginBottom:20,background:'var(--primary-50)',borderRadius:12,padding:4,border:'1.5px solid var(--primary-100)',flexWrap:'wrap',width:'fit-content'}}>
         {TABS.map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{
-            padding:'8px 18px',borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:13,fontWeight:700,transition:'all .15s',
+            padding:'8px 18px',borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:13,fontWeight:700,transition:'all .15s',whiteSpace:'nowrap',
             background:tab===t.id?'linear-gradient(135deg,var(--primary),var(--primary-dark))':'transparent',
-            color:tab===t.id?'white':'var(--primary-dark)',boxShadow:tab===t.id?'0 2px 8px rgba(249,115,22,0.3)':'none',
+            color:tab===t.id?'white':'var(--primary-dark)',
+            boxShadow:tab===t.id?'0 2px 8px rgba(249,115,22,0.3)':'none',
           }}>{t.label}</button>
         ))}
       </div>
 
-      {/* OVERVIEW */}
+      {/* ══ OVERVIEW TAB ══ */}
       {tab==='overview' && (
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18}}>
-          <div className="card" style={{marginBottom:0}}>
-            <div className="card-hdr"><div className="card-title"><BarChart2 size={14} style={{color:'var(--primary)'}}/>Lead Pipeline</div></div>
-            <div style={{padding:'12px 8px 8px'}}>
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={pipelineData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffedd5"/>
-                  <XAxis dataKey="name" tick={{fontSize:10}}/>
-                  <YAxis tick={{fontSize:10}}/>
-                  <Tooltip contentStyle={{borderRadius:10,border:'1px solid #fed7aa',fontSize:12}}/>
-                  <Bar dataKey="count" radius={[4,4,0,0]}>
-                    {pipelineData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <div className="card" style={{marginBottom:0}}>
-            <div className="card-hdr">
-              <div className="card-title"><Target size={14} style={{color:'var(--primary)'}}/>Recent Leads</div>
-              <button className="btn btn-ghost btn-sm" onClick={()=>setTab('leads')}>View All <ChevronRight size={11}/></button>
-            </div>
-            {[...leads].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,5).map(l=>(
-              <div key={l._id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 16px',borderBottom:'1px solid var(--primary-50)'}}>
-                <div className="avatar" style={{width:28,height:28,fontSize:10,background:'linear-gradient(135deg,#3b82f6,#1d4ed8)',flexShrink:0}}>{l.companyName?.[0]}</div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontWeight:600,fontSize:12.5,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.companyName}</div>
-                  <div style={{fontSize:10.5,color:'var(--gray-400)'}}>{l.isoStandard}</div>
-                </div>
-                <span className={`badge ${STATUS_CFG[l.status]?.bdg||'bdg-info'}`} style={{fontSize:9.5}}>{STATUS_CFG[l.status]?.label||l.status}</span>
-                <button className="btn btn-ghost btn-sm" style={{padding:'3px 7px'}} onClick={()=>{setAssignModal(l);setAssignTo('');}}>
-                  <UserCheck size={11}/>
-                </button>
+        <div style={{display:'flex',flexDirection:'column',gap:18}}>
+
+          {/* Row 1: Pipeline chart + Status breakdown */}
+          <div className="client-dash-grid">
+            <div className="card" style={{marginBottom:0}}>
+              <div className="card-hdr">
+                <div className="card-title"><BarChart2 size={14} style={{color:'var(--primary)'}}/>Lead Pipeline</div>
               </div>
-            ))}
-            {leads.length===0 && <div style={{textAlign:'center',padding:28,color:'var(--gray-400)',fontSize:12.5}}>No leads yet</div>}
+              <div style={{padding:'14px 8px 10px'}}>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={pipelineData} barCategoryGap="35%">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffedd5" vertical={false}/>
+                    <XAxis dataKey="name" tick={{fontSize:11}} axisLine={false} tickLine={false}/>
+                    <YAxis tick={{fontSize:11}} axisLine={false} tickLine={false} width={28}/>
+                    <Tooltip contentStyle={{borderRadius:10,border:'1px solid #fed7aa',fontSize:12}}/>
+                    <Bar dataKey="count" radius={[6,6,0,0]}>
+                      {pipelineData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="card" style={{marginBottom:0}}>
+              <div className="card-hdr">
+                <div className="card-title"><Target size={14} style={{color:'var(--primary)'}}/>Status Breakdown</div>
+              </div>
+              <div style={{padding:'16px 18px'}}>
+                {Object.entries(STATUS_CFG).map(([k,v])=>{
+                  const cnt = leads.filter(l=>l.status===k).length;
+                  return (
+                    <div key={k} style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+                      <div style={{width:10,height:10,borderRadius:'50%',background:v.color,flexShrink:0}}/>
+                      <span style={{fontSize:12.5,fontWeight:600,color:'var(--text-1)',flex:1}}>{v.label}</span>
+                      <div style={{flex:2,height:7,background:'var(--gray-100)',borderRadius:99,overflow:'hidden'}}>
+                        <div style={{height:'100%',width:`${stats.total>0?(cnt/stats.total)*100:0}%`,background:v.color,borderRadius:99,transition:'width .4s'}}/>
+                      </div>
+                      <span style={{fontSize:12,fontWeight:700,color:'var(--text-1)',minWidth:22,textAlign:'right'}}>{cnt}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
+
+          {/* Row 2: Recent leads + Source + ISO breakdown */}
+          <div className="client-dash-grid">
+            <div className="card" style={{marginBottom:0}}>
+              <div className="card-hdr">
+                <div className="card-title"><Clock size={14} style={{color:'var(--primary)'}}/>Recent Leads</div>
+                <button className="btn btn-ghost btn-sm" onClick={()=>setTab('leads')}>View All <ChevronRight size={11}/></button>
+              </div>
+              {recentLeads.length===0
+                ? <div style={{textAlign:'center',padding:'32px 20px',color:'var(--gray-400)',fontSize:13}}>No leads yet — <button className="btn btn-primary btn-sm" style={{marginLeft:6}} onClick={openAdd}><Plus size={11}/> Add one</button></div>
+                : recentLeads.map(l=>(
+                  <div key={l._id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 16px',borderBottom:'1px solid var(--primary-50)',cursor:'pointer',transition:'background .12s'}}
+                    onMouseEnter={e=>e.currentTarget.style.background='var(--primary-50)'}
+                    onMouseLeave={e=>e.currentTarget.style.background=''}>
+                    <div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,#3b82f6,#1d4ed8)',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:12,flexShrink:0}}>
+                      {l.companyName?.[0]?.toUpperCase()}
+                    </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontWeight:600,fontSize:12.5,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'var(--text-1)'}}>{l.companyName}</div>
+                      <div style={{fontSize:10.5,color:'var(--gray-400)',marginTop:1}}>{l.contactPerson} · {l.isoStandard}</div>
+                    </div>
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4,flexShrink:0}}>
+                      <span className={`badge ${STATUS_CFG[l.status]?.bdg||'bdg-info'}`} style={{fontSize:9}}>{STATUS_CFG[l.status]?.label||l.status}</span>
+                      <span style={{fontSize:9.5,padding:'1px 6px',borderRadius:99,fontWeight:700,background:l.priority==='high'?'var(--red-50)':l.priority==='low'?'var(--green-50)':'var(--amber-50)',color:l.priority==='high'?'var(--red)':l.priority==='low'?'var(--green)':'var(--amber)'}}>
+                        {l.priority||'medium'}
+                      </span>
+                    </div>
+                    <button className="btn btn-ghost btn-sm" style={{flexShrink:0}} onClick={e=>{e.stopPropagation();setAssignModal(l);setAssignTo('');}}>
+                      <UserCheck size={12}/>
+                    </button>
+                  </div>
+                ))
+              }
+            </div>
+
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+              {/* Source breakdown */}
+              <div className="card" style={{marginBottom:0}}>
+                <div className="card-hdr">
+                  <div className="card-title"><BarChart2 size={14} style={{color:'var(--primary)'}}/>Lead Sources</div>
+                </div>
+                <div style={{padding:'14px 18px'}}>
+                  {sourceBreakdown.length===0
+                    ? <p style={{color:'var(--gray-400)',fontSize:12}}>No data yet</p>
+                    : sourceBreakdown.slice(0,5).map(s=>(
+                      <PBar key={s.name} label={s.name} value={s.count} max={sourceBreakdown[0].count} color="#3b82f6"/>
+                    ))
+                  }
+                </div>
+              </div>
+
+              {/* ISO standard breakdown */}
+              <div className="card" style={{marginBottom:0}}>
+                <div className="card-hdr">
+                  <div className="card-title"><Star size={14} style={{color:'var(--primary)'}}/>ISO Standards</div>
+                </div>
+                <div style={{padding:'14px 18px'}}>
+                  {isoBreakdown.length===0
+                    ? <p style={{color:'var(--gray-400)',fontSize:12}}>No data yet</p>
+                    : isoBreakdown.map(s=>(
+                      <PBar key={s.name} label={s.name} value={s.count} max={isoBreakdown[0].count} color="var(--primary)"/>
+                    ))
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       )}
 
@@ -230,7 +340,12 @@ export default function SalesDashboard() {
                         <div className="tbl-actions">
                           {l.mobile&&<a href={`tel:${l.mobile}`} className="btn btn-ghost btn-sm"><Phone size={11}/></a>}
                           <button className="btn btn-secondary btn-sm" onClick={()=>openEdit(l)}><Edit size={11}/></button>
-                          <button className="btn btn-primary btn-sm" onClick={()=>{setAssignModal(l);setAssignTo('');}}><UserCheck size={11}/></button>
+                          <button className="btn btn-ghost btn-sm" onClick={()=>{setAssignModal(l);setAssignTo('');}} title="Assign"><UserCheck size={11}/></button>
+                          {!['converted','lost'].includes(l.status) && (
+                            <button className="btn btn-success btn-sm" style={{fontSize:10}} onClick={()=>{setConvertModal(l);setConvertForm({scope:`ISO Certification for ${l.companyName}`,accreditationBody:'NABCB'});}} title="Convert to Application">
+                              <ArrowRight size={11}/>Convert
+                            </button>
+                          )}
                           <button className="btn btn-danger btn-sm" onClick={()=>deleteLead(l._id)}><Trash2 size={11}/></button>
                         </div>
                       </td>
@@ -355,6 +470,45 @@ export default function SalesDashboard() {
             <div className="modal-foot">
               <button className="btn btn-ghost" onClick={()=>setAssignModal(null)}>Cancel</button>
               <button className="btn btn-primary" onClick={assignLead} disabled={saving}>{saving?'Assigning…':<><UserCheck size={13}/> Assign</>}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Convert to Application Modal */}
+      {convertModal && (
+        <div className="modal-bg" onClick={()=>setConvertModal(null)}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()}>
+            <div className="modal-head">
+              <div className="modal-title"><ArrowRight size={14} style={{color:'var(--green)',marginRight:7,verticalAlign:'middle'}}/>Convert to Application</div>
+              <button className="modal-close" onClick={()=>setConvertModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{background:'var(--green-50)',border:'1px solid var(--green-200)',borderRadius:9,padding:'12px 14px',marginBottom:16}}>
+                <div style={{fontWeight:700,fontSize:13.5,color:'var(--text-1)'}}>{convertModal.companyName}</div>
+                <div style={{fontSize:12,color:'var(--gray-500)',marginTop:3}}>
+                  {convertModal.contactPerson} · {convertModal.isoStandard} · {convertModal.city}
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Scope of Certification *</label>
+                <textarea className="form-control" rows={3}
+                  value={convertForm.scope}
+                  onChange={e=>setConvertForm(p=>({...p,scope:e.target.value}))}
+                  placeholder="Describe the scope of activities to be certified…"/>
+              </div>
+              <div className="form-group" style={{marginBottom:0}}>
+                <label className="form-label">Accreditation Body</label>
+                <select className="form-control" value={convertForm.accreditationBody} onChange={e=>setConvertForm(p=>({...p,accreditationBody:e.target.value}))}>
+                  {['NABCB','DAkkS','UKAS','NAB','ANAB','JAB','KAN'].map(a=><option key={a}>{a}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={()=>setConvertModal(null)}>Cancel</button>
+              <button className="btn btn-success" onClick={convertLead} disabled={saving}>
+                {saving?'Converting…':<><ArrowRight size={13}/> Convert to Application</>}
+              </button>
             </div>
           </div>
         </div>

@@ -108,7 +108,7 @@ function OtpInput({ value, onChange }) {
 // ═══════════════════════════════════════════════
 export default function Login() {
   const [tab, setTab] = useState('login');            // 'login' | 'register' | 'success'
-  const [loginMode, setLoginMode] = useState('client'); // 'client' | 'auditor' | 'admin'
+  const [loginMode, setLoginMode] = useState('client'); // 'client' | 'auditor' | 'sales' | 'admin'
 
   // email login state
   const [email, setEmail] = useState('');
@@ -258,9 +258,10 @@ export default function Login() {
           {tab === 'login' && (
             <>
               {/* Mode pills */}
-              <div style={{ display: 'flex', gap: 7, marginBottom: 18 }}>
+              <div style={{ display: 'flex', gap: 7, marginBottom: 18, flexWrap: 'wrap' }}>
                 {modePill('client',  '👤 Client')}
                 {modePill('auditor', '🔍 Auditor')}
+                {modePill('sales',   '📊 Sales')}
                 {modePill('admin',   '🔐 Admin OTP')}
               </div>
 
@@ -318,7 +319,8 @@ export default function Login() {
               {loginMode !== 'admin' && (
                 <form onSubmit={handleLogin}>
                   <Field label="Email Address" required>
-                    <FInput type="email" placeholder={loginMode === 'auditor' ? 'auditor@crm.com' : 'client@crm.com'}
+                    <FInput type="email"
+                      placeholder={loginMode === 'auditor' ? 'auditor@crm.com' : loginMode === 'sales' ? 'sales@crm.com' : 'client@crm.com'}
                       value={email} onChange={e => setEmail(e.target.value)} />
                   </Field>
                   <Field label="Password" required>
@@ -333,7 +335,7 @@ export default function Login() {
                     </div>
                   </Field>
                   <button type="submit" disabled={loading} style={{ ...S.btnMain, marginTop: 6, opacity: loading ? 0.7 : 1 }}>
-                    {loading ? '⏳ Signing in…' : `→ ${loginMode === 'auditor' ? 'Auditor' : 'Client'} Login`}
+                    {loading ? '⏳ Signing in…' : `→ ${loginMode === 'auditor' ? 'Auditor' : loginMode === 'sales' ? 'Sales' : 'Client'} Login`}
                   </button>
 
                   {/* Demo creds */}
@@ -351,6 +353,14 @@ export default function Login() {
                         style={{ width: '100%', padding: '8px 14px', background: '#f5f3ff', border: '1.5px solid #ddd6fe', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
                         <div style={{ fontSize: 11, fontWeight: 800, color: '#8b5cf6' }}>Auditor</div>
                         <div style={{ fontSize: 10.5, color: '#9ca3af' }}>auditor@crm.com / auditor123</div>
+                      </button>
+                    )}
+                    {loginMode === 'sales' && (
+                      <button type="button" onClick={() => { setEmail('sales@crm.com'); setPassword('sales123'); }}
+                        style={{ width: '100%', padding: '8px 14px', background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: '#16a34a' }}>📊 Sales Dashboard</div>
+                        <div style={{ fontSize: 10.5, color: '#9ca3af', marginTop: 2 }}>sales@crm.com / sales123</div>
+                        <div style={{ fontSize: 10, color: '#16a34a', marginTop: 3 }}>✓ Lead management · Team · Reports · Pipeline</div>
                       </button>
                     )}
                   </div>
