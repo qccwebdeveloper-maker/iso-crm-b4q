@@ -1,0 +1,201 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Layout from '../../components/common/Layout';
+import toast from 'react-hot-toast';
+import { Search, UserCheck, Eye, Edit, Plus, X } from 'lucide-react';
+
+export default function AdminApplications() {
+  const navigate = useNavigate();
+  const [apps, setApps]   = useState([]);
+  const [aud,  setAud]    = useState([]);
+  const [rev,  setRev]    = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search,  setSearch]  = useState('');
+  const [statusF, setStatusF] = useState('');
+  const [assignModal, setAssignModal] = useState(null);
+  const [editModal,   setEditModal]   = useState(null);
+  const [assign, setAssign] = useState({ auditorId:'', reviewerId:'' });
+  const [editForm, setEditForm] = useState({});
+  const [saving, setSaving] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    Promise.all([axios.get('/api/applications'), axios.get('/api/auditors')])
+      .then(([a,au]) => {
+        setApps(a.data||[]);
+        setAud((au.data||[]).filter(u=>u.role==='auditor'));
+        setRev((au.data||[]).filter(u=>u.role==='reviewer'));
+      }).finally(() => setLoading(false));
+  };
+  useEffect(load, []);
+
+  const filtered = apps.filter(a => {
+    const q = search.toLowerCase();
+    return (!q||a.applicationId?.toLowerCase().includes(q)||a.organizationName?.toLowerCase().includes(q)||a.client?.name?.toLowerCase().includes(q))
+      && (!statusF||a.status===statusF);
+  });
+
+  const doAssign = async () => {
+    if (!assign.auditorId && !assign.reviewerId) return toast.error('Select at least one');
+    setSaving(true);
+    try { await axios.post(`/api/applications/${assignModal._id}/assign`, assign); toast.success('Assigned!'); setAssignModal(null); load(); }
+    catch { toast.error('Failed'); } finally { setSaving(false); }
+  };
+
+  const openEdit = (app) => {
+    setEditForm({
+      organizationName: app.organizationName || '',
+      organizationAbbr: app.organizationAbbr || '',
+      isoStandard: app.isoStandard || '',
+      scope: app.scope || '',
+      accreditationBody: app.accreditationBody || '',
+      city: app.city || '',
+      state: app.state || '',
+      country: app.country || '',
+      website: app.website || '',
+      adminNotes: app.adminNotes || '',
+    });
+    setEditModal(app);
+  };
+
+  const doEdit = async () => {
+    setSaving(true);
+    try { await axios.put(`/api/applications/${editModal._id}`, editForm); toast.success('Application updated!'); setEditModal(null); load(); }
+    catch { toast.error('Update failed'); } finally { setSaving(false); }
+  };
+
+  const ST = ['draft','submitted','under_review','audit_stage1','audit_stage2','approved','certified','rejected'];
+
+  return (
+    <Layout title="Applications">
+      <div className="page-hdr">
+        <div><h1 className="page-title">All Applications</h1><p className="page-subtitle">{filtered.length} applications found</p></div>
+        <button className="btn btn-primary" onClick={() => navigate('/admin/applications/new')}><Plus size={14}/> New Application</button>
+      </div>
+
+      <div className="card" style={{marginBottom:20}}>
+        <div className="card-body" style={{display:'flex',gap:12,flexWrap:'wrap',padding:14}}>
+          <div className="search-wrap" style={{flex:1,minWidth:200}}>
+            <Search size={15} className="search-ico"/>
+            <input className="search-input" placeholder="Search by ID, organization, client…" value={search} onChange={e=>setSearch(e.target.value)}/>
+          </div>
+          <select className="form-control" style={{width:'auto',minWidth:160}} value={statusF} onChange={e=>setStatusF(e.target.value)}>
+            <option value="">All Statuses</option>
+            {ST.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="card">
+        {loading ? <div className="loading-box"><div className="spinner"/></div> :
+          filtered.length===0 ? <div className="empty-box"><Eye size={40}/><h3>No applications</h3><p>Try adjusting your filters</p></div> :
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <thead><tr><th>App ID</th><th>Organization</th><th>Client</th><th>Standard</th><th>Status</th><th>Auditor</th><th>Date</th><th>Actions</th></tr></thead>
+              <tbody>
+                {filtered.map(app=>(
+                  <tr key={app._id}>
+                    <td><span className="mono">{app.applicationId}</span></td>
+                    <td style={{fontWeight:600,maxWidth:160}}>{app.organizationName}</td>
+                    <td><div style={{display:'flex',alignItems:'center',gap:7}}><div className="avatar" style={{width:24,height:24,fontSize:10}}>{app.client?.name?.[0]}</div><span style={{fontSize:12.5}}>{app.client?.name}</span></div></td>
+                    <td><span className="badge bdg-info" style={{fontSize:10}}>{app.isoStandard}</span></td>
+                    <td><span className={`badge bdg-${app.status}`} style={{fontSize:10}}>{app.status?.replace(/_/g,' ')}</span></td>
+                    <td style={{fontSize:12,color:'var(--gray-500)'}}>{app.assignedAuditor?.name||'—'}</td>
+                    <td style={{fontSize:12,color:'var(--gray-400)'}}>{new Date(app.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <div className="tbl-actions">
+                        <button className="btn btn-ghost btn-sm" onClick={()=>navigate(`/admin/applications/${app._id}`)}><Eye size={13}/> View</button>
+                        <button className="btn btn-secondary btn-sm" onClick={()=>openEdit(app)}><Edit size={13}/> Edit</button>
+                        <button className="btn btn-primary btn-sm" onClick={()=>{setAssignModal(app);setAssign({auditorId:app.assignedAuditor?._id||'',reviewerId:app.assignedReviewer?._id||''});}}>
+                          <UserCheck size={13}/> Assign
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      {/* Edit Modal */}
+      {editModal && (
+        <div className="modal-bg" onClick={()=>setEditModal(null)}>
+          <div className="modal-box" style={{maxWidth:620}} onClick={e=>e.stopPropagation()}>
+            <div className="modal-head">
+              <div className="modal-title"><Edit size={16} style={{color:'var(--primary)',marginRight:8,verticalAlign:'middle'}}/>Edit Application — {editModal.applicationId}</div>
+              <button className="modal-close" onClick={()=>setEditModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-row">
+                <div className="form-group"><label className="form-label">Organization Name</label><input className="form-control" value={editForm.organizationName} onChange={e=>setEditForm(p=>({...p,organizationName:e.target.value}))}/></div>
+                <div className="form-group"><label className="form-label">Abbreviation</label><input className="form-control" value={editForm.organizationAbbr} onChange={e=>setEditForm(p=>({...p,organizationAbbr:e.target.value}))}/></div>
+              </div>
+              <div className="form-row">
+                <div className="form-group"><label className="form-label">ISO Standard</label>
+                  <select className="form-control" value={editForm.isoStandard} onChange={e=>setEditForm(p=>({...p,isoStandard:e.target.value}))}>
+                    {['ISO 9001:2015','ISO 14001:2015','ISO 45001:2018','ISO 27001:2022','ISO 22000:2018','ISO 13485:2016'].map(s=><option key={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="form-group"><label className="form-label">Accreditation Body</label>
+                  <select className="form-control" value={editForm.accreditationBody} onChange={e=>setEditForm(p=>({...p,accreditationBody:e.target.value}))}>
+                    {['NABCB','UKAS','DAkkS','NAB','ANAB'].map(b=><option key={b}>{b}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="form-group"><label className="form-label">Scope</label><textarea className="form-control" rows={2} value={editForm.scope} onChange={e=>setEditForm(p=>({...p,scope:e.target.value}))}/></div>
+              <div className="form-row">
+                <div className="form-group"><label className="form-label">City</label><input className="form-control" value={editForm.city} onChange={e=>setEditForm(p=>({...p,city:e.target.value}))}/></div>
+                <div className="form-group"><label className="form-label">State</label><input className="form-control" value={editForm.state} onChange={e=>setEditForm(p=>({...p,state:e.target.value}))}/></div>
+              </div>
+              <div className="form-row">
+                <div className="form-group"><label className="form-label">Country</label><input className="form-control" value={editForm.country} onChange={e=>setEditForm(p=>({...p,country:e.target.value}))}/></div>
+                <div className="form-group"><label className="form-label">Website</label><input className="form-control" value={editForm.website} onChange={e=>setEditForm(p=>({...p,website:e.target.value}))}/></div>
+              </div>
+              <div className="form-group"><label className="form-label">Admin Notes</label><textarea className="form-control" rows={2} value={editForm.adminNotes} onChange={e=>setEditForm(p=>({...p,adminNotes:e.target.value}))} placeholder="Internal notes…"/></div>
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={()=>setEditModal(null)}>Cancel</button>
+              <button className="btn btn-primary" onClick={doEdit} disabled={saving}>{saving?'Saving…':<><Edit size={14}/> Save Changes</>}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Modal */}
+      {assignModal && (
+        <div className="modal-bg" onClick={()=>setAssignModal(null)}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()}>
+            <div className="modal-head">
+              <div className="modal-title"><UserCheck size={16} style={{color:'var(--primary)',marginRight:8,verticalAlign:'middle'}}/>Assign Team — {assignModal.applicationId}</div>
+              <button className="modal-close" onClick={()=>setAssignModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{background:'var(--primary-50)',borderRadius:10,padding:'10px 14px',marginBottom:18,fontSize:13,border:'1px solid var(--primary-100)'}}>
+                <strong>{assignModal.organizationName}</strong> · <span style={{color:'var(--gray-500)'}}>{assignModal.isoStandard}</span>
+              </div>
+              <div className="form-group"><label className="form-label">Assign Auditor</label>
+                <select className="form-control" value={assign.auditorId} onChange={e=>setAssign(p=>({...p,auditorId:e.target.value}))}>
+                  <option value="">— Select Auditor —</option>
+                  {aud.map(a=><option key={a._id} value={a._id}>{a.name} ({a.email})</option>)}
+                </select>
+              </div>
+              <div className="form-group"><label className="form-label">Assign Reviewer</label>
+                <select className="form-control" value={assign.reviewerId} onChange={e=>setAssign(p=>({...p,reviewerId:e.target.value}))}>
+                  <option value="">— Select Reviewer —</option>
+                  {rev.map(r=><option key={r._id} value={r._id}>{r.name} ({r.email})</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={()=>setAssignModal(null)}>Cancel</button>
+              <button className="btn btn-primary" onClick={doAssign} disabled={saving}>{saving?'Saving…':<><UserCheck size={14}/> Confirm Assign</>}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </Layout>
+  );
+}
