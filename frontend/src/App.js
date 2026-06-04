@@ -25,6 +25,8 @@ import Observation           from './pages/admin/Observation';
 import CertificateManagement from './pages/admin/CertificateManagement';
 import SendDocument          from './pages/admin/SendDocument';
 import AdminAnalysisReports  from './pages/admin/Reports';
+import AdminAuditForms       from './pages/admin/AuditForms';
+import AdminAuditReportForm  from './pages/admin/AuditReportForm';
 
 // ── Client ──
 import ClientDashboard       from './pages/client/Dashboard';
@@ -42,11 +44,12 @@ import AuditorApplications   from './pages/auditor/Applications';
 import AuditorApplicationDetail from './pages/auditor/ApplicationDetail';
 
 // ── Sales ──
-import SalesDashboard from './pages/sales/Dashboard';
-import SalesTeam      from './pages/sales/Team';
-import SalesLeads     from './pages/sales/Leads';
-import SalesAssign    from './pages/sales/Assign';
-import SalesReports   from './pages/sales/Reports';
+import SalesDashboard        from './pages/sales/Dashboard';
+import SalesTeam             from './pages/sales/Team';
+import SalesLeads            from './pages/sales/Leads';
+import SalesAssign           from './pages/sales/Assign';
+import SalesReports          from './pages/sales/Reports';
+import SalesApplicationsList from './pages/sales/ApplicationsList';
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user, loading } = useAuth();
@@ -96,6 +99,8 @@ function AppRoutes() {
       <Route path="/admin/certificates"      element={<ProtectedRoute roles={['admin']}><CertificateManagement /></ProtectedRoute>} />
       <Route path="/admin/send-client"       element={<ProtectedRoute roles={['admin']}><SendDocument role="client" /></ProtectedRoute>} />
       <Route path="/admin/send-auditor"      element={<ProtectedRoute roles={['admin']}><SendDocument role="auditor" /></ProtectedRoute>} />
+      <Route path="/admin/audit-forms"        element={<ProtectedRoute roles={['admin']}><AdminAuditForms /></ProtectedRoute>} />
+      <Route path="/admin/audit-report/new"  element={<ProtectedRoute roles={['admin']}><AdminAuditReportForm /></ProtectedRoute>} />
 
       {/* ── Client ── */}
       <Route path="/client"                  element={<ProtectedRoute roles={['client']}><ClientDashboard /></ProtectedRoute>} />
@@ -124,7 +129,9 @@ function AppRoutes() {
       <Route path="/sales/team"    element={<ProtectedRoute roles={['sales']}><SalesTeam /></ProtectedRoute>} />
       <Route path="/sales/leads"   element={<ProtectedRoute roles={['sales']}><SalesLeads /></ProtectedRoute>} />
       <Route path="/sales/assign"  element={<ProtectedRoute roles={['sales']}><SalesAssign /></ProtectedRoute>} />
-      <Route path="/sales/reports" element={<ProtectedRoute roles={['sales']}><SalesReports /></ProtectedRoute>} />
+      <Route path="/sales/reports"          element={<ProtectedRoute roles={['sales']}><SalesReports /></ProtectedRoute>} />
+      <Route path="/sales/new-application"  element={<ProtectedRoute roles={['sales','admin']}><AdminNewApplication /></ProtectedRoute>} />
+      <Route path="/sales/applications"     element={<ProtectedRoute roles={['sales']}><SalesApplicationsList /></ProtectedRoute>} />
       <Route path="/sales/targets" element={<ProtectedRoute roles={['sales']}><SalesReports /></ProtectedRoute>} />
       <Route path="/sales/settings" element={<ProtectedRoute roles={['sales']}><SalesDashboard /></ProtectedRoute>} />
 

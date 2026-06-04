@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
-import { Target, Users, TrendingUp, ChevronRight, Plus, UserCheck, BarChart2, CheckCircle, Clock, Star, Edit, Trash2, Search, Phone, ArrowRight } from 'lucide-react';
+import { Target, Users, TrendingUp, ChevronRight, Plus, UserCheck, BarChart2, CheckCircle, Clock, Star, Edit, Trash2, Search, Phone, ArrowRight, FileText } from 'lucide-react';
 import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const STATUS_CFG = {
@@ -139,6 +139,7 @@ export default function SalesDashboard() {
         </div>
         <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
           <button className="btn btn-secondary" onClick={()=>navigate('/sales/leads')}><Target size={13}/> All Leads</button>
+          <button className="btn btn-ghost" onClick={()=>navigate('/sales/new-application')}><FileText size={13}/> New Application</button>
           <button className="btn btn-primary" onClick={openAdd}><Plus size={13}/> Add Lead</button>
         </div>
       </div>

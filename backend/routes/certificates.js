@@ -24,22 +24,38 @@ router.put('/settings', protect, authorize('admin'), (req, res) => {
 });
 
 router.post('/manual', protect, authorize('admin'), (req, res) => {
-  const cert = { _id: 'mc' + mcCounter++, ...req.body, status: 'Active', createdAt: new Date() };
+  const now = new Date();
+  const cert = { _id: 'mc' + mcCounter++, ...req.body, status: 'Active', createdAt: now, updatedAt: now };
   MANUAL_CERTS.push(cert);
   res.status(201).json(cert);
 });
 
 router.put('/:id', protect, authorize('admin'), (req, res) => {
+  const now = new Date();
   const app = APPLICATIONS.find(a => a._id === req.params.id);
   if (app) {
-    if (req.body.issueDate) app.certificateIssueDate = new Date(req.body.issueDate);
+    if (req.body.issueDate)  app.certificateIssueDate  = new Date(req.body.issueDate);
     if (req.body.expiryDate) app.certificateExpiryDate = new Date(req.body.expiryDate);
     if (req.body.certNumber) app.certNumber = req.body.certNumber;
-    return res.json({ message: 'Updated' });
+    app.updatedAt = now;
+    return res.json({ ...app, updatedAt: now });
   }
-  const mc = MANUAL_CERTS.find(c => c._id === req.params.id);
-  if (mc) { Object.assign(mc, req.body); return res.json(mc); }
+  const idx = MANUAL_CERTS.findIndex(c => c._id === req.params.id);
+  if (idx !== -1) {
+    MANUAL_CERTS[idx] = { ...MANUAL_CERTS[idx], ...req.body, updatedAt: now };
+    return res.json(MANUAL_CERTS[idx]);
+  }
   res.status(404).json({ message: 'Not found' });
+});
+
+router.delete('/:id', protect, authorize('admin'), (req, res) => {
+  const idx = MANUAL_CERTS.findIndex(c => c._id === req.params.id);
+  if (idx !== -1) {
+    MANUAL_CERTS.splice(idx, 1);
+    return res.json({ message: 'Deleted' });
+  }
+  // Application-linked certs cannot be deleted directly; mark them removed
+  res.status(400).json({ message: 'Cannot delete application-linked certificates. Remove from the application instead.' });
 });
 
 module.exports = router;

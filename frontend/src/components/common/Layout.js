@@ -6,7 +6,7 @@ import {
   LogOut, Bell, Menu, X, Star, MessageSquare, Award, FolderOpen,
   Settings, Plus, Camera, Target, TrendingUp, UserCheck,
   ShieldCheck, BookOpen, Send, AlertTriangle, CheckSquare,
-  ChevronDown, Activity, Search, CreditCard
+  ChevronDown, Activity, Search, CreditCard, ClipboardList
 } from 'lucide-react';
 
 
@@ -46,6 +46,10 @@ const NAV = {
     { sec: 'Leads', items: [
       { to: '/admin/leads', icon: Target, label: 'Lead Management', badge: 'NEW' },
     ]},
+    { sec: 'QMS Forms', items: [
+      { to: '/admin/audit-report/new', icon: FileText,      label: 'New Audit Report', badge: 'NEW' },
+      { to: '/admin/audit-forms',      icon: ClipboardList, label: 'QMS Audit Forms Index' },
+    ]},
   ],
   client: [
     { sec: 'Overview', items: [
@@ -69,8 +73,11 @@ const NAV = {
       { to: '/auditor/applications', icon: ClipboardCheck,  label: 'My Audits' },
     ]},
     { sec: 'Review', items: [
-      { to: '/auditor/review-queue', icon: Star,       label: 'Review Queue' },
-      { to: '/auditor/reports',      icon: BarChart2,  label: 'Reports' },
+      { to: '/auditor/review-queue', icon: Star,         label: 'Review Queue' },
+      { to: '/auditor/reports',      icon: BarChart2,    label: 'Reports' },
+    ]},
+    { sec: 'Audit Forms', items: [
+      { to: '/auditor/applications', icon: ClipboardList, label: 'View Audit Forms', badge: 'QMS' },
     ]},
     { sec: 'Documents', items: [
       { to: '/auditor/documents', icon: FolderOpen, label: 'Documents' },
@@ -85,8 +92,11 @@ const NAV = {
       { to: '/auditor/applications', icon: ClipboardCheck,  label: 'My Audits' },
     ]},
     { sec: 'Review', items: [
-      { to: '/auditor/review-queue', icon: Star,      label: 'Review Queue' },
-      { to: '/auditor/reports',      icon: BarChart2, label: 'Reports' },
+      { to: '/auditor/review-queue', icon: Star,         label: 'Review Queue' },
+      { to: '/auditor/reports',      icon: BarChart2,    label: 'Reports' },
+    ]},
+    { sec: 'Audit Reports', items: [
+      { to: '/auditor/applications', icon: ClipboardList, label: 'Review Audit Forms', badge: 'QMS' },
     ]},
     { sec: 'Documents', items: [
       { to: '/auditor/documents', icon: FolderOpen, label: 'Documents' },
@@ -99,6 +109,10 @@ const NAV = {
     { sec: 'Overview', items: [
       { to: '/sales',          icon: LayoutDashboard, label: 'Dashboard' },
       { to: '/sales/pipeline', icon: Target,          label: 'Sales Pipeline' },
+    ]},
+    { sec: 'Applications', items: [
+      { to: '/sales/new-application',  icon: Plus,          label: 'New Application', badge: 'NEW' },
+      { to: '/sales/applications',     icon: ClipboardList, label: 'View Audit Details', badge: 'QMS' },
     ]},
     { sec: 'Team', items: [
       { to: '/sales/team',   icon: Users,     label: 'Sales Team' },
