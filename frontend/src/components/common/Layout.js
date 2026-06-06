@@ -1,131 +1,133 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
+import { MdDashboard, MdShield } from 'react-icons/md';
 import {
-  LayoutDashboard, FileText, Users, ClipboardCheck, BarChart2,
-  LogOut, Bell, Menu, X, Star, MessageSquare, Award, FolderOpen,
-  Settings, Plus, Camera, Target, TrendingUp, UserCheck,
-  ShieldCheck, BookOpen, Send, AlertTriangle, CheckSquare,
-  ChevronDown, Activity, Search, CreditCard, ClipboardList
-} from 'lucide-react';
+  FiFileText, FiUsers, FiBarChart2, FiLogOut, FiBell, FiMenu, FiX,
+  FiStar, FiMessageSquare, FiAward, FiFolder, FiSettings, FiPlus,
+  FiCamera, FiTarget, FiTrendingUp, FiUserCheck, FiBookOpen,
+  FiSend, FiAlertTriangle, FiCheckSquare, FiChevronDown, FiActivity,
+  FiSearch, FiCreditCard, FiClipboard
+} from 'react-icons/fi';
 
 
 const NAV = {
   admin: [
     { sec: 'Overview', items: [
-      { to: '/admin',               icon: LayoutDashboard, label: 'Dashboard' },
-      { to: '/admin/reports',       icon: BarChart2,       label: 'Analysis & Reports' },
+      { to: '/admin',               icon: MdDashboard,  label: 'Dashboard' },
+      { to: '/admin/reports',       icon: FiBarChart2,  label: 'Analysis & Reports' },
     ]},
     { sec: 'Master', collapsible: true, key: 'master', items: [
-      { to: '/admin/standards',     icon: BookOpen,        label: 'Add Standard' },
-      { to: '/admin/auditors',      icon: ClipboardCheck,  label: 'Add Auditor' },
-      { to: '/admin/auditors',      icon: Users,           label: 'Auditor List' },
-      { to: '/admin/users',         icon: Users,           label: 'Users' },
-      { to: '/admin/roles',         icon: ShieldCheck,     label: 'Add Role' },
+      { to: '/admin/standards',     icon: FiBookOpen,   label: 'Add Standard' },
+      { to: '/admin/auditors',      icon: FiClipboard,  label: 'Add Auditor' },
+      { to: '/admin/auditors',      icon: FiUsers,      label: 'Auditor List' },
+      { to: '/admin/users',         icon: FiUsers,      label: 'Users' },
+      { to: '/admin/roles',         icon: MdShield,     label: 'Add Role' },
     ]},
 
     { sec: 'Apps', items: [
-      { to: '/admin/applications/new',   icon: Plus,           label: 'Add Application' },
-      { to: '/admin/applications',       icon: FileText,       label: 'Application List' },
-      { to: '/admin/applications',       icon: FileText,       label: 'App Standard Delete' },
-      { to: '/admin/feedback',           icon: MessageSquare,  label: 'Review' },
-      { to: '/admin/approval-pending',   icon: CheckSquare,    label: 'Approval Pending' },
-      { to: '/admin/dms',                icon: FolderOpen,     label: 'DMS' },
-      { to: '/admin/audit-stage1',       icon: ClipboardCheck, label: 'Audit Stage1' },
-      { to: '/admin/audit-stage2',       icon: ClipboardCheck, label: 'Audit Stage2' },
-      { to: '/admin/observation',        icon: AlertTriangle,  label: 'Observation' },
-      { to: '/admin/payments',           icon: CreditCard,     label: 'Payment Tracking' },
-      { to: '/admin/reports',            icon: BarChart2,      label: 'Review Report' },
-      { to: '/admin/certificates',       icon: Award,          label: 'Certificate Setting' },
-      { to: '/admin/send-client',        icon: Send,           label: 'Send Client' },
-      { to: '/admin/send-auditor',       icon: Send,           label: 'Send Auditor' },
-      { to: '/admin/send-auditor',       icon: Send,           label: 'Send Reviewer' },
-      { to: '/admin/reports',            icon: BarChart2,      label: 'Report Auditor-Client Docs' },
-      { to: '/admin/reports',            icon: BarChart2,      label: 'Client To Admin' },
+      { to: '/admin/applications/new',   icon: FiPlus,         label: 'Add Application' },
+      { to: '/admin/applications',       icon: FiFileText,     label: 'Application List' },
+      { to: '/admin/applications',       icon: FiFileText,     label: 'App Standard Delete' },
+      { to: '/admin/feedback',           icon: FiMessageSquare, label: 'Review' },
+      { to: '/admin/approval-pending',   icon: FiCheckSquare,  label: 'Approval Pending' },
+      { to: '/admin/dms',                icon: FiFolder,       label: 'DMS' },
+      { to: '/admin/audit-stage1',       icon: FiClipboard,    label: 'Audit Stage1' },
+      { to: '/admin/audit-stage2',       icon: FiClipboard,    label: 'Audit Stage2' },
+      { to: '/admin/observation',        icon: FiAlertTriangle, label: 'Observation' },
+      { to: '/admin/payments',           icon: FiCreditCard,   label: 'Payment Tracking' },
+      { to: '/admin/reports',            icon: FiBarChart2,    label: 'Review Report' },
+      { to: '/admin/certificates',       icon: FiAward,        label: 'Certificate Setting' },
+      { to: '/admin/send-client',        icon: FiSend,         label: 'Send Client' },
+      { to: '/admin/send-auditor',       icon: FiSend,         label: 'Send Auditor' },
+      { to: '/admin/send-auditor',       icon: FiSend,         label: 'Send Reviewer' },
+      { to: '/admin/reports',            icon: FiBarChart2,    label: 'Report Auditor-Client Docs' },
+      { to: '/admin/reports',            icon: FiBarChart2,    label: 'Client To Admin' },
     ]},
     { sec: 'Leads', items: [
-      { to: '/admin/leads', icon: Target, label: 'Lead Management', badge: 'NEW' },
+      { to: '/admin/leads', icon: FiTarget, label: 'Lead Management', badge: 'NEW' },
     ]},
     { sec: 'QMS Forms', items: [
-      { to: '/admin/audit-details',    icon: ClipboardList, label: 'View Audit Details', badge: 'QMS' },
-      { to: '/admin/audit-report/new', icon: FileText,      label: 'New Audit Report', badge: 'NEW' },
-      { to: '/admin/audit-forms',      icon: ClipboardList, label: 'QMS Audit Forms Index' },
+      { to: '/admin/audit-details',    icon: FiClipboard, label: 'View Audit Details', badge: 'QMS' },
+      { to: '/admin/audit-report/new', icon: FiFileText,  label: 'New Audit Report', badge: 'NEW' },
+      { to: '/admin/audit-forms',      icon: FiClipboard, label: 'QMS Audit Forms Index' },
     ]},
   ],
   client: [
     { sec: 'Overview', items: [
-      { to: '/client',              icon: LayoutDashboard, label: 'Dashboard' },
-      { to: '/client/applications', icon: FileText,        label: 'My Applications' },
+      { to: '/client',              icon: MdDashboard,  label: 'Dashboard' },
+      { to: '/client/applications', icon: FiFileText,   label: 'My Applications' },
     ]},
     { sec: 'Reports', items: [
-      { to: '/client/team-reports', icon: ClipboardCheck, label: 'Team & Reports' },
+      { to: '/client/team-reports', icon: FiClipboard, label: 'Team & Reports' },
     ]},
     { sec: 'Documents', items: [
-      { to: '/client/documents',    icon: FolderOpen, label: 'Documents & Forms' },
-      { to: '/client/certificates', icon: Award,      label: 'My Certificates' },
+      { to: '/client/documents',    icon: FiFolder, label: 'Documents & Forms' },
+      { to: '/client/certificates', icon: FiAward,  label: 'My Certificates' },
     ]},
     { sec: 'Support', items: [
-      { to: '/client/feedback', icon: MessageSquare, label: 'Feedback' },
+      { to: '/client/feedback', icon: FiMessageSquare, label: 'Feedback' },
     ]},
   ],
   auditor: [
     { sec: 'Overview', items: [
-      { to: '/auditor',              icon: LayoutDashboard, label: 'Dashboard' },
-      { to: '/auditor/applications', icon: ClipboardCheck,  label: 'My Audits' },
+      { to: '/auditor',              icon: MdDashboard,  label: 'Dashboard' },
+      { to: '/auditor/applications', icon: FiClipboard,  label: 'My Audits' },
     ]},
     { sec: 'Review', items: [
-      { to: '/auditor/review-queue', icon: Star,         label: 'Review Queue' },
-      { to: '/auditor/reports',      icon: BarChart2,    label: 'Reports' },
+      { to: '/auditor/review-queue', icon: FiStar,      label: 'Review Queue' },
+      { to: '/auditor/reports',      icon: FiBarChart2, label: 'Reports' },
     ]},
     { sec: 'Audit Forms', items: [
-      { to: '/auditor/applications', icon: ClipboardList, label: 'View Audit Forms', badge: 'QMS' },
+      { to: '/auditor/applications', icon: FiClipboard, label: 'View Audit Forms', badge: 'QMS' },
     ]},
     { sec: 'Documents', items: [
-      { to: '/auditor/documents', icon: FolderOpen, label: 'Documents' },
+      { to: '/auditor/documents', icon: FiFolder, label: 'Documents' },
     ]},
     { sec: 'System', items: [
-      { to: '/auditor/settings', icon: Settings, label: 'Settings' },
+      { to: '/auditor/settings', icon: FiSettings, label: 'Settings' },
     ]},
   ],
   reviewer: [
     { sec: 'Overview', items: [
-      { to: '/auditor',              icon: LayoutDashboard, label: 'Dashboard' },
-      { to: '/auditor/applications', icon: ClipboardCheck,  label: 'My Audits' },
+      { to: '/auditor',              icon: MdDashboard,  label: 'Dashboard' },
+      { to: '/auditor/applications', icon: FiClipboard,  label: 'My Audits' },
     ]},
     { sec: 'Review', items: [
-      { to: '/auditor/review-queue', icon: Star,         label: 'Review Queue' },
-      { to: '/auditor/reports',      icon: BarChart2,    label: 'Reports' },
+      { to: '/auditor/review-queue', icon: FiStar,      label: 'Review Queue' },
+      { to: '/auditor/reports',      icon: FiBarChart2, label: 'Reports' },
     ]},
     { sec: 'Audit Reports', items: [
-      { to: '/auditor/applications', icon: ClipboardList, label: 'Review Audit Forms', badge: 'QMS' },
+      { to: '/auditor/applications', icon: FiClipboard, label: 'Review Audit Forms', badge: 'QMS' },
     ]},
     { sec: 'Documents', items: [
-      { to: '/auditor/documents', icon: FolderOpen, label: 'Documents' },
+      { to: '/auditor/documents', icon: FiFolder, label: 'Documents' },
     ]},
     { sec: 'System', items: [
-      { to: '/auditor/settings', icon: Settings, label: 'Settings' },
+      { to: '/auditor/settings', icon: FiSettings, label: 'Settings' },
     ]},
   ],
   sales: [
     { sec: 'Overview', items: [
-      { to: '/sales',          icon: LayoutDashboard, label: 'Dashboard' },
-      { to: '/sales/pipeline', icon: Target,          label: 'Sales Pipeline' },
+      { to: '/sales',          icon: MdDashboard,  label: 'Dashboard' },
+      { to: '/sales/pipeline', icon: FiTarget,     label: 'Sales Pipeline' },
     ]},
     { sec: 'Applications', items: [
-      { to: '/sales/new-application',  icon: Plus,          label: 'New Application', badge: 'NEW' },
-      { to: '/sales/applications',     icon: ClipboardList, label: 'View Audit Details', badge: 'QMS' },
+      { to: '/sales/new-application',  icon: FiPlus,      label: 'New Application', badge: 'NEW' },
+      { to: '/sales/applications',     icon: FiClipboard, label: 'View Audit Details', badge: 'QMS' },
     ]},
     { sec: 'Team', items: [
-      { to: '/sales/team',   icon: Users,     label: 'Sales Team' },
-      { to: '/sales/leads',  icon: FileText,  label: 'Lead Management' },
-      { to: '/sales/assign', icon: UserCheck, label: 'Assign Leads' },
+      { to: '/sales/team',   icon: FiUsers,     label: 'Sales Team' },
+      { to: '/sales/leads',  icon: FiFileText,  label: 'Lead Management' },
+      { to: '/sales/assign', icon: FiUserCheck, label: 'Assign Leads' },
     ]},
     { sec: 'Performance', items: [
-      { to: '/sales/reports',  icon: BarChart2,  label: 'Sales Reports' },
-      { to: '/sales/targets',  icon: TrendingUp, label: 'Targets & Quotas' },
+      { to: '/sales/reports',  icon: FiBarChart2,  label: 'Sales Reports' },
+      { to: '/sales/targets',  icon: FiTrendingUp, label: 'Targets & Quotas' },
     ]},
     { sec: 'System', items: [
-      { to: '/sales/settings', icon: Settings, label: 'Settings' },
+      { to: '/sales/settings', icon: FiSettings, label: 'Settings' },
     ]},
   ],
 };
@@ -134,16 +136,41 @@ export default function Layout({ children, title }) {
   const { user, logout } = useAuth();
   const loc = useLocation();
   const navigate = useNavigate();
-  const [open,       setOpen]       = useState(false);
-  const [notifs,     setNotifs]     = useState(false);
-  const [profileImg, setProfileImg] = useState(null);
-  const [collapsed,  setCollapsed]  = useState({});
+  const [open,         setOpen]         = useState(false);
+  const [notifOpen,    setNotifOpen]    = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [profileImg,   setProfileImg]   = useState(null);
+  const [collapsed,    setCollapsed]    = useState({});
   const nRef   = useRef(null);
   const imgRef = useRef(null);
 
   const secs   = NAV[user?.role] || [];
-  const msgs   = user?.notifications || [];
-  const unread = msgs.filter(n => !n.read).length;
+  const unread = notifications.filter(n => !n.read).length;
+
+  const fetchNotifs = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data } = await axios.get('/api/users/me/notifications');
+      setNotifications(data || []);
+    } catch {}
+  }, [user]);
+
+  const handleNotifClick = async (n) => {
+    if (!n.read) {
+      try {
+        await axios.put(`/api/users/me/notifications/${n._id}`);
+        setNotifications(prev => prev.map(x => x._id === n._id ? { ...x, read: true } : x));
+      } catch {}
+    }
+    if (n.link) { navigate(n.link); setNotifOpen(false); }
+  };
+
+  const markAllRead = async () => {
+    try {
+      await axios.put('/api/users/me/notifications/read-all');
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch {}
+  };
 
   const isOn = (to) => {
     if (to === `/${user?.role}` || to === '/auditor') return loc.pathname === to;
@@ -152,7 +179,13 @@ export default function Layout({ children, title }) {
   };
 
   useEffect(() => {
-    const fn = e => { if (nRef.current && !nRef.current.contains(e.target)) setNotifs(false); };
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 60000);
+    return () => clearInterval(interval);
+  }, [fetchNotifs]);
+
+  useEffect(() => {
+    const fn = e => { if (nRef.current && !nRef.current.contains(e.target)) setNotifOpen(false); };
     document.addEventListener('mousedown', fn);
     return () => document.removeEventListener('mousedown', fn);
   }, []);
@@ -217,12 +250,12 @@ export default function Layout({ children, title }) {
                     onClick={() => toggleCollapse(s.key)}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <Activity className="nav-icon" size={15} />
+                      <FiActivity className="nav-icon" size={15} />
                       <span style={{ fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--primary-dark)' }}>
                         {s.sec}
                       </span>
                     </div>
-                    <ChevronDown
+                    <FiChevronDown
                       size={13}
                       className={`nav-chevron ${!collapsed[s.key] ? 'open' : ''}`}
                     />
@@ -273,7 +306,7 @@ export default function Layout({ children, title }) {
                 {profileImg ? <img src={profileImg} alt="profile" /> : user?.name?.slice(0, 2).toUpperCase()}
               </div>
               <label style={{ position: 'absolute', bottom: -2, right: -2, width: 15, height: 15, borderRadius: '50%', background: 'var(--primary)', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <Camera size={7} color="white" />
+                <FiCamera size={7} color="white" />
                 <input ref={imgRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleProfileImg} />
               </label>
             </div>
@@ -283,7 +316,7 @@ export default function Layout({ children, title }) {
             </div>
           </div>
           <button className="u-logout" onClick={() => { logout(); navigate('/login'); }}>
-            <LogOut size={13} /> Sign out
+            <FiLogOut size={13} /> Sign out
           </button>
         </div>
       </aside>
@@ -294,7 +327,7 @@ export default function Layout({ children, title }) {
         <header className="top-bar">
           <div className="top-bar-left">
             <button className="hdr-btn mob-menu-btn" onClick={() => setOpen(v => !v)}>
-              {open ? <X size={17} /> : <Menu size={17} />}
+              {open ? <FiX size={17} /> : <FiMenu size={17} />}
             </button>
             <h1 className="page-heading">{title || 'Dashboard'}</h1>
           </div>
@@ -304,28 +337,88 @@ export default function Layout({ children, title }) {
 
             {/* Bell */}
             <div style={{ position: 'relative' }} ref={nRef}>
-              <button className="hdr-btn" onClick={() => setNotifs(v => !v)}>
-                <Bell size={15} />
-                {unread > 0 && <span className="notif-badge">{unread}</span>}
+              <button className="hdr-btn" onClick={() => { setNotifOpen(v => !v); fetchNotifs(); }}>
+                <FiBell size={15} />
+                {unread > 0 && <span className="notif-badge">{unread > 9 ? '9+' : unread}</span>}
               </button>
-              {notifs && (
-                <div className="notif-panel">
-                  <div className="notif-hdr">
-                    <span className="notif-hdr-title">Notifications</span>
-                    {unread > 0 && <span className="badge bdg-info">{unread} new</span>}
+
+              {notifOpen && (
+                <>
+                  {/* Mobile backdrop */}
+                  <div className="notif-backdrop" onClick={() => setNotifOpen(false)} />
+
+                  <div className="notif-panel">
+                    {/* Header */}
+                    <div className="notif-hdr">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <FiBell size={13} style={{ color: 'var(--primary)' }} />
+                        <span className="notif-hdr-title">Notifications</span>
+                        {unread > 0 && (
+                          <span style={{ background: 'var(--primary)', color: 'white', borderRadius: 10, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>
+                            {unread} new
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {unread > 0 && (
+                          <button onClick={markAllRead}
+                            style={{ background: 'none', border: 'none', fontSize: 11, color: 'var(--primary)', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                            Mark all read
+                          </button>
+                        )}
+                        <button onClick={() => setNotifOpen(false)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gray-400)', display: 'flex', alignItems: 'center', padding: 2 }}>
+                          <FiX size={14} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* List */}
+                    <div className="notif-list">
+                      {notifications.length === 0 ? (
+                        <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--gray-400)' }}>
+                          <FiBell size={28} style={{ marginBottom: 8, opacity: 0.3 }} />
+                          <div style={{ fontSize: 13, fontWeight: 600 }}>All caught up</div>
+                          <div style={{ fontSize: 11, marginTop: 3 }}>No notifications yet</div>
+                        </div>
+                      ) : (
+                        notifications.slice(0, 20).map((n) => {
+                          const typeColor = { success: '#16a34a', error: '#dc2626', warning: '#d97706', info: 'var(--primary)' }[n.type] || 'var(--primary)';
+                          const relTime   = (() => {
+                            const diff = Date.now() - new Date(n.createdAt);
+                            const m = Math.floor(diff / 60000);
+                            if (m < 1)  return 'Just now';
+                            if (m < 60) return `${m}m ago`;
+                            const h = Math.floor(m / 60);
+                            if (h < 24) return `${h}h ago`;
+                            return new Date(n.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+                          })();
+                          return (
+                            <div key={n._id}
+                              className={`notif-item ${!n.read ? 'unread' : ''} ${n.link ? 'notif-clickable' : ''}`}
+                              onClick={() => handleNotifClick(n)}>
+                              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: typeColor, flexShrink: 0, marginTop: 5 }} />
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div className="notif-msg">{n.message}</div>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, gap: 8 }}>
+                                    <span className="notif-time">{relTime}</span>
+                                    {n.link && (
+                                      <span style={{ fontSize: 10, color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
+                                        View →
+                                      </span>
+                                    )}
+                                    {!n.read && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--primary)', flexShrink: 0 }} />}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
-                  <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-                    {msgs.length === 0
-                      ? <div style={{ padding: '24px', textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>All caught up 🎉</div>
-                      : [...msgs].reverse().slice(0, 15).map((n, i) => (
-                          <div key={i} className={`notif-item ${!n.read ? 'unread' : ''}`}>
-                            <div className="notif-msg">{n.message}</div>
-                            <div className="notif-time">{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</div>
-                          </div>
-                        ))
-                    }
-                  </div>
-                </div>
+                </>
               )}
             </div>
 
