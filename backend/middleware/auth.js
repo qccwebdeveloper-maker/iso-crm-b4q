@@ -1,18 +1,19 @@
-const jwt = require('jsonwebtoken');
-const { getUserById } = require('../mockData');
+const jwt  = require('jsonwebtoken');
+const User = require('../models/User');
 
 const SECRET = process.env.JWT_SECRET || 'crm_secret_key_2024';
 
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Not authorized, no token' });
   }
   try {
-    const token = auth.split(' ')[1];
+    const token   = auth.split(' ')[1];
     const decoded = jwt.verify(token, SECRET);
-    const user = getUserById(decoded.id);
-    if (!user) return res.status(401).json({ message: 'User not found' });
+    const user    = await User.findById(decoded.id).select('-password');
+    if (!user)           return res.status(401).json({ message: 'User not found' });
+    if (!user.isActive)  return res.status(401).json({ message: 'Account is inactive' });
     req.user = user;
     next();
   } catch {

@@ -1,19 +1,33 @@
-const express = require('express');
-const router = express.Router();
-const { protect } = require('../middleware/auth');
-const { APPLICATIONS } = require('../mockData');
+﻿const express  = require('express');
+const router   = express.Router();
+const Document = require('../models/Document');
+const { protect, authorize } = require('../middleware/auth');
+const { deleteFromCloudinary } = require('../utils/cloudinary');
 
-router.get('/', protect, (req, res) => {
-  const docs = [];
-  APPLICATIONS.forEach(a => {
-    ['applicationForm','agreement','signedForm','auditReport','reviewReport','certificate'].forEach(key => {
-      if (a[key]) docs.push({ name: key, applicationId: a.applicationId, docType: key, path: a[key], uploadedAt: a.updatedAt, uploadedByName: 'System' });
-    });
-    (a.uploadedDocuments || []).forEach(d => {
-      docs.push({ name: d.name, applicationId: a.applicationId, docType: 'document', path: d.path, uploadedAt: d.uploadedAt, uploadedByName: d.uploadedBy?.name || '—' });
-    });
-  });
-  res.json(docs);
+// GET /api/documents
+router.get('/', protect, async (req, res) => {
+  try {
+    const filter = {};
+    if (req.query.applicationId) filter.application = req.query.applicationId;
+    if (req.query.docType)       filter.docType      = req.query.docType;
+    const docs = await Document.find(filter).sort({ uploadedAt: -1 });
+    res.json(docs);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// DELETE /api/documents/:id
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
+  try {
+    const doc = await Document.findById(req.params.id);
+    if (!doc) return res.status(404).json({ message: 'Document not found' });
+    // Remove from Cloudinary
+    if (doc.publicId) {
+      try { await deleteFromCloudinary(doc.publicId); } catch (e) { console.warn('Cloudinary delete failed:', e.message); }
+    }
+    await doc.deleteOne();
+    res.json({ message: 'Document deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 module.exports = router;
+

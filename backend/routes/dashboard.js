@@ -1,95 +1,86 @@
-const express = require('express');
-const router = express.Router();
-const { USERS, APPLICATIONS, getApplications, populateApp } = require('../mockData');
+﻿const express     = require('express');
+const router      = express.Router();
+const Application = require('../models/Application');
+const User        = require('../models/User');
+const Lead        = require('../models/Lead');
 const { protect } = require('../middleware/auth');
 
-router.get('/stats', protect, (req, res) => {
-  const role = req.user.role;
-  const uid = req.user._id;
+router.get('/stats', protect, async (req, res) => {
+  try {
+    const { role, _id } = req.user;
 
-  if (role === 'admin') {
-    const allApps = APPLICATIONS;
-    const statusCounts = {};
-    allApps.forEach(a => { statusCounts[a.status] = (statusCounts[a.status] || 0) + 1; });
-    const statusCountArr = Object.entries(statusCounts).map(([_id, count]) => ({ _id, count }));
+    if (role === 'admin') {
+      const [totalApplications, clients, auditors, statusCounts, monthlyApps, recentApps] = await Promise.all([
+        Application.countDocuments(),
+        User.countDocuments({ role: 'client' }),
+        User.countDocuments({ role: 'auditor' }),
+        Application.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
+        Application.aggregate([
+          { $group: { _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } }, count: { $sum: 1 } } },
+          { $sort: { '_id.year': 1, '_id.month': 1 } },
+          { $limit: 12 },
+        ]),
+        Application.find().sort({ createdAt: -1 }).limit(6)
+          .populate('client', 'name email')
+          .populate('assignedAuditor', 'name'),
+      ]);
+      return res.json({ totalApplications, clients, auditors, statusCounts, monthlyApps, recentApps });
+    }
 
-    // Monthly apps (last 12 months)
-    const monthly = {};
-    allApps.forEach(a => {
-      const d = new Date(a.createdAt);
-      const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
-      monthly[key] = (monthly[key] || 0) + 1;
-    });
-    const monthlyApps = Object.entries(monthly).map(([k, count]) => {
-      const [year, month] = k.split('-').map(Number);
-      return { _id: { year, month }, count };
-    }).sort((a, b) => a._id.year - b._id.year || a._id.month - b._id.month).slice(-12);
+    if (role === 'client') {
+      const apps = await Application.find({ client: _id });
+      return res.json({
+        totalApplications: apps.length,
+        submitted:   apps.filter(a => a.status === 'submitted').length,
+        underReview: apps.filter(a => a.status === 'under_review').length,
+        certified:   apps.filter(a => a.status === 'certified').length,
+        rejected:    apps.filter(a => a.status === 'rejected').length,
+        recentApps:  apps.slice(-5).reverse(),
+      });
+    }
 
-    const recentApps = [...allApps].reverse().slice(0, 6).map(a => populateApp(a));
+    if (role === 'auditor') {
+      const apps = await Application.find({ assignedAuditor: _id });
+      return res.json({
+        assigned:   apps.length,
+        pending:    apps.filter(a => ['under_review','audit_stage1'].includes(a.status)).length,
+        completed:  apps.filter(a => ['audit_stage2','approved','certified'].includes(a.status)).length,
+        recentApps: apps.slice(-5).reverse(),
+      });
+    }
 
-    return res.json({
-      clients: USERS.filter(u => u.role === 'client').length,
-      auditors: USERS.filter(u => u.role === 'auditor').length,
-      reviewers: USERS.filter(u => u.role === 'reviewer').length,
-      totalApplications: allApps.length,
-      statusCounts: statusCountArr,
-      monthlyApps,
-      recentApps,
-    });
-  }
+    if (role === 'reviewer') {
+      const apps = await Application.find({ assignedReviewer: _id });
+      const statusCounts = await Application.aggregate([
+        { $match: { assignedReviewer: _id } },
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+      ]);
+      return res.json({
+        assignedCount:      apps.length,
+        inProgressCount:    apps.filter(a => ['under_review','audit_stage1','audit_stage2'].includes(a.status)).length,
+        completedCount:     apps.filter(a => ['approved','certified'].includes(a.status)).length,
+        pendingCount:       apps.filter(a => a.status === 'audit_stage2').length,
+        recentApplications: apps.slice(-8).reverse(),
+        statusDistribution: statusCounts,
+      });
+    }
 
-  if (role === 'client') {
-    const myApps = APPLICATIONS.filter(a => a.client === uid);
-    return res.json({
-      totalApplications: myApps.length,
-      submitted:   myApps.filter(a => a.status === 'submitted').length,
-      underReview: myApps.filter(a => a.status === 'under_review').length,
-      certified:   myApps.filter(a => a.status === 'certified').length,
-      rejected:    myApps.filter(a => a.status === 'rejected').length,
-      recentApps:  [...myApps].reverse().slice(0, 5).map(a => populateApp(a)),
-    });
-  }
+    if (role === 'sales') {
+      const [total, newL, qualified, converted] = await Promise.all([
+        Lead.countDocuments(),
+        Lead.countDocuments({ status: 'new' }),
+        Lead.countDocuments({ status: 'qualified' }),
+        Lead.countDocuments({ status: 'converted' }),
+      ]);
+      return res.json({
+        totalLeads: total, newLeads: newL, qualified, converted,
+        conversionRate: total ? Math.round((converted / total) * 100) : 0,
+      });
+    }
 
-  if (role === 'auditor') {
-    const myApps = APPLICATIONS.filter(a => a.assignedAuditor === uid);
-    return res.json({
-      assigned:  myApps.length,
-      pending:   myApps.filter(a => ['under_review','audit_stage1'].includes(a.status)).length,
-      completed: myApps.filter(a => ['audit_stage2','approved','certified'].includes(a.status)).length,
-      recentApps: [...myApps].reverse().slice(0, 5).map(a => populateApp(a)),
-    });
-  }
-
-  if (role === 'reviewer') {
-    const myApps = APPLICATIONS.filter(a => a.assignedReviewer === uid);
-    const statusCounts = {};
-    myApps.forEach(a => { statusCounts[a.status] = (statusCounts[a.status] || 0) + 1; });
-    const statusDistribution = Object.entries(statusCounts).map(([_id, count]) => ({ _id, count }));
-    return res.json({
-      assignedCount:    myApps.length,
-      inProgressCount:  myApps.filter(a => ['under_review','audit_stage1','audit_stage2'].includes(a.status)).length,
-      completedCount:   myApps.filter(a => ['approved','certified'].includes(a.status)).length,
-      pendingCount:     myApps.filter(a => a.status === 'audit_stage2').length,
-      recentApplications: [...myApps].reverse().slice(0, 8).map(a => populateApp(a)),
-      statusDistribution,
-    });
-  }
-
-  if (role === 'sales') {
-    const { getLeads } = require('../mockData');
-    const leads = getLeads();
-    return res.json({
-      totalLeads: leads.length,
-      newLeads: leads.filter(l => l.status === 'new').length,
-      qualified: leads.filter(l => l.status === 'qualified').length,
-      converted: leads.filter(l => l.status === 'converted').length,
-      conversionRate: leads.length ? Math.round((leads.filter(l => l.status === 'converted').length / leads.length) * 100) : 0,
-    });
-  }
-
-  res.json({});
+    res.json({});
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 module.exports = router;
 
-// This file is complete - sales stats handled by leads route

@@ -178,7 +178,7 @@ function populateUser(id) {
 function populateApp(app) {
   return {
     ...app,
-    client:          populateUser(app.client),
+    client: populateUser(app.client),
     assignedAuditor: populateUser(app.assignedAuditor),
     assignedReviewer: populateUser(app.assignedReviewer),
     feedbacks: (app.feedbacks || []).map(f => ({ ...f, from: populateUser(f.from) })),
@@ -269,6 +269,7 @@ function getApplicationById(id) {
   return populateApp(app);
 }
 
+
 function createApplication(data) {
   const id = 'a' + (APPLICATIONS.length + 10);
   appCounter++;
@@ -294,11 +295,14 @@ function updateApplication(id, data) {
 }
 
 module.exports = {
-  USERS, APPLICATIONS,
-  getUsers, getUserById, getUserByEmail, createUser, updateUser, deleteUser,
+  // Users & Auth
+  USERS, getUsers, getUserById, getUserByEmail, createUser, updateUser, deleteUser,
   addNotification, markNotificationRead,
-  getApplications, getApplicationById, createApplication, updateApplication,
+  // Applications
+  APPLICATIONS, getApplications, getApplicationById, createApplication, updateApplication,
   populateUser, populateApp,
+  // Leads (will be added after LEADS is defined)
+  // Payments (will be added after PAYMENTS is defined)
 };
 
 // ────────────────────────────────────────────────
@@ -375,7 +379,7 @@ let leadCounter = 4;
 
 function getLeads(filter = {}) {
   let leads = LEADS;
-  if (filter.status)     leads = leads.filter(l => l.status === filter.status);
+  if (filter.status) leads = leads.filter(l => l.status === filter.status);
   if (filter.assignedTo) leads = leads.filter(l => l.assignedTo === filter.assignedTo);
   return leads.map(l => ({
     ...l,
@@ -393,7 +397,7 @@ function getLeadById(id) {
 }
 
 function createLead(data) {
-  const id  = 'l' + (LEADS.length + 10);
+  const id = 'l' + (LEADS.length + 10);
   const num = String(leadCounter++).padStart(3, '0');
   const lead = {
     _id: id, leadId: `LEAD-${num}`,
@@ -422,12 +426,7 @@ function deleteLead(id) {
   return true;
 }
 
-module.exports.LEADS        = LEADS;
-module.exports.getLeads     = getLeads;
-module.exports.getLeadById  = getLeadById;
-module.exports.createLead   = createLead;
-module.exports.updateLead   = updateLead;
-module.exports.deleteLead   = deleteLead;
+
 
 // ────────────────────────────────────────────────
 // MANUAL PAYMENTS
@@ -438,7 +437,7 @@ const PAYMENTS = [
     amount: 25000, paymentStatus: 'received', paymentDate: new Date('2024-11-01'), createdAt: new Date('2024-11-01'),
   },
   {
-    _id: 'p2', name: 'XYZ IT Solutions - Full Payment', transactionId: 'TXN20241023001',  applicationId: 'a2',
+    _id: 'p2', name: 'XYZ IT Solutions - Full Payment', transactionId: 'TXN20241023001', applicationId: 'a2',
     amount: 75000, paymentStatus: 'received', paymentDate: new Date('2024-10-23'), createdAt: new Date('2024-10-23'),
   },
 ];
@@ -482,9 +481,8 @@ function deletePayment(id) {
   return true;
 }
 
-module.exports.PAYMENTS = PAYMENTS;
-module.exports.getPayments = getPayments;
-module.exports.getPaymentById = getPaymentById;
-module.exports.createPayment = createPayment;
-module.exports.updatePayment = updatePayment;
-module.exports.deletePayment = deletePayment;
+// Export all functions at the end
+Object.assign(module.exports, {
+  LEADS, getLeads, getLeadById, createLead, updateLead, deleteLead,
+  PAYMENTS, getPayments, getPaymentById, createPayment, updatePayment, deletePayment,
+});

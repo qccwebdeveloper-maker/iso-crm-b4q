@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
@@ -17,9 +17,10 @@ export default function AdminPayments() {
     applicationId: '',
     amount: 0,
     paymentStatus: 'pending',
+    paymentDate: '',
   });
   const [paymentModal, setPaymentModal] = useState(null);
-  const [paymentForm, setPaymentForm] = useState({ paymentStatus: 'pending', paymentAmount: 0 });
+  const [paymentForm, setPaymentForm] = useState({ paymentStatus: 'pending', paymentAmount: 0, paymentDate: '' });
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => {
@@ -54,7 +55,7 @@ export default function AdminPayments() {
       }
       setManualPaymentModal(false);
       setEditingPayment(null);
-      setManualPaymentForm({ name: '', transactionId: '', applicationId: '', amount: 0, paymentStatus: 'pending' });
+      setManualPaymentForm({ name: '', transactionId: '', applicationId: '', amount: 0, paymentStatus: 'pending', paymentDate: '' });
       load();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save manual payment');
@@ -86,7 +87,7 @@ export default function AdminPayments() {
       await axios.post(`/api/applications/${paymentModal._id}/payment`, paymentForm);
       toast.success('Application payment updated successfully!');
       setPaymentModal(null);
-      setPaymentForm({ paymentStatus: 'pending', paymentAmount: 0 });
+      setPaymentForm({ paymentStatus: 'pending', paymentAmount: 0, paymentDate: '' });
       load();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update payment');
@@ -107,7 +108,7 @@ export default function AdminPayments() {
         <button className="btn btn-primary" onClick={() => {
           setManualPaymentModal(true);
           setEditingPayment(null);
-          setManualPaymentForm({ name: '', transactionId: '', applicationId: '', amount: 0, paymentStatus: 'pending' });
+          setManualPaymentForm({ name: '', transactionId: '', applicationId: '', amount: 0, paymentStatus: 'pending', paymentDate: '' });
         }}>
           <Plus size={14} /> Add Manual Payment
         </button>
@@ -171,6 +172,7 @@ export default function AdminPayments() {
                                 applicationId: payment.applicationId || '',
                                 amount: payment.amount,
                                 paymentStatus: payment.paymentStatus,
+                                paymentDate: payment.paymentDate ? new Date(payment.paymentDate).toISOString().slice(0, 10) : '',
                               });
                               setManualPaymentModal(true);
                             }}>
@@ -227,7 +229,7 @@ export default function AdminPayments() {
                         <td>
                           <button className="btn btn-primary btn-sm" onClick={() => {
                             setPaymentModal(app);
-                            setPaymentForm({ paymentStatus: app.paymentStatus || 'pending', paymentAmount: app.paymentAmount || 0 });
+                            setPaymentForm({ paymentStatus: app.paymentStatus || 'pending', paymentAmount: app.paymentAmount || 0, paymentDate: app.paymentDate ? new Date(app.paymentDate).toISOString().slice(0, 10) : '' });
                           }}>
                             <CreditCard size={13} /> Update
                           </button>
@@ -270,6 +272,17 @@ export default function AdminPayments() {
                       onChange={e => setPaymentForm(p => ({ ...p, paymentAmount: parseInt(e.target.value) || 0 }))}
                     />
                   </div>
+                  {(paymentForm.paymentStatus === 'received' || paymentForm.paymentStatus === 'partially_received') && (
+                    <div className="form-group">
+                      <label className="form-label">Payment Date</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={paymentForm.paymentDate}
+                        onChange={e => setPaymentForm(p => ({ ...p, paymentDate: e.target.value }))}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="modal-foot">
                   <button className="btn btn-ghost" onClick={() => setPaymentModal(null)}>Cancel</button>
@@ -327,6 +340,17 @@ export default function AdminPayments() {
                       </select>
                     </div>
                   </div>
+                  {(manualPaymentForm.paymentStatus === 'received' || manualPaymentForm.paymentStatus === 'partially_received') && (
+                    <div className="form-group">
+                      <label className="form-label">Payment Date</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={manualPaymentForm.paymentDate}
+                        onChange={e => setManualPaymentForm(p => ({ ...p, paymentDate: e.target.value }))}
+                      />
+                    </div>
+                  )}
                   <div className="form-group">
                     <label className="form-label">Related Application (Optional)</label>
                     <select className="form-control" value={manualPaymentForm.applicationId} onChange={e => setManualPaymentForm(p => ({ ...p, applicationId: e.target.value }))}>

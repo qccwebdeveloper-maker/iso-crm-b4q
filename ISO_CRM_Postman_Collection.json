@@ -1,0 +1,979 @@
+{
+  "info": {
+    "name": "ISO CRM — Complete API Collection",
+    "_postman_id": "iso-crm-qcc-2024",
+    "description": "Complete API collection for QCC ISO Certification CRM.\n\n**HOW TO USE:**\n1. Import this file into Postman\n2. Set the 'baseUrl' variable to http://localhost:5000\n3. Run 'Login - Client' first → token auto-saves\n4. All other requests use the saved token automatically\n\n**Quick Login Credentials:**\n- admin@crm.com / admin123 (OTP login)\n- client@crm.com / client123\n- auditor@crm.com / auditor123\n- reviewer@crm.com / reviewer123\n- sales@crm.com / sales123",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000", "type": "string" },
+    { "key": "token",   "value": "", "type": "string" },
+    { "key": "appId",   "value": "", "type": "string" },
+    { "key": "leadId",  "value": "", "type": "string" },
+    { "key": "certId",  "value": "", "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Login — Client",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const data = pm.response.json();",
+                "  pm.collectionVariables.set('token', data.token);",
+                "  pm.test('Login successful', () => pm.expect(data.token).to.exist);",
+                "  pm.test('Role is correct', () => pm.expect(data.role).to.exist);",
+                "  console.log('Logged in as:', data.name, '| Role:', data.role);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client@crm.com\",\n  \"password\": \"client123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+          }
+        },
+        {
+          "name": "Login — Admin (use OTP)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const data = pm.response.json();",
+                "  pm.collectionVariables.set('token', data.token);",
+                "  pm.test('Admin login successful', () => pm.expect(data.role).to.equal('admin'));",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@crm.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+          }
+        },
+        {
+          "name": "Login — Auditor",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const data = pm.response.json();",
+                "  pm.collectionVariables.set('token', data.token);",
+                "  pm.test('Auditor login OK', () => pm.expect(data.role).to.equal('auditor'));",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"auditor@crm.com\",\n  \"password\": \"auditor123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+          }
+        },
+        {
+          "name": "Login — Sales",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const data = pm.response.json();",
+                "  pm.collectionVariables.set('token', data.token);",
+                "  pm.test('Sales login OK', () => pm.expect(data.role).to.equal('sales'));",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sales@crm.com\",\n  \"password\": \"sales123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+          }
+        },
+        {
+          "name": "Get Current User (me)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api","auth","me"] }
+          }
+        },
+        {
+          "name": "Send OTP (Admin Email Login)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@crm.com\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/send-otp", "host": ["{{baseUrl}}"], "path": ["api","auth","send-otp"] }
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const data = pm.response.json();",
+                "  pm.collectionVariables.set('token', data.token);",
+                "  pm.test('OTP verified', () => pm.expect(data.token).to.exist);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@crm.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/verify-otp", "host": ["{{baseUrl}}"], "path": ["api","auth","verify-otp"] }
+          }
+        },
+        {
+          "name": "Register New Client",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyName\": \"New Test Company Ltd\",\n  \"email\": \"newclient@test.com\",\n  \"password\": \"test123\",\n  \"mobile\": \"9876543210\",\n  \"address\": \"123 Test Street, Mumbai, Maharashtra\",\n  \"standard\": \"ISO 9001:2015\",\n  \"scope\": \"Manufacturing of test products\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register-client", "host": ["{{baseUrl}}"], "path": ["api","auth","register-client"] }
+          }
+        },
+        {
+          "name": "Seed Database",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/auth/seed?force=true", "host": ["{{baseUrl}}"], "path": ["api","auth","seed"], "query": [{ "key": "force", "value": "true" }] }
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/health", "host": ["{{baseUrl}}"], "path": ["api","health"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "👤 Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/users", "host": ["{{baseUrl}}"], "path": ["api","users"] }
+          }
+        },
+        {
+          "name": "Get Users by Role — Client",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/users?role=client", "host": ["{{baseUrl}}"], "path": ["api","users"], "query": [{ "key": "role", "value": "client" }] }
+          }
+        },
+        {
+          "name": "Get Users by Role — Auditor",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/users?role=auditor", "host": ["{{baseUrl}}"], "path": ["api","users"], "query": [{ "key": "role", "value": "auditor" }] }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Auditor Name\",\n  \"email\": \"newauditor@auditpro.com\",\n  \"password\": \"auditor123\",\n  \"role\": \"auditor\",\n  \"phone\": \"9876543210\",\n  \"company\": \"AuditPro\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/users", "host": ["{{baseUrl}}"], "path": ["api","users"] }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"phone\": \"9999999999\",\n  \"isActive\": true,\n  \"pendingApproval\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/users/:id", "host": ["{{baseUrl}}"], "path": ["api","users",":id"], "variable": [{ "key": "id", "value": "PASTE_USER_ID_HERE" }] }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/users/:id", "host": ["{{baseUrl}}"], "path": ["api","users",":id"], "variable": [{ "key": "id", "value": "PASTE_USER_ID_HERE" }] }
+          }
+        },
+        {
+          "name": "Get My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/users/me/notifications", "host": ["{{baseUrl}}"], "path": ["api","users","me","notifications"] }
+          }
+        },
+        {
+          "name": "Mark All Notifications Read",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/users/me/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["api","users","me","notifications","read-all"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📋 Applications",
+      "item": [
+        {
+          "name": "Get All Applications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/applications", "host": ["{{baseUrl}}"], "path": ["api","applications"] }
+          }
+        },
+        {
+          "name": "Get Applications by Status",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/applications?status=submitted",
+              "host": ["{{baseUrl}}"], "path": ["api","applications"],
+              "query": [{ "key": "status", "value": "submitted", "description": "draft|submitted|under_review|audit_stage1|audit_stage2|approved|certified|rejected" }]
+            }
+          }
+        },
+        {
+          "name": "Create Application (Draft)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 201) {",
+                "  const data = pm.response.json();",
+                "  pm.collectionVariables.set('appId', data._id);",
+                "  pm.test('Application created', () => pm.expect(data.applicationId).to.exist);",
+                "  console.log('New App ID:', data.applicationId, '| MongoDB ID:', data._id);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organizationName\": \"Test Manufacturing Pvt Ltd\",\n  \"organizationAbbr\": \"TML\",\n  \"address\": \"123 Industrial Area, Pune\",\n  \"city\": \"Pune\",\n  \"state\": \"Maharashtra\",\n  \"country\": \"India\",\n  \"pincode\": \"411001\",\n  \"website\": \"www.testmfg.com\",\n  \"contactPerson\": \"Rajesh Kumar\",\n  \"designation\": \"Quality Manager\",\n  \"contactNumbers\": \"9876543210\",\n  \"emailId\": \"rajesh@testmfg.com\",\n  \"modeOfWorking\": \"Onsite\",\n  \"isoStandard\": \"ISO 9001:2015\",\n  \"standards\": [\"ISO 9001:2015\"],\n  \"scope\": \"Design and Manufacturing of Industrial Components\",\n  \"scopeOfCertification\": \"Design and Manufacturing of Industrial Components\",\n  \"applicationType\": \"Initial\",\n  \"accreditationBody\": \"NABCB\",\n  \"totalEmployees\": 75,\n  \"contractual\": 10,\n  \"workingShifts\": 2,\n  \"employeeCount\": { \"headOffice\": 50, \"branches\": 15, \"temporary\": 10, \"total\": 75 },\n  \"mainProcesses\": \"Purchase, Production, QC, Dispatch\",\n  \"productsServices\": \"Industrial Components\",\n  \"legalAct\": \"Companies Act 2013, Factory Act\",\n  \"status\": \"draft\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/applications", "host": ["{{baseUrl}}"], "path": ["api","applications"] }
+          }
+        },
+        {
+          "name": "Get Application by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/applications/{{appId}}", "host": ["{{baseUrl}}"], "path": ["api","applications","{{appId}}"] }
+          }
+        },
+        {
+          "name": "Update Application",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organizationName\": \"Updated Company Name\",\n  \"adminNotes\": \"Updated by admin on review\",\n  \"city\": \"Mumbai\",\n  \"accreditationBody\": \"UKAS\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/applications/{{appId}}", "host": ["{{baseUrl}}"], "path": ["api","applications","{{appId}}"] }
+          }
+        },
+        {
+          "name": "Submit Application",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/applications/{{appId}}/submit", "host": ["{{baseUrl}}"], "path": ["api","applications","{{appId}}","submit"] }
+          }
+        },
+        {
+          "name": "Assign Auditor & Reviewer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"auditorId\": \"PASTE_AUDITOR_USER_ID\",\n  \"reviewerId\": \"PASTE_REVIEWER_USER_ID\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/applications/{{appId}}/assign", "host": ["{{baseUrl}}"], "path": ["api","applications","{{appId}}","assign"] }
+          }
+        },
+        {
+          "name": "Update Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"under_review\",\n  \"notes\": \"Your application is under review. We will assign an auditor shortly.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/applications/{{appId}}/status", "host": ["{{baseUrl}}"], "path": ["api","applications","{{appId}}","status"],
+              "description": "Status values: draft | submitted | under_review | audit_stage1 | audit_stage2 | approved | certified | rejected"
+            }
+          }
+        },
+        {
+          "name": "Update Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentStatus\": \"received\",\n  \"paymentAmount\": 55000\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/applications/{{appId}}/payment", "host": ["{{baseUrl}}"], "path": ["api","applications","{{appId}}","payment"] }
+          }
+        },
+        {
+          "name": "Add Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicationId\": \"{{appId}}\",\n  \"message\": \"Very professional service. The audit team was thorough and helpful throughout.\",\n  \"rating\": 5\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/applications/{{appId}}/feedback", "host": ["{{baseUrl}}"], "path": ["api","applications","{{appId}}","feedback"] }
+          }
+        },
+        {
+          "name": "Upload Document (multipart)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "document", "type": "file", "src": "/path/to/your/file.pdf", "description": "Select a PDF or image file" },
+                { "key": "docType", "value": "applicationForm", "type": "text", "description": "applicationForm | agreement | signedForm | auditReport | reviewReport | certificate | document" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/api/applications/{{appId}}/upload", "host": ["{{baseUrl}}"], "path": ["api","applications","{{appId}}","upload"] }
+          }
+        },
+        {
+          "name": "Delete Application",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/applications/{{appId}}", "host": ["{{baseUrl}}"], "path": ["api","applications","{{appId}}"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🎯 Leads",
+      "item": [
+        {
+          "name": "Get All Leads",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/leads", "host": ["{{baseUrl}}"], "path": ["api","leads"] }
+          }
+        },
+        {
+          "name": "Get Leads by Status",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/leads?status=new",
+              "host": ["{{baseUrl}}"], "path": ["api","leads"],
+              "query": [{ "key": "status", "value": "new", "description": "new | contacted | qualified | converted | lost" }]
+            }
+          }
+        },
+        {
+          "name": "Create Lead",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 201) {",
+                "  const data = pm.response.json();",
+                "  pm.collectionVariables.set('leadId', data._id);",
+                "  pm.test('Lead created', () => pm.expect(data.leadId).to.exist);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyName\": \"Apex Technologies Ltd\",\n  \"contactPerson\": \"Sanjay Gupta\",\n  \"email\": \"sanjay@apextech.com\",\n  \"mobile\": \"9812345678\",\n  \"city\": \"Hyderabad\",\n  \"state\": \"Telangana\",\n  \"country\": \"India\",\n  \"isoStandard\": \"ISO 9001:2015\",\n  \"source\": \"LinkedIn\",\n  \"status\": \"new\",\n  \"priority\": \"high\",\n  \"notes\": \"CTO reached out via LinkedIn. Very interested in QMS certification for export compliance.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/leads", "host": ["{{baseUrl}}"], "path": ["api","leads"] }
+          }
+        },
+        {
+          "name": "Update Lead",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"contacted\",\n  \"notes\": \"Called on 15 Jan. Demo scheduled for next week.\",\n  \"priority\": \"high\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/leads/{{leadId}}", "host": ["{{baseUrl}}"], "path": ["api","leads","{{leadId}}"] }
+          }
+        },
+        {
+          "name": "Assign Lead to Sales",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assignedTo\": \"PASTE_SALES_USER_ID\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/leads/{{leadId}}", "host": ["{{baseUrl}}"], "path": ["api","leads","{{leadId}}"] }
+          }
+        },
+        {
+          "name": "Convert Lead to Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scope\": \"ISO Certification for IT Software Products\",\n  \"accreditationBody\": \"NABCB\",\n  \"clientId\": \"PASTE_CLIENT_USER_ID_HERE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/leads/{{leadId}}/convert", "host": ["{{baseUrl}}"], "path": ["api","leads","{{leadId}}","convert"] }
+          }
+        },
+        {
+          "name": "Lead Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/leads/stats", "host": ["{{baseUrl}}"], "path": ["api","leads","stats"] }
+          }
+        },
+        {
+          "name": "Delete Lead",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/leads/{{leadId}}", "host": ["{{baseUrl}}"], "path": ["api","leads","{{leadId}}"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "💰 Payments",
+      "item": [
+        {
+          "name": "Get All Payments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/payments", "host": ["{{baseUrl}}"], "path": ["api","payments"] }
+          }
+        },
+        {
+          "name": "Create Manual Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ABC Corp — Initial Certification Fee\",\n  \"transactionId\": \"TXN20241225001\",\n  \"applicationId\": \"{{appId}}\",\n  \"amount\": 45000,\n  \"paymentStatus\": \"received\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/payments", "host": ["{{baseUrl}}"], "path": ["api","payments"] }
+          }
+        },
+        {
+          "name": "Update Payment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentStatus\": \"received\",\n  \"amount\": 45000,\n  \"paymentDate\": \"2024-12-25\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/payments/:id", "host": ["{{baseUrl}}"], "path": ["api","payments",":id"], "variable": [{ "key": "id", "value": "PASTE_PAYMENT_ID" }] }
+          }
+        },
+        {
+          "name": "Delete Payment",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/payments/:id", "host": ["{{baseUrl}}"], "path": ["api","payments",":id"], "variable": [{ "key": "id", "value": "PASTE_PAYMENT_ID" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🏆 Certificates",
+      "item": [
+        {
+          "name": "Get All Certificates",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/certificates", "host": ["{{baseUrl}}"], "path": ["api","certificates"] }
+          }
+        },
+        {
+          "name": "Issue Certificate Manually",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 201) {",
+                "  const data = pm.response.json();",
+                "  pm.collectionVariables.set('certId', data._id);",
+                "  pm.test('Certificate issued', () => pm.expect(data.certNumber).to.exist);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orgName\": \"Apex Technologies Ltd\",\n  \"standard\": \"ISO 9001:2015\",\n  \"scope\": \"Design, Development and Manufacturing of Software Products\",\n  \"address\": \"456 Tech Hub, Hyderabad, Telangana - 500001\",\n  \"contactPerson\": \"Sanjay Gupta\",\n  \"designation\": \"CTO\",\n  \"contactNumber\": \"9812345678\",\n  \"email\": \"sanjay@apextech.com\",\n  \"auditorName\": \"Sarah Auditor\",\n  \"auditorRole\": \"Lead Auditor\",\n  \"iafCode\": \"33\",\n  \"accreditation\": \"NABCB\",\n  \"certNumber\": \"QCC-QMS-2024-099\",\n  \"issueDate\": \"2024-12-01\",\n  \"expiryDate\": \"2027-11-30\",\n  \"surveillanceDate\": \"2025-12-01\",\n  \"notes\": \"First certification. Excellent implementation.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/certificates/manual", "host": ["{{baseUrl}}"], "path": ["api","certificates","manual"] }
+          }
+        },
+        {
+          "name": "Update Certificate",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expiryDate\": \"2028-11-30\",\n  \"surveillanceDate\": \"2025-12-15\",\n  \"notes\": \"Renewal extended by 1 year\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/certificates/{{certId}}", "host": ["{{baseUrl}}"], "path": ["api","certificates","{{certId}}"] }
+          }
+        },
+        {
+          "name": "Delete Certificate",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/certificates/{{certId}}", "host": ["{{baseUrl}}"], "path": ["api","certificates","{{certId}}"] }
+          }
+        },
+        {
+          "name": "Get Certificate Settings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/certificates/settings", "host": ["{{baseUrl}}"], "path": ["api","certificates","settings"] }
+          }
+        },
+        {
+          "name": "Update Certificate Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Certificate of Conformity\",\n  \"authority\": \"Quality Control Certification (QCC)\",\n  \"validityYears\": 3,\n  \"footerText\": \"This certificate remains the property of QCC.\",\n  \"accreditation\": \"NABCB\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/certificates/settings", "host": ["{{baseUrl}}"], "path": ["api","certificates","settings"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "⚠️ Observations",
+      "item": [
+        {
+          "name": "Get All Observations",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/observations", "host": ["{{baseUrl}}"], "path": ["api","observations"] }
+          }
+        },
+        {
+          "name": "Get Observations by Application",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/observations?applicationId=APP1000",
+              "host": ["{{baseUrl}}"], "path": ["api","observations"],
+              "query": [{ "key": "applicationId", "value": "APP1000" }]
+            }
+          }
+        },
+        {
+          "name": "Create Observation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicationId\": \"APP1000\",\n  \"type\": \"Minor NC\",\n  \"description\": \"Clause 7.5 — Document control procedure does not include electronic document versioning. Physical records lack revision history column.\",\n  \"corrective_action\": \"Update document control procedure to include electronic version tracking. Implement revision log for all quality records.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/observations", "host": ["{{baseUrl}}"], "path": ["api","observations"] }
+          }
+        },
+        {
+          "name": "Close Observation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Closed\",\n  \"corrective_action\": \"Document control procedure updated on 20 Jan 2025. All records now have revision history column. Verified by auditor.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/observations/:id", "host": ["{{baseUrl}}"], "path": ["api","observations",":id"], "variable": [{ "key": "id", "value": "PASTE_OBS_ID" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📁 Documents (DMS)",
+      "item": [
+        {
+          "name": "Get All Documents",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/documents", "host": ["{{baseUrl}}"], "path": ["api","documents"] }
+          }
+        },
+        {
+          "name": "Get Documents by Application",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/documents?applicationId={{appId}}",
+              "host": ["{{baseUrl}}"], "path": ["api","documents"],
+              "query": [{ "key": "applicationId", "value": "{{appId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/documents/:id", "host": ["{{baseUrl}}"], "path": ["api","documents",":id"], "variable": [{ "key": "id", "value": "PASTE_DOC_ID" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "💬 Feedback",
+      "item": [
+        {
+          "name": "Get All Feedback",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/feedback", "host": ["{{baseUrl}}"], "path": ["api","feedback"] }
+          }
+        },
+        {
+          "name": "Submit Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicationId\": \"{{appId}}\",\n  \"message\": \"Excellent service! The audit team was very professional and the process was smooth.\",\n  \"rating\": 5\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/feedback", "host": ["{{baseUrl}}"], "path": ["api","feedback"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📚 Standards",
+      "item": [
+        {
+          "name": "Get All Standards",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/standards", "host": ["{{baseUrl}}"], "path": ["api","standards"] }
+          }
+        },
+        {
+          "name": "Create Standard",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ISO 31000:2018\",\n  \"category\": \"Risk Management\",\n  \"description\": \"Risk Management Guidelines for organizations.\",\n  \"active\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/standards", "host": ["{{baseUrl}}"], "path": ["api","standards"] }
+          }
+        },
+        {
+          "name": "Update Standard",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"active\": false\n}" },
+            "url": { "raw": "{{baseUrl}}/api/standards/:id", "host": ["{{baseUrl}}"], "path": ["api","standards",":id"], "variable": [{ "key": "id", "value": "PASTE_STANDARD_ID" }] }
+          }
+        },
+        {
+          "name": "Delete Standard",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/standards/:id", "host": ["{{baseUrl}}"], "path": ["api","standards",":id"], "variable": [{ "key": "id", "value": "PASTE_STANDARD_ID" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🔍 Auditors",
+      "item": [
+        {
+          "name": "Get All Auditors & Reviewers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/auditors", "host": ["{{baseUrl}}"], "path": ["api","auditors"] }
+          }
+        },
+        {
+          "name": "Get Auditor Review Queue",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/review", "host": ["{{baseUrl}}"], "path": ["api","review"] }
+          }
+        },
+        {
+          "name": "Submit Audit Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Stage 1 audit completed. QMS documentation is adequate. Internal audit records reviewed. Ready for Stage 2.\",\n  \"status\": \"audit_stage2\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/review/{{appId}}/report", "host": ["{{baseUrl}}"], "path": ["api","review","{{appId}}","report"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📊 Dashboard",
+      "item": [
+        {
+          "name": "Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/dashboard/stats", "host": ["{{baseUrl}}"], "path": ["api","dashboard","stats"] }
+          }
+        },
+        {
+          "name": "Admin Reports",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/reports", "host": ["{{baseUrl}}"], "path": ["api","reports"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🔔 Notifications",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/notifications", "host": ["{{baseUrl}}"], "path": ["api","notifications"] }
+          }
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["api","notifications","read-all"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🛡️ Roles",
+      "item": [
+        {
+          "name": "Get All Roles",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/roles", "host": ["{{baseUrl}}"], "path": ["api","roles"] }
+          }
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lead Auditor\",\n  \"permissions\": [\"view_dashboard\",\"view_assigned_applications\",\"submit_audit_report\",\"add_observations\",\"upload_documents\"],\n  \"description\": \"Senior auditor with full audit permissions\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/roles", "host": ["{{baseUrl}}"], "path": ["api","roles"] }
+          }
+        }
+      ]
+    }
+
+  ]
+}

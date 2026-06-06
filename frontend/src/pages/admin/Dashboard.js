@@ -188,6 +188,7 @@ export default function AdminDashboard() {
             { code: 'AUD-F-21', name: 'Certificate Approval', desc: 'Draft for Certificate Approval', icon: Award, color: '#f59e0b', bg: '#fef3c7', link: '/admin/certificates' },
             { code: 'AUD-F-22', name: 'Review Report', desc: 'Final Review & HOD Decision', icon: Settings, color: '#6366f1', bg: '#eef2ff', link: '/admin/audit-report/new' },
             { code: 'ALL FORMS', name: 'Forms Index', desc: 'View all 26 audit format documents', icon: ClipboardList, color: '#0f172a', bg: '#f1f5f9', link: '/admin/audit-forms' },
+            { code: 'AUDIT',     name: 'Audit Details', desc: 'View audit details per application (QMS)', icon: Eye, color: '#f97316', bg: '#fff7ed', link: '/admin/audit-details' },
           ].map(f => (
             <div
               key={f.code}

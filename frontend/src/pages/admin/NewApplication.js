@@ -119,11 +119,17 @@ export default function AdminNewApplication() {
   const [saving,  setSaving]  = useState(false);
   const [form,    setForm]    = useState(INIT);
 
-  const backTo = user?.role === 'sales' ? '/sales/leads' : '/admin/applications';
+  const isClient = user?.role === 'client';
+  const backTo = isClient ? '/client/applications'
+    : user?.role === 'sales' ? '/sales/leads'
+    : '/admin/applications';
 
   useEffect(()=>{
-    axios.get('/api/users?role=client').then(r=>setClients(r.data||[])).catch(()=>{});
-  },[]);
+    // Client doesn't need the clients list — they are the client
+    if (!isClient) {
+      axios.get('/api/users?role=client').then(r=>setClients(r.data||[])).catch(()=>{});
+    }
+  },[isClient]);
 
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
 
@@ -162,15 +168,20 @@ export default function AdminNewApplication() {
         ...form,
         isoStandard: form.standards[0]||'ISO 9001:2015',
         scope: form.scopeOfCertification,
-        city:'', state:'', country:'India', pincode:'',
+        country:'India',
         employeeCount:{headOffice:grandTotal(),branches:0,temporary:0,total:grandTotal()},
       };
-      if(!payload.client) delete payload.client;
-      const {data} = await axios.post('/api/applications',payload);
+      // For client role: let backend auto-assign from token (don't send client field)
+      if(isClient) delete payload.client;
+      else if(!payload.client) delete payload.client;
+
+      const {data} = await axios.post('/api/applications', payload);
       if(!asDraft) await axios.post(`/api/applications/${data._id}/submit`).catch(()=>{});
       toast.success(asDraft?'Saved as draft':'Application submitted!');
       navigate(backTo);
-    }catch{ toast.error('Failed to create'); }
+    }catch(e){
+      toast.error(e?.response?.data?.message || 'Failed to create application');
+    }
     finally{ setSaving(false); }
   };
 
@@ -209,13 +220,16 @@ export default function AdminNewApplication() {
         <div style={{fontSize:11.5,color:'var(--gray-500)'}}>QC Certification · ISO Certification Management</div>
       </div>
 
-      <Row mb={0}>
-        <FG label="REFNO"><input className="form-control" placeholder="Auto-generated" value={form.refno} onChange={e=>set('refno',e.target.value)}/></FG>
-        <FG label="Select Client" ><select className="form-control" value={form.client} onChange={e=>set('client',e.target.value)}>
-          <option value="">— Assign later —</option>
-          {clients.map(c=><option key={c._id} value={c._id}>{c.name} ({c.email})</option>)}
-        </select></FG>
-      </Row>
+      {/* REFNO and client selector — hidden for client role */}
+      {!isClient && (
+        <Row mb={0}>
+          <FG label="REFNO"><input className="form-control" placeholder="Auto-generated" value={form.refno} onChange={e=>set('refno',e.target.value)}/></FG>
+          <FG label="Select Client"><select className="form-control" value={form.client} onChange={e=>set('client',e.target.value)}>
+            <option value="">— Assign later —</option>
+            {clients.map(c=><option key={c._id} value={c._id}>{c.name} ({c.email})</option>)}
+          </select></FG>
+        </Row>
+      )}
 
       <FG label="Name of Organization" required>
         <input className="form-control" placeholder="e.g. ABC Manufacturing Ltd" value={form.organizationName} onChange={e=>set('organizationName',e.target.value)}/>
@@ -568,8 +582,12 @@ export default function AdminNewApplication() {
             <ArrowLeft size={14}/>Back
           </button>
           <div style={{minWidth:0}}>
-            <h1 className="page-title">New Application</h1>
-            <p className="page-subtitle">Request for Proposal cum Application Form — Step {step+1} of 4</p>
+            <h1 className="page-title">{isClient ? 'Apply for ISO Certification' : 'New Application'}</h1>
+            <p className="page-subtitle">
+              {isClient
+                ? `ISO Certification Application — Step ${step+1} of 4`
+                : `Request for Proposal cum Application Form — Step ${step+1} of 4`}
+            </p>
           </div>
         </div>
         <button className="btn btn-secondary" onClick={()=>submit(true)} disabled={saving}>
@@ -577,14 +595,14 @@ export default function AdminNewApplication() {
         </button>
       </div>
 
-      <StepBar/>
+      {StepBar()}
 
       <div className="card" style={{marginBottom:0,padding:0}}>
         <div style={{padding:'22px 24px'}}>
-          {step===0&&<S1/>}
-          {step===1&&<S2/>}
-          {step===2&&<S3/>}
-          {step===3&&<S4/>}
+          {step===0&&S1()}
+          {step===1&&S2()}
+          {step===2&&S3()}
+          {step===3&&S4()}
         </div>
 
         <div className="form-action-bar" style={{margin:0,padding:'14px 24px',borderTop:'1.5px solid var(--primary-50)'}}>

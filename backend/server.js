@@ -1,22 +1,25 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const path = require('path');
-const fs = require('fs');
+const express   = require('express');
+const cors      = require('cors');
+const dotenv    = require('dotenv');
+const path      = require('path');
+const fs        = require('fs');
+const connectDB = require('./config/db');
 
 dotenv.config();
+connectDB();
 
 const app = express();
+
+// Ensure uploads directory exists and serve it as static
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(uploadsDir));
 
-const uploadsDir = path.join(__dirname, 'uploads/applications');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Core routes
+// ── Routes ──────────────────────────────────────────
 app.use('/api/auth',          require('./routes/auth'));
 app.use('/api/users',         require('./routes/users'));
 app.use('/api/applications',  require('./routes/applications'));
@@ -26,8 +29,6 @@ app.use('/api/feedback',      require('./routes/feedback'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/leads',         require('./routes/leads'));
 app.use('/api/payments',      require('./routes/payments'));
-
-// New routes
 app.use('/api/standards',     require('./routes/standards'));
 app.use('/api/roles',         require('./routes/roles'));
 app.use('/api/observations',  require('./routes/observations'));
@@ -37,16 +38,29 @@ app.use('/api/reports',       require('./routes/reports'));
 app.use('/api/audit',         require('./routes/audit'));
 app.use('/api/review',        require('./routes/review'));
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok', mode: 'mock-data (no MongoDB needed)' }));
+// ── Health check ─────────────────────────────────────
+app.get('/api/health', (req, res) => res.json({
+  status : 'ok',
+  db     : 'mongodb',
+  version: '2.0',
+  time   : new Date().toISOString(),
+}));
+
+// ── Global error handler ──────────────────────────────
+app.use((err, req, res, next) => {
+  console.error('[ERROR]', err.message);
+  res.status(500).json({ message: err.message || 'Internal Server Error' });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`📦 Running in MOCK MODE — no MongoDB needed`);
-  console.log(`🔑 Demo logins:`);
-  console.log(`   admin@crm.com    / admin123`);
+  console.log(`\n✅ Server v2.0 running on port ${PORT}`);
+  console.log(`🗄️  Database  : MongoDB`);
+  console.log(`👤 User model : Fixed (Mongoose 9 compatible)`);
+  console.log(`\n🔑 Login credentials:`);
+  console.log(`   admin@crm.com    / admin123  (OTP)`);
   console.log(`   client@crm.com   / client123`);
   console.log(`   auditor@crm.com  / auditor123`);
-  console.log(`   reviewer@crm.com / reviewer123`);
   console.log(`   sales@crm.com    / sales123`);
+  console.log(`\n📌 Seed: POST http://localhost:${PORT}/api/auth/seed?force=true\n`);
 });

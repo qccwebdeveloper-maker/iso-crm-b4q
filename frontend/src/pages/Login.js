@@ -116,12 +116,13 @@ export default function Login() {
   const [showPw, setShowPw] = useState(false);
 
   // admin OTP state
-  const [adminPhone, setAdminPhone] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('      ');
-  const [timer, setTimer] = useState(0);
-  const timerRef = useRef(null);
-  const [demoOtp, setDemoOtp] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [otpSent, setOtpSent]  = useState(false);
+  const [otp, setOtp]          = useState('      ');
+  const [timer, setTimer]      = useState(0);
+  const timerRef               = useRef(null);
+  const [demoOtp, setDemoOtp]  = useState('');
+  const [emailSent, setEmailSent] = useState(false);
 
   // registration state
   const [reg, setReg] = useState({ companyName: '', email: '', password: '', mobile: '', address: '', standard: '', scope: '' });
@@ -167,18 +168,21 @@ export default function Login() {
     } finally { setLoading(false); }
   };
 
-  // ── Send OTP ──
+  // ── Send OTP via Email ──
   const handleSendOtp = async () => {
-    if (!adminPhone || adminPhone.replace(/\D/g,'').length < 10) { setErr('Enter a valid 10-digit mobile number.'); return; }
+    if (!adminEmail || !/\S+@\S+\.\S+/.test(adminEmail)) { setErr('Enter a valid admin email address.'); return; }
     clear(); setLoading(true);
     try {
-      const { data } = await axios.post('/api/auth/send-otp', { phone: adminPhone.replace(/\D/g,'') });
+      const { data } = await axios.post('/api/auth/send-otp', { email: adminEmail.trim().toLowerCase() });
       setOtpSent(true);
+      setEmailSent(data.emailSent || false);
       setDemoOtp(data.demo_otp || '');
-      setMsg(`OTP sent to +91 ${adminPhone}${data.demo_otp ? ` (demo OTP: ${data.demo_otp})` : ''}`);
+      setMsg(data.emailSent
+        ? `OTP sent to ${adminEmail}. Check your inbox.`
+        : `OTP: ${data.demo_otp || '—'} (email not configured — copied from server console)`);
       startTimer(60);
     } catch (ex) {
-      setErr(getErrMsg(ex, 'Failed to send OTP. Please check the phone number.'));
+      setErr(getErrMsg(ex, 'Failed to send OTP. Check the email address.'));
     } finally { setLoading(false); }
   };
 
@@ -188,7 +192,7 @@ export default function Login() {
     if (otpVal.length < 6) { setErr('Enter the complete 6-digit OTP.'); return; }
     clear(); setLoading(true);
     try {
-      const { data } = await axios.post('/api/auth/verify-otp', { phone: adminPhone.replace(/\D/g,''), otp: otpVal });
+      const { data } = await axios.post('/api/auth/verify-otp', { email: adminEmail.trim().toLowerCase(), otp: otpVal });
       loginWithToken(data, data.token);
       navigate('/admin');
     } catch (ex) {
@@ -220,7 +224,7 @@ export default function Login() {
   );
 
   const modePill = (id, label) => (
-    <button onClick={() => { setLoginMode(id); clear(); setOtpSent(false); setOtp('      '); }}
+    <button onClick={() => { setLoginMode(id); clear(); setOtpSent(false); setOtp('      '); setAdminEmail(''); setDemoOtp(''); setEmailSent(false); }}
       style={{ flex: 1, padding: '7px 4px', border: `1.5px solid ${loginMode === id ? '#f97316' : '#fde68a'}`, borderRadius: 9, background: loginMode === id ? '#fff7ed' : 'transparent', color: loginMode === id ? '#f97316' : '#9ca3af', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap' }}>
       {label}
     </button>
@@ -269,46 +273,78 @@ export default function Login() {
               {loginMode === 'admin' && (
                 <div>
                   <div style={{ background: '#fff7ed', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 13px', marginBottom: 16, fontSize: 11.5, color: '#92400e' }}>
-                    🛡️ <strong>Admin access only</strong> — OTP will be sent to your registered mobile number.
+                    🛡️ <strong>Admin access only</strong> — A 6-digit OTP will be sent to your registered email address.
                   </div>
+
                   {!otpSent ? (
                     <>
-                      <Field label="Admin Mobile Number" required>
+                      <Field label="Admin Email Address" required>
                         <div style={{ display: 'flex', gap: 8 }}>
-                          <div style={{ flex: 1, position: 'relative' }}>
-                            <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: '#6b7280', fontWeight: 600 }}>+91</span>
-                            <input type="tel" placeholder="9000000001" value={adminPhone}
-                              onChange={e => setAdminPhone(e.target.value.replace(/\D/g,'').slice(0,10))}
-                              style={{ ...inp(false), paddingLeft: 44 }}
-                              onKeyDown={e => e.key === 'Enter' && handleSendOtp()} />
-                          </div>
+                          <input
+                            type="email"
+                            placeholder="admin@crm.com"
+                            value={adminEmail}
+                            onChange={e => setAdminEmail(e.target.value)}
+                            style={{ ...inp(false), flex: 1 }}
+                            onKeyDown={e => e.key === 'Enter' && handleSendOtp()}
+                          />
                           <button onClick={handleSendOtp} disabled={loading}
                             style={{ ...S.btnMain, width: 'auto', padding: '0 18px', flexShrink: 0, boxShadow: 'none', opacity: loading ? 0.7 : 1 }}>
                             {loading ? '...' : 'Send OTP'}
                           </button>
                         </div>
                       </Field>
-                      <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 9, padding: '9px 12px', fontSize: 11, color: '#b45309' }}>
-                        💡 Demo: Admin phone is <strong>9000000001</strong>
-                      </div>
+
+                      {/* Quick-fill demo button */}
+                      <button type="button" onClick={() => setAdminEmail('admin@crm.com')}
+                        style={{ width: '100%', padding: '8px 14px', background: '#fef3c7', border: '1.5px solid #fcd34d', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', marginTop: 4 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: '#92400e' }}>🔐 Demo Admin</div>
+                        <div style={{ fontSize: 10.5, color: '#9ca3af' }}>admin@crm.com — click to autofill</div>
+                      </button>
                     </>
                   ) : (
                     <>
-                      <p style={{ textAlign: 'center', fontSize: 12.5, color: '#6b7280', margin: '0 0 4px' }}>
-                        OTP sent to <strong style={{ color: '#1c0a00' }}>+91 {adminPhone}</strong>
-                      </p>
-                      <p style={{ textAlign: 'center', fontSize: 11.5, color: '#9ca3af', margin: '0 0 2px' }}>Enter the 6-digit code</p>
+                      <div style={{ textAlign: 'center', marginBottom: 4 }}>
+                        <div style={{ fontSize: 12.5, color: '#6b7280' }}>
+                          OTP sent to <strong style={{ color: '#1c0a00' }}>{adminEmail}</strong>
+                        </div>
+                        {emailSent
+                          ? <div style={{ fontSize: 11, color: '#16a34a', marginTop: 3 }}>✅ Check your inbox (and spam folder)</div>
+                          : <div style={{ fontSize: 11, color: '#b45309', marginTop: 3 }}>
+                              ⚠️ Email not configured — OTP is in server console
+                              {demoOtp && <span> → <strong style={{ fontFamily: 'monospace', fontSize: 13, color: '#ea580c' }}>{demoOtp}</strong></span>}
+                            </div>
+                        }
+                      </div>
+
+                      {/* If email not configured, show OTP directly */}
+                      {!emailSent && demoOtp && (
+                        <div style={{ background: '#fff7ed', border: '2px dashed #f97316', borderRadius: 10, padding: '10px 14px', margin: '10px 0', textAlign: 'center' }}>
+                          <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#f97316', marginBottom: 4 }}>Dev OTP (email not configured)</div>
+                          <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: 8, fontFamily: 'monospace', color: '#ea580c' }}>{demoOtp}</div>
+                          <button type="button"
+                            onClick={() => setOtp(demoOtp.padEnd(6, ' '))}
+                            style={{ marginTop: 8, padding: '4px 14px', background: '#f97316', border: 'none', borderRadius: 6, color: 'white', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                            Auto-fill OTP
+                          </button>
+                        </div>
+                      )}
+
+                      <p style={{ textAlign: 'center', fontSize: 11.5, color: '#9ca3af', margin: '6px 0 2px' }}>Enter the 6-digit code below</p>
                       <OtpInput value={otp} onChange={setOtp} />
                       <button onClick={handleVerifyOtp} disabled={loading || otp.replace(/\s/g,'').length < 6}
                         style={{ ...S.btnMain, opacity: (loading || otp.replace(/\s/g,'').length < 6) ? 0.55 : 1, marginBottom: 12 }}>
                         {loading ? '⏳ Verifying…' : '→ Open Admin Dashboard'}
                       </button>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <button onClick={() => { setOtpSent(false); setOtp('      '); clear(); }}
-                          style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#f97316', cursor: 'pointer', fontFamily: 'inherit' }}>← Change number</button>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <button onClick={() => { setOtpSent(false); setOtp('      '); setDemoOtp(''); setEmailSent(false); clear(); }}
+                          style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#f97316', cursor: 'pointer', fontFamily: 'inherit' }}>
+                          ← Change email
+                        </button>
                         {timer > 0
                           ? <span style={{ fontSize: 11.5, color: '#9ca3af' }}>Resend in {timer}s</span>
-                          : <button onClick={handleSendOtp} style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#f97316', cursor: 'pointer', fontFamily: 'inherit' }}>Resend OTP</button>}
+                          : <button onClick={handleSendOtp} style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#f97316', cursor: 'pointer', fontFamily: 'inherit' }}>Resend OTP</button>
+                        }
                       </div>
                     </>
                   )}

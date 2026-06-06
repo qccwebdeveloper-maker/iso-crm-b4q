@@ -2,131 +2,137 @@ const express = require('express');
 const router  = express.Router();
 const jwt     = require('jsonwebtoken');
 const bcrypt  = require('bcryptjs');
-const { getUserByEmail, USERS, createUser } = require('../mockData');
+const User    = require('../models/User');
 const { protect } = require('../middleware/auth');
+const { sendOtpEmail, sendWelcomeEmail } = require('../utils/email');
 
 const SECRET   = process.env.JWT_SECRET || 'crm_secret_key_2024';
 const genToken = (id) => jwt.sign({ id }, SECRET, { expiresIn: '7d' });
+const hashPw   = (pw)  => bcrypt.hash(pw, 10);
 
-// In-memory OTP store { phone: { otp, expiry, userId } }
+// In-memory OTP store { email: { otp, expiry, userId } }
 const OTP_STORE = {};
 
-// ── POST /api/auth/login  (email + password)
-router.post('/login', (req, res) => {
-  const { email, password } = req.body;
-  const user = getUserByEmail(email);
-  if (!user) return res.status(401).json({ message: 'Invalid email or password' });
-  if (!user.isActive) {
-    if (user.pendingApproval) return res.status(401).json({ message: 'Your account is pending admin approval. Please wait for activation.' });
-    return res.status(401).json({ message: 'Account has been deactivated. Contact admin.' });
-  }
-  const match = bcrypt.compareSync(password, user.password);
-  if (!match) return res.status(401).json({ message: 'Invalid email or password' });
-  const { password: _pw, ...safe } = user;
-  res.json({ ...safe, token: genToken(user._id) });
+// POST /api/auth/login
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: 'Email and password are required' });
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) return res.status(401).json({ message: 'Invalid email or password' });
+
+    if (!user.isActive) {
+      if (user.pendingApproval) return res.status(401).json({ message: 'Your account is pending admin approval.' });
+      return res.status(401).json({ message: 'Account deactivated. Contact admin.' });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ message: 'Invalid email or password' });
+
+    res.json({ ...user.toJSON(), token: genToken(user._id) });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ── GET /api/auth/me
-router.get('/me', protect, (req, res) => {
-  const user = USERS.find(u => u._id === req.user._id);
-  if (!user) return res.status(404).json({ message: 'User not found' });
-  const { password, ...safe } = user;
-  res.json(safe);
+// GET /api/auth/me
+router.get('/me', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ── POST /api/auth/send-otp  (admin phone login)
-router.post('/send-otp', (req, res) => {
-  const { phone } = req.body;
-  if (!phone) return res.status(400).json({ message: 'Phone number required' });
+// POST /api/auth/send-otp
+router.post('/send-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Admin email required' });
 
-  // find admin user by phone
-  const admin = USERS.find(u => u.role === 'admin' && (u.phone === phone || u.phone === phone.replace(/\D/g,'')));
-  if (!admin) return res.status(404).json({ message: 'No admin account found with this mobile number' });
+    const admin = await User.findOne({ email: email.toLowerCase().trim(), role: 'admin' });
+    if (!admin) return res.status(404).json({ message: 'No admin account found with this email' });
+    if (!admin.isActive) return res.status(403).json({ message: 'Admin account is inactive' });
 
-  const otp    = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiry = Date.now() + 10 * 60 * 1000; // 10 minutes
-  OTP_STORE[phone] = { otp, expiry, userId: admin._id };
+    const otp    = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = Date.now() + 10 * 60 * 1000;
+    OTP_STORE[email.toLowerCase()] = { otp, expiry, userId: admin._id.toString() };
 
-  // In production: send via SMS gateway (Twilio / MSG91)
-  console.log(`\n[OTP] Admin: ${admin.name} | Phone: ${phone} | OTP: ${otp}\n`);
+    let emailSent = false;
+    if (process.env.EMAIL_USER && !process.env.EMAIL_USER.includes('your_gmail')) {
+      try { await sendOtpEmail({ to: admin.email, name: admin.name, otp, expiresInMinutes: 10 }); emailSent = true; }
+      catch (e) { console.warn('[OTP email failed]', e.message); }
+    }
 
-  res.json({
-    message: 'OTP sent successfully',
-    adminName: admin.name,
-    // Remove demo_otp in production — included here for development
-    demo_otp: otp,
-  });
+    console.log(`\n[OTP] ${admin.name} | ${admin.email} | OTP: ${otp}\n`);
+    res.json({
+      message:   emailSent ? `OTP sent to ${admin.email}` : `OTP ready (check server console)`,
+      adminName: admin.name,
+      emailSent,
+      ...(process.env.NODE_ENV !== 'production' && { demo_otp: otp }),
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ── POST /api/auth/verify-otp
-router.post('/verify-otp', (req, res) => {
-  const { phone, otp } = req.body;
-  if (!phone || !otp) return res.status(400).json({ message: 'Phone and OTP required' });
+// POST /api/auth/verify-otp
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ message: 'Email and OTP required' });
 
-  const record = OTP_STORE[phone];
-  if (!record) return res.status(400).json({ message: 'No OTP was requested for this number. Please request a new OTP.' });
-  if (Date.now() > record.expiry) {
-    delete OTP_STORE[phone];
-    return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
-  }
-  if (record.otp !== otp.toString()) {
-    return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
-  }
+    const key    = email.toLowerCase().trim();
+    const record = OTP_STORE[key];
+    if (!record)                    return res.status(400).json({ message: 'No OTP sent to this email. Request a new one.' });
+    if (Date.now() > record.expiry) { delete OTP_STORE[key]; return res.status(400).json({ message: 'OTP expired. Request a new one.' }); }
+    if (record.otp !== otp.toString().trim()) return res.status(400).json({ message: 'Invalid OTP.' });
+    delete OTP_STORE[key];
 
-  delete OTP_STORE[phone]; // one-time use
+    const user = await User.findById(record.userId).select('-password');
+    if (!user || !user.isActive) return res.status(403).json({ message: 'Admin account is inactive' });
 
-  const user = USERS.find(u => u._id === record.userId);
-  if (!user || !user.isActive) return res.status(403).json({ message: 'Admin account is inactive' });
-  if (user.role !== 'admin') return res.status(403).json({ message: 'OTP login is only for admin accounts' });
-
-  const { password: _pw, ...safe } = user;
-  res.json({ ...safe, token: genToken(user._id) });
+    res.json({ ...user.toJSON(), token: genToken(user._id) });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ── POST /api/auth/register-client  (public — new client self-registration)
-router.post('/register-client', (req, res) => {
-  const { companyName, email, password, mobile, address, standard, scope } = req.body;
+// POST /api/auth/register-client
+router.post('/register-client', async (req, res) => {
+  try {
+    const { companyName, email, password, mobile, address, standard, scope } = req.body;
+    if (!companyName || !email || !password || !mobile || !address || !standard || !scope)
+      return res.status(400).json({ message: 'All fields are required' });
+    if (password.length < 6) return res.status(400).json({ message: 'Password must be at least 6 characters' });
 
-  if (!companyName || !email || !password || !mobile || !address || !standard || !scope) {
-    return res.status(400).json({ message: 'All fields are required' });
-  }
+    const exists = await User.findOne({ email: email.toLowerCase() });
+    if (exists) return res.status(409).json({ message: 'An account with this email already exists' });
 
-  const exists = USERS.find(u => u.email === email);
-  if (exists) return res.status(409).json({ message: 'An account with this email already exists' });
+    const clientId = 'CLT-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 5).toUpperCase();
+    const hashed   = await hashPw(password);
 
-  // Generate unique client ID
-  const clientId = 'CLT-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 5).toUpperCase();
+    const user = await User.create({
+      name: companyName, email: email.toLowerCase(), password: hashed, role: 'client',
+      phone: mobile, company: companyName, address, isoStandard: standard, scope,
+      clientId, isActive: false, pendingApproval: true,
+    });
 
-  const newUser = createUser({
-    name:           companyName,
-    email,
-    password,
-    role:           'client',
-    phone:          mobile,
-    company:        companyName,
-    address,
-    isoStandard:    standard,
-    scope,
-    clientId,
-    isActive:       false,        // ← pending admin approval
-    pendingApproval: true,
-    notifications:  [],
-    assignedApplications: [],
-  });
+    if (process.env.EMAIL_USER && !process.env.EMAIL_USER.includes('your_gmail')) {
+      sendWelcomeEmail({ to: email, name: companyName, clientId, email, password })
+        .catch(e => console.warn('[Welcome email failed]', e.message));
+    }
 
-  console.log(`\n[REGISTER] New client: ${companyName} | ${email} | clientId: ${clientId}\n`);
-
-  res.status(201).json({
-    message:  'Registration successful. Pending admin approval.',
-    clientId: newUser.clientId || clientId,
-    email:    newUser.email,
-    name:     newUser.name,
-  });
+    res.status(201).json({ message: 'Registration successful. Pending admin approval.', clientId: user.clientId, email: user.email, name: user.name });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ── POST /api/auth/seed (keep for compat)
-router.post('/seed', (req, res) => {
-  res.json({ message: 'Demo users already loaded (mock mode)' });
+// POST /api/auth/seed
+router.post('/seed', async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+    if (count > 0 && req.query.force !== 'true')
+      return res.json({ message: `${count} users exist. Add ?force=true to reseed.` });
+    const { execSync } = require('child_process');
+    const path = require('path');
+    execSync(`node "${path.join(__dirname, '../seed.js')}"`, { stdio: 'inherit' });
+    res.json({ message: 'Database seeded successfully.' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 module.exports = router;

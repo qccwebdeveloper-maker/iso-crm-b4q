@@ -47,6 +47,7 @@ const NAV = {
       { to: '/admin/leads', icon: Target, label: 'Lead Management', badge: 'NEW' },
     ]},
     { sec: 'QMS Forms', items: [
+      { to: '/admin/audit-details',    icon: ClipboardList, label: 'View Audit Details', badge: 'QMS' },
       { to: '/admin/audit-report/new', icon: FileText,      label: 'New Audit Report', badge: 'NEW' },
       { to: '/admin/audit-forms',      icon: ClipboardList, label: 'QMS Audit Forms Index' },
     ]},

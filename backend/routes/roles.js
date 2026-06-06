@@ -1,38 +1,40 @@
-const express = require('express');
-const router = express.Router();
+﻿const express = require('express');
+const router  = express.Router();
+const Role    = require('../models/Role');
 const { protect, authorize } = require('../middleware/auth');
 
-const ROLES = [
-  { _id: 'r1', name: 'Admin', permissions: ['all'], userCount: 1 },
-  { _id: 'r2', name: 'Client', permissions: ['view_dashboard','view_applications','submit_application'], userCount: 12 },
-  { _id: 'r3', name: 'Auditor', permissions: ['view_dashboard','view_applications','submit_audit_report'], userCount: 4 },
-  { _id: 'r4', name: 'Reviewer', permissions: ['view_dashboard','view_applications','submit_review','approve_application'], userCount: 2 },
-  { _id: 'r5', name: 'Sales', permissions: ['view_dashboard','manage_users','view_reports'], userCount: 1 },
-];
-let rCounter = 6;
-
-router.get('/', protect, (req, res) => res.json(ROLES));
-
-router.post('/', protect, authorize('admin'), (req, res) => {
-  const { name, permissions } = req.body;
-  if (!name) return res.status(400).json({ message: 'Name required' });
-  const r = { _id: 'r' + rCounter++, name, permissions: permissions || [], userCount: 0 };
-  ROLES.push(r);
-  res.status(201).json(r);
+router.get('/', protect, async (req, res) => {
+  try {
+    res.json(await Role.find().sort({ name: 1 }));
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-router.put('/:id', protect, authorize('admin'), (req, res) => {
-  const idx = ROLES.findIndex(r => r._id === req.params.id);
-  if (idx === -1) return res.status(404).json({ message: 'Not found' });
-  ROLES[idx] = { ...ROLES[idx], ...req.body };
-  res.json(ROLES[idx]);
+router.post('/', protect, authorize('admin'), async (req, res) => {
+  try {
+    const { name, permissions, description } = req.body;
+    if (!name) return res.status(400).json({ message: 'Name required' });
+    const exists = await Role.findOne({ name });
+    if (exists) return res.status(400).json({ message: 'Role already exists' });
+    const role = await Role.create({ name, permissions: permissions || [], description });
+    res.status(201).json(role);
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-router.delete('/:id', protect, authorize('admin'), (req, res) => {
-  const idx = ROLES.findIndex(r => r._id === req.params.id);
-  if (idx === -1) return res.status(404).json({ message: 'Not found' });
-  ROLES.splice(idx, 1);
-  res.json({ message: 'Deleted' });
+router.put('/:id', protect, authorize('admin'), async (req, res) => {
+  try {
+    const role = await Role.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
+    if (!role) return res.status(404).json({ message: 'Not found' });
+    res.json(role);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
+  try {
+    const role = await Role.findByIdAndDelete(req.params.id);
+    if (!role) return res.status(404).json({ message: 'Not found' });
+    res.json({ message: 'Deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 module.exports = router;
+
