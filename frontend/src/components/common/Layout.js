@@ -197,10 +197,7 @@ export default function Layout({ children, title }) {
         {/* Logo */}
         <div className="sidebar-top">
           <div className="logo-mark">
-            <img
-              src="/logo.png" alt="QC"
-              onError={e => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span>Q</span>'; }}
-            />
+            <img src="/QC.png" alt="QC Certification" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
           </div>
           <div>
             <div className="logo-text-top">QC Certification</div>

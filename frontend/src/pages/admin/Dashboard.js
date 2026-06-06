@@ -174,7 +174,7 @@ export default function AdminDashboard() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <ClipboardList size={16} style={{ color: 'var(--primary)' }} />
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--gray-800)' }}>QMS Audit Report Forms</span>
-            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: '#fff7ed', color: 'var(--primary-dark)', border: '1px solid #fed7aa', fontWeight: 700 }}>PDF</span>
+            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: '#e3f2fd', color: 'var(--primary-dark)', border: '1px solid #90caf9', fontWeight: 700 }}>PDF</span>
           </div>
           <button className="btn btn-ghost btn-sm" onClick={() => navigate('/admin/audit-forms')}>View All Forms <ChevronRight size={11}/></button>
         </div>
@@ -188,7 +188,7 @@ export default function AdminDashboard() {
             { code: 'AUD-F-21', name: 'Certificate Approval', desc: 'Draft for Certificate Approval', icon: Award, color: '#f59e0b', bg: '#fef3c7', link: '/admin/certificates' },
             { code: 'AUD-F-22', name: 'Review Report', desc: 'Final Review & HOD Decision', icon: Settings, color: '#6366f1', bg: '#eef2ff', link: '/admin/audit-report/new' },
             { code: 'ALL FORMS', name: 'Forms Index', desc: 'View all 26 audit format documents', icon: ClipboardList, color: '#0f172a', bg: '#f1f5f9', link: '/admin/audit-forms' },
-            { code: 'AUDIT',     name: 'Audit Details', desc: 'View audit details per application (QMS)', icon: Eye, color: '#f97316', bg: '#fff7ed', link: '/admin/audit-details' },
+            { code: 'AUDIT',     name: 'Audit Details', desc: 'View audit details per application (QMS)', icon: Eye, color: '#1565c0', bg: '#e3f2fd', link: '/admin/audit-details' },
           ].map(f => (
             <div
               key={f.code}
@@ -222,15 +222,15 @@ export default function AdminDashboard() {
                 <AreaChart data={monthly}>
                   <defs>
                     <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#f97316" stopOpacity={0.18}/>
-                      <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                      <stop offset="5%"  stopColor="#1565c0" stopOpacity={0.18}/>
+                      <stop offset="95%" stopColor="#1565c0" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffedd5"/>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e3f2fd"/>
                   <XAxis dataKey="name" tick={{ fontSize:10 }}/>
                   <YAxis tick={{ fontSize:10 }}/>
-                  <Tooltip contentStyle={{ borderRadius:10, border:'1px solid #fed7aa', fontSize:12 }}/>
-                  <Area type="monotone" dataKey="Apps" stroke="#f97316" fill="url(#ag)" strokeWidth={2}/>
+                  <Tooltip contentStyle={{ borderRadius:10, border:'1px solid #90caf9', fontSize:12 }}/>
+                  <Area type="monotone" dataKey="Apps" stroke="#1565c0" fill="url(#ag)" strokeWidth={2}/>
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -326,11 +326,11 @@ export default function AdminDashboard() {
             {(stats.statusCounts || []).length > 0 ? (
               <ResponsiveContainer width="100%" height={170}>
                 <BarChart data={(stats.statusCounts || []).map(s => ({ name: s._id.replace(/_/g,' '), count: s.count }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffedd5"/>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e3f2fd"/>
                   <XAxis dataKey="name" tick={{ fontSize:9 }}/>
                   <YAxis tick={{ fontSize:10 }}/>
-                  <Tooltip contentStyle={{ borderRadius:10, border:'1px solid #fed7aa', fontSize:12 }}/>
-                  <Bar dataKey="count" fill="#f97316" radius={[4,4,0,0]}/>
+                  <Tooltip contentStyle={{ borderRadius:10, border:'1px solid #90caf9', fontSize:12 }}/>
+                  <Bar dataKey="count" fill="#1565c0" radius={[4,4,0,0]}/>
                 </BarChart>
               </ResponsiveContainer>
             ) : (

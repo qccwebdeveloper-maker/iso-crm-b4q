@@ -17,10 +17,17 @@ const OTP_STORE = {};
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ message: 'Email and password are required' });
+    if (!email || !password) return res.status(400).json({ message: 'Email / Client ID and password are required' });
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
-    if (!user) return res.status(401).json({ message: 'Invalid email or password' });
+    const identifier = email.trim();
+    const isEmail    = identifier.includes('@');
+    const user       = await User.findOne(
+      isEmail ? { email: identifier.toLowerCase() }
+              : { clientId: identifier }
+    );
+    if (!user) return res.status(401).json({
+      message: isEmail ? 'Invalid email or password' : 'Invalid Client ID or password',
+    });
 
     if (!user.isActive) {
       if (user.pendingApproval) return res.status(401).json({ message: 'Your account is pending admin approval.' });
@@ -57,18 +64,15 @@ router.post('/send-otp', async (req, res) => {
     const expiry = Date.now() + 10 * 60 * 1000;
     OTP_STORE[email.toLowerCase()] = { otp, expiry, userId: admin._id.toString() };
 
-    let emailSent = false;
-    if (process.env.EMAIL_USER && !process.env.EMAIL_USER.includes('your_gmail')) {
-      try { await sendOtpEmail({ to: admin.email, name: admin.name, otp, expiresInMinutes: 10 }); emailSent = true; }
-      catch (e) { console.warn('[OTP email failed]', e.message); }
-    }
+    const result = await sendOtpEmail({ to: admin.email, name: admin.name, otp, expiresInMinutes: 10 });
 
-    console.log(`\n[OTP] ${admin.name} | ${admin.email} | OTP: ${otp}\n`);
+    console.log(`[OTP] Sent to ${admin.email} via ${result.via}`);
+
     res.json({
-      message:   emailSent ? `OTP sent to ${admin.email}` : `OTP ready (check server console)`,
+      message:   `OTP sent to ${admin.email}. Check your inbox.`,
       adminName: admin.name,
-      emailSent,
-      ...(process.env.NODE_ENV !== 'production' && { demo_otp: otp }),
+      emailSent: result.ok,
+      via:       result.via,
     });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
@@ -113,10 +117,8 @@ router.post('/register-client', async (req, res) => {
       clientId, isActive: false, pendingApproval: true,
     });
 
-    if (process.env.EMAIL_USER && !process.env.EMAIL_USER.includes('your_gmail')) {
-      sendWelcomeEmail({ to: email, name: companyName, clientId, email, password })
-        .catch(e => console.warn('[Welcome email failed]', e.message));
-    }
+    sendWelcomeEmail({ to: email, name: companyName, clientId, email, password })
+      .catch(e => console.warn('[Welcome email failed]', e.message));
 
     res.status(201).json({ message: 'Registration successful. Pending admin approval.', clientId: user.clientId, email: user.email, name: user.name });
   } catch (err) { res.status(500).json({ message: err.message }); }

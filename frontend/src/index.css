@@ -1,19 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* ═══════════════════════════════════════════════════════
-   QC CERTIFICATION ISO CRM  ·  MODERN ORANGE THEME
+   QC CERTIFICATION ISO CRM  ·  BRAND BLUE THEME
    4 Dashboards: Admin · Client · Auditor · Sales
 ═══════════════════════════════════════════════════════ */
 :root {
-  --primary:        #f97316;
-  --primary-dark:   #ea580c;
-  --primary-light:  #fb923c;
-  --primary-50:     #fff7ed;
-  --primary-100:    #ffedd5;
-  --primary-200:    #fed7aa;
-  --primary-300:    #fdba74;
+  --primary:        #1565c0;
+  --primary-dark:   #0d47a1;
+  --primary-light:  #1976d2;
+  --primary-50:     #e3f2fd;
+  --primary-100:    #bbdefb;
+  --primary-200:    #90caf9;
+  --primary-300:    #64b5f6;
 
-  --bg:         #fffbf5;
+  --bg:         #f0f4f8;
   --bg-card:    #ffffff;
   --white:      #ffffff;
 
@@ -28,27 +28,27 @@
   --gray-800:   #1f2937;
   --gray-900:   #111827;
 
-  --text-1:     #1c0a00;
-  --text-2:     #431407;
+  --text-1:     #0d1b2a;
+  --text-2:     #1a2f4a;
 
-  --blue:       #3b82f6;  --blue-50:    #eff6ff;
+  --blue:       #1976d2;  --blue-50:    #e3f2fd;
   --purple:     #8b5cf6;  --purple-50:  #f5f3ff;
   --amber:      #f59e0b;  --amber-50:   #fffbeb;
   --red:        #ef4444;  --red-50:     #fef2f2;
   --green:      #16a34a;  --green-50:   #f0fdf4;  --green-100: #dcfce7; --green-200: #bbf7d0;
   --teal:       #14b8a6;  --teal-50:    #f0fdfa;
 
-  --shadow-xs:  0 1px 2px rgba(249,115,22,.06);
-  --shadow-sm:  0 1px 3px rgba(249,115,22,.08), 0 1px 2px rgba(249,115,22,.05);
-  --shadow-md:  0 4px 6px rgba(249,115,22,.07), 0 2px 4px rgba(249,115,22,.05);
-  --shadow-lg:  0 10px 25px rgba(249,115,22,.12), 0 4px 10px rgba(249,115,22,.07);
-  --shadow-xl:  0 20px 50px rgba(249,115,22,.15);
-  --shadow-pop: 0 4px 14px rgba(249,115,22,.35);
+  --shadow-xs:  0 1px 2px rgba(21,101,192,.06);
+  --shadow-sm:  0 1px 3px rgba(21,101,192,.10), 0 1px 2px rgba(21,101,192,.06);
+  --shadow-md:  0 4px 6px rgba(21,101,192,.08), 0 2px 4px rgba(21,101,192,.05);
+  --shadow-lg:  0 10px 25px rgba(21,101,192,.14), 0 4px 10px rgba(21,101,192,.08);
+  --shadow-xl:  0 20px 50px rgba(21,101,192,.18);
+  --shadow-pop: 0 4px 14px rgba(21,101,192,.38);
 
   --r-xs: 4px; --r-sm: 8px; --r-md: 12px;
   --r-lg: 16px; --r-xl: 20px; --r-2xl: 28px;
 
-  --sidebar-w:  264px;
+  --sidebar-w:  268px;
   --header-h:   62px;
   --transition: .15s cubic-bezier(.4,0,.2,1);
 }
@@ -82,11 +82,11 @@ body {
   position: fixed; top: 0; left: 0; bottom: 0;
   z-index: 200; overflow-y: auto; overflow-x: hidden;
   transition: transform var(--transition);
-  box-shadow: 2px 0 24px rgba(249,115,22,.06);
+  box-shadow: 2px 0 24px rgba(21,101,192,.08);
 }
 .sidebar-overlay {
   display: none; position: fixed; inset: 0;
-  background: rgba(28,10,0,.5); z-index: 199;
+  background: rgba(13,27,42,.55); z-index: 199;
   backdrop-filter: blur(2px);
 }
 
@@ -95,18 +95,19 @@ body {
   padding: 18px 16px 14px;
   border-bottom: 1.5px solid var(--primary-100);
   display: flex; align-items: center; gap: 11px;
-  background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);
+  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 100%);
   flex-shrink: 0;
 }
 .logo-mark {
-  width: 40px; height: 40px; border-radius: var(--r-md);
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  width: 44px; height: 44px; border-radius: 50%;
+  background: #ffffff;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; overflow: hidden;
-  box-shadow: var(--shadow-pop);
+  box-shadow: 0 2px 10px rgba(21,101,192,.20);
+  border: 2px solid var(--primary-100);
 }
-.logo-mark img { width: 26px; height: 26px; object-fit: contain; filter: brightness(10); }
-.logo-mark span { color: white; font-size: 17px; font-weight: 900; }
+.logo-mark img { width: 40px; height: 40px; object-fit: contain; }
+.logo-mark span { color: var(--primary-dark); font-size: 13px; font-weight: 900; }
 .logo-text-top { font-size: 13.5px; font-weight: 800; color: var(--text-1); line-height: 1.2; }
 .logo-text-sub { font-size: 10.5px; color: var(--primary); font-weight: 600; letter-spacing: .02em; }
 
@@ -246,7 +247,7 @@ body {
 /* ── Welcome Banner ── */
 .welcome-card {
   border-radius: var(--r-2xl);
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, #fdba74 100%);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-300) 100%);
   padding: 22px 26px; display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 22px; overflow: hidden; position: relative; flex-wrap: wrap; gap: 14px;
 }

@@ -2,6 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import {
+  User, Search, BarChart2, Shield, ShieldCheck, Lock,
+  Eye, EyeOff, AlertTriangle, CheckCircle, CheckCircle2,
+  ArrowRight, ArrowLeft, ClipboardList, Mail, Phone,
+  Check, Loader2,
+} from 'lucide-react';
 
 const ISO_STANDARDS = [
   'ISO 9001:2015',
@@ -14,24 +20,24 @@ const ISO_STANDARDS = [
 const S = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 50%, #fef3c7 100%)',
+    background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%, #e8f0fe 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     padding: 20, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
-  blob1: { position: 'fixed', top: -120, right: -120, width: 500, height: 500, borderRadius: '50%', background: 'rgba(249,115,22,0.07)', pointerEvents: 'none' },
-  blob2: { position: 'fixed', bottom: -80, left: -80, width: 350, height: 350, borderRadius: '50%', background: 'rgba(234,88,12,0.05)', pointerEvents: 'none' },
-  card: { background: 'white', borderRadius: 24, padding: '34px 32px 28px', boxShadow: '0 20px 60px rgba(249,115,22,0.12)', border: '1.5px solid #fde68a' },
+  blob1: { position: 'fixed', top: -120, right: -120, width: 500, height: 500, borderRadius: '50%', background: 'rgba(21,101,192,0.07)', pointerEvents: 'none' },
+  blob2: { position: 'fixed', bottom: -80, left: -80, width: 350, height: 350, borderRadius: '50%', background: 'rgba(13,71,161,0.05)', pointerEvents: 'none' },
+  card: { background: 'white', borderRadius: 24, padding: '34px 32px 28px', boxShadow: '0 20px 60px rgba(21,101,192,0.14)', border: '1.5px solid #90caf9' },
   logoWrap: { textAlign: 'center', marginBottom: 24 },
-  logoIcon: { width: 50, height: 50, borderRadius: 15, background: 'linear-gradient(135deg,#f97316,#ea580c)', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(249,115,22,0.3)' },
-  h1: { fontSize: 19, fontWeight: 800, color: '#1c0a00', margin: '0 0 3px' },
-  sub: { fontSize: 11.5, color: '#f97316', margin: 0, fontWeight: 600 },
-  tabs: { display: 'flex', background: '#fff7ed', borderRadius: 11, padding: 3, marginBottom: 22, border: '1px solid #fde68a' },
-  label: { display: 'block', fontSize: 10.5, fontWeight: 700, color: '#92400e', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '.06em' },
-  btnMain: { width: '100%', padding: '12px 0', border: 'none', borderRadius: 11, color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', background: 'linear-gradient(135deg,#f97316,#ea580c)', boxShadow: '0 4px 14px rgba(249,115,22,0.28)', transition: 'opacity .15s' },
+  logoIcon: { width: 64, height: 64, borderRadius: '50%', background: '#ffffff', border: '2px solid #bbdefb', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 20px rgba(21,101,192,0.18)', overflow: 'hidden' },
+  h1: { fontSize: 19, fontWeight: 800, color: '#0d1b2a', margin: '0 0 3px' },
+  sub: { fontSize: 11.5, color: '#1565c0', margin: 0, fontWeight: 600 },
+  tabs: { display: 'flex', background: '#e3f2fd', borderRadius: 11, padding: 3, marginBottom: 22, border: '1px solid #90caf9' },
+  label: { display: 'block', fontSize: 10.5, fontWeight: 700, color: '#0d47a1', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '.06em' },
+  btnMain: { width: '100%', padding: '12px 0', border: 'none', borderRadius: 11, color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', background: 'linear-gradient(135deg,#1565c0,#0d47a1)', boxShadow: '0 4px 14px rgba(21,101,192,0.32)', transition: 'opacity .15s' },
 };
 
 function inp(focused) {
-  return { width: '100%', padding: '10px 13px', border: `1.5px solid ${focused ? '#f97316' : '#fde68a'}`, borderRadius: 9, fontSize: 13, outline: 'none', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", boxSizing: 'border-box', background: '#fffbeb', color: '#1c0a00', transition: 'border .15s' };
+  return { width: '100%', padding: '10px 13px', border: `1.5px solid ${focused ? '#1565c0' : '#90caf9'}`, borderRadius: 9, fontSize: 13, outline: 'none', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", boxSizing: 'border-box', background: '#f0f4f8', color: '#0d1b2a', transition: 'border .15s' };
 }
 
 function FInput({ type = 'text', placeholder, value, onChange, required = true, name, onEnter }) {
@@ -47,10 +53,10 @@ function FInput({ type = 'text', placeholder, value, onChange, required = true, 
   );
 }
 
-function Field({ label, required, children, half }) {
+function Field({ label, required, children }) {
   return (
-    <div style={{ marginBottom: 13, ...(half ? {} : {}) }}>
-      <label style={S.label}>{label}{required && <span style={{ color: '#f97316' }}> *</span>}</label>
+    <div style={{ marginBottom: 13 }}>
+      <label style={S.label}>{label}{required && <span style={{ color: '#1565c0' }}> *</span>}</label>
       {children}
     </div>
   );
@@ -61,7 +67,12 @@ function Alert({ type, msg }) {
   const styles = type === 'error'
     ? { background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b' }
     : { background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534' };
-  return <div style={{ ...styles, borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 12.5 }}>{type === 'error' ? '⚠️ ' : '✅ '}{msg}</div>;
+  return (
+    <div style={{ ...styles, borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 12.5, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+      {type === 'error' ? <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} /> : <CheckCircle size={14} style={{ flexShrink: 0, marginTop: 1 }} />}
+      <span>{msg}</span>
+    </div>
+  );
 }
 
 // ── 6-box OTP input ──
@@ -97,7 +108,7 @@ function OtpInput({ value, onChange }) {
           <input key={i} ref={el => (refs.current[i] = el)}
             type="text" inputMode="numeric" maxLength={1} value={digit}
             onChange={e => handleChange(e, i)} onKeyDown={e => handleKey(e, i)} onPaste={handlePaste}
-            style={{ width: 42, height: 50, textAlign: 'center', fontSize: 22, fontWeight: 800, border: `2px solid ${digit ? '#f97316' : '#fde68a'}`, borderRadius: 11, outline: 'none', background: digit ? '#fff7ed' : '#fffbeb', color: '#ea580c', fontFamily: 'monospace', transition: 'all .15s' }}
+            style={{ width: 42, height: 50, textAlign: 'center', fontSize: 22, fontWeight: 800, border: `2px solid ${digit ? '#1565c0' : '#90caf9'}`, borderRadius: 11, outline: 'none', background: digit ? '#e3f2fd' : '#f0f4f8', color: '#0d47a1', fontFamily: 'monospace', transition: 'all .15s' }}
           />
         );
       })}
@@ -107,24 +118,20 @@ function OtpInput({ value, onChange }) {
 
 // ═══════════════════════════════════════════════
 export default function Login() {
-  const [tab, setTab] = useState('login');            // 'login' | 'register' | 'success'
-  const [loginMode, setLoginMode] = useState('client'); // 'client' | 'auditor' | 'sales' | 'admin'
+  const [tab, setTab] = useState('login');
+  const [loginMode, setLoginMode] = useState('client');
 
-  // email login state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
 
-  // admin OTP state
   const [adminEmail, setAdminEmail] = useState('');
   const [otpSent, setOtpSent]  = useState(false);
   const [otp, setOtp]          = useState('      ');
   const [timer, setTimer]      = useState(0);
   const timerRef               = useRef(null);
-  const [demoOtp, setDemoOtp]  = useState('');
   const [emailSent, setEmailSent] = useState(false);
 
-  // registration state
   const [reg, setReg] = useState({ companyName: '', email: '', password: '', mobile: '', address: '', standard: '', scope: '' });
   const [clientId, setClientId] = useState('');
 
@@ -133,7 +140,7 @@ export default function Login() {
   const [msg, setMsg] = useState('');
 
   const { login, loginWithToken } = useAuth();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => () => clearInterval(timerRef.current), []);
 
@@ -145,19 +152,16 @@ export default function Login() {
 
   const clear = () => { setErr(''); setMsg(''); };
 
-  // ── Smart error message — detects server down vs real error ──
   const getErrMsg = (ex, fallback) => {
     if (!ex.response) {
-      // No response = network error / server not running
       if (ex.code === 'ERR_NETWORK' || ex.message?.includes('Network Error') || ex.message?.includes('ECONNREFUSED')) {
-        return '🔌 Cannot connect to server. Make sure the backend is running on port 5000.';
+        return 'Cannot connect to server. Make sure the backend is running on port 5000.';
       }
-      return '🔌 Server is not responding. Please start the backend server and try again.';
+      return 'Server is not responding. Please start the backend server and try again.';
     }
     return ex.response?.data?.message || fallback;
   };
 
-  // ── Email login ──
   const handleLogin = async (e) => {
     e.preventDefault(); clear(); setLoading(true);
     try {
@@ -168,7 +172,6 @@ export default function Login() {
     } finally { setLoading(false); }
   };
 
-  // ── Send OTP via Email ──
   const handleSendOtp = async () => {
     if (!adminEmail || !/\S+@\S+\.\S+/.test(adminEmail)) { setErr('Enter a valid admin email address.'); return; }
     clear(); setLoading(true);
@@ -176,17 +179,13 @@ export default function Login() {
       const { data } = await axios.post('/api/auth/send-otp', { email: adminEmail.trim().toLowerCase() });
       setOtpSent(true);
       setEmailSent(data.emailSent || false);
-      setDemoOtp(data.demo_otp || '');
-      setMsg(data.emailSent
-        ? `OTP sent to ${adminEmail}. Check your inbox.`
-        : `OTP: ${data.demo_otp || '—'} (email not configured — copied from server console)`);
+      setMsg(`OTP sent to ${adminEmail}. Check your inbox.`);
       startTimer(60);
     } catch (ex) {
       setErr(getErrMsg(ex, 'Failed to send OTP. Check the email address.'));
     } finally { setLoading(false); }
   };
 
-  // ── Verify OTP ──
   const handleVerifyOtp = async () => {
     const otpVal = otp.replace(/\s/g, '');
     if (otpVal.length < 6) { setErr('Enter the complete 6-digit OTP.'); return; }
@@ -200,7 +199,6 @@ export default function Login() {
     } finally { setLoading(false); }
   };
 
-  // ── Register ──
   const handleRegister = async (e) => {
     e.preventDefault(); clear();
     const { companyName, email: re, password: rp, mobile, address, standard, scope } = reg;
@@ -218,14 +216,14 @@ export default function Login() {
 
   const tabBtn = (id, label) => (
     <button onClick={() => { setTab(id); clear(); }}
-      style={{ flex: 1, padding: '8px 0', border: 'none', borderRadius: 9, background: tab === id ? 'linear-gradient(135deg,#f97316,#ea580c)' : 'transparent', color: tab === id ? 'white' : '#9ca3af', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}>
+      style={{ flex: 1, padding: '8px 0', border: 'none', borderRadius: 9, background: tab === id ? 'linear-gradient(135deg,#1565c0,#0d47a1)' : 'transparent', color: tab === id ? 'white' : '#9ca3af', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}>
       {label}
     </button>
   );
 
   const modePill = (id, label) => (
-    <button onClick={() => { setLoginMode(id); clear(); setOtpSent(false); setOtp('      '); setAdminEmail(''); setDemoOtp(''); setEmailSent(false); }}
-      style={{ flex: 1, padding: '7px 4px', border: `1.5px solid ${loginMode === id ? '#f97316' : '#fde68a'}`, borderRadius: 9, background: loginMode === id ? '#fff7ed' : 'transparent', color: loginMode === id ? '#f97316' : '#9ca3af', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap' }}>
+    <button onClick={() => { setLoginMode(id); clear(); setOtpSent(false); setOtp('      '); setAdminEmail(''); setEmailSent(false); }}
+      style={{ flex: 1, padding: '7px 4px', border: `1.5px solid ${loginMode === id ? '#1565c0' : '#bbdefb'}`, borderRadius: 9, background: loginMode === id ? '#e3f2fd' : 'transparent', color: loginMode === id ? '#1565c0' : '#9ca3af', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
       {label}
     </button>
   );
@@ -240,8 +238,9 @@ export default function Login() {
           {/* Logo */}
           <div style={S.logoWrap}>
             <div style={S.logoIcon}>
-              <img src="/logo.png" alt="Q" style={{ width: 30, height: 30, objectFit: 'contain', filter: 'brightness(10)' }}
-                onError={e => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:white;font-size:20px;font-weight:800">Q</span>'; }} />
+              <img src="/QC.png" alt="QC Certification"
+                style={{ width: 56, height: 56, objectFit: 'contain' }}
+                onError={e => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#1565c0;font-size:18px;font-weight:900">QC</span>'; }} />
             </div>
             <h1 style={S.h1}>QC Certification CRM</h1>
             <p style={S.sub}>ISO Certification Management Platform</p>
@@ -261,19 +260,19 @@ export default function Login() {
           {/* ────── LOGIN TAB ────── */}
           {tab === 'login' && (
             <>
-              {/* Mode pills */}
               <div style={{ display: 'flex', gap: 7, marginBottom: 18, flexWrap: 'wrap' }}>
-                {modePill('client',  '👤 Client')}
-                {modePill('auditor', '🔍 Auditor')}
-                {modePill('sales',   '📊 Sales')}
-                {modePill('admin',   '🔐 Admin OTP')}
+                {modePill('client',  <><User size={12} /> Client</>)}
+                {modePill('auditor', <><Search size={12} /> Auditor</>)}
+                {modePill('sales',   <><BarChart2 size={12} /> Sales</>)}
+                {modePill('admin',   <><Shield size={12} /> Admin OTP</>)}
               </div>
 
               {/* Admin OTP login */}
               {loginMode === 'admin' && (
                 <div>
-                  <div style={{ background: '#fff7ed', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 13px', marginBottom: 16, fontSize: 11.5, color: '#92400e' }}>
-                    🛡️ <strong>Admin access only</strong> — A 6-digit OTP will be sent to your registered email address.
+                  <div style={{ background: '#e3f2fd', border: '1px solid #90caf9', borderRadius: 10, padding: '10px 13px', marginBottom: 16, fontSize: 11.5, color: '#0d47a1', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <ShieldCheck size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+                    <span><strong>Admin access only</strong> — A 6-digit OTP will be sent to your registered email address.</span>
                   </div>
 
                   {!otpSent ? (
@@ -281,24 +280,22 @@ export default function Login() {
                       <Field label="Admin Email Address" required>
                         <div style={{ display: 'flex', gap: 8 }}>
                           <input
-                            type="email"
-                            placeholder="admin@crm.com"
-                            value={adminEmail}
+                            type="email" placeholder="admin@crm.com" value={adminEmail}
                             onChange={e => setAdminEmail(e.target.value)}
                             style={{ ...inp(false), flex: 1 }}
                             onKeyDown={e => e.key === 'Enter' && handleSendOtp()}
                           />
                           <button onClick={handleSendOtp} disabled={loading}
-                            style={{ ...S.btnMain, width: 'auto', padding: '0 18px', flexShrink: 0, boxShadow: 'none', opacity: loading ? 0.7 : 1 }}>
-                            {loading ? '...' : 'Send OTP'}
+                            style={{ ...S.btnMain, width: 'auto', padding: '0 18px', flexShrink: 0, boxShadow: 'none', opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            {loading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Mail size={13} />}
+                            {loading ? 'Sending…' : 'Send OTP'}
                           </button>
                         </div>
                       </Field>
 
-                      {/* Quick-fill demo button */}
                       <button type="button" onClick={() => setAdminEmail('admin@crm.com')}
-                        style={{ width: '100%', padding: '8px 14px', background: '#fef3c7', border: '1.5px solid #fcd34d', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', marginTop: 4 }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: '#92400e' }}>🔐 Demo Admin</div>
+                        style={{ width: '100%', padding: '8px 14px', background: '#e3f2fd', border: '1.5px solid #64b5f6', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', marginTop: 4 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: '#0d47a1', display: 'flex', alignItems: 'center', gap: 5 }}><Lock size={11} /> Demo Admin</div>
                         <div style={{ fontSize: 10.5, color: '#9ca3af' }}>admin@crm.com — click to autofill</div>
                       </button>
                     </>
@@ -306,44 +303,29 @@ export default function Login() {
                     <>
                       <div style={{ textAlign: 'center', marginBottom: 4 }}>
                         <div style={{ fontSize: 12.5, color: '#6b7280' }}>
-                          OTP sent to <strong style={{ color: '#1c0a00' }}>{adminEmail}</strong>
+                          OTP sent to <strong style={{ color: '#0d1b2a' }}>{adminEmail}</strong>
                         </div>
-                        {emailSent
-                          ? <div style={{ fontSize: 11, color: '#16a34a', marginTop: 3 }}>✅ Check your inbox (and spam folder)</div>
-                          : <div style={{ fontSize: 11, color: '#b45309', marginTop: 3 }}>
-                              ⚠️ Email not configured — OTP is in server console
-                              {demoOtp && <span> → <strong style={{ fontFamily: 'monospace', fontSize: 13, color: '#ea580c' }}>{demoOtp}</strong></span>}
-                            </div>
-                        }
+                        <div style={{ fontSize: 11, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                          <CheckCircle size={12} /> Check your inbox (and spam folder)
+                        </div>
                       </div>
 
-                      {/* If email not configured, show OTP directly */}
-                      {!emailSent && demoOtp && (
-                        <div style={{ background: '#fff7ed', border: '2px dashed #f97316', borderRadius: 10, padding: '10px 14px', margin: '10px 0', textAlign: 'center' }}>
-                          <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#f97316', marginBottom: 4 }}>Dev OTP (email not configured)</div>
-                          <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: 8, fontFamily: 'monospace', color: '#ea580c' }}>{demoOtp}</div>
-                          <button type="button"
-                            onClick={() => setOtp(demoOtp.padEnd(6, ' '))}
-                            style={{ marginTop: 8, padding: '4px 14px', background: '#f97316', border: 'none', borderRadius: 6, color: 'white', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                            Auto-fill OTP
-                          </button>
-                        </div>
-                      )}
 
                       <p style={{ textAlign: 'center', fontSize: 11.5, color: '#9ca3af', margin: '6px 0 2px' }}>Enter the 6-digit code below</p>
                       <OtpInput value={otp} onChange={setOtp} />
                       <button onClick={handleVerifyOtp} disabled={loading || otp.replace(/\s/g,'').length < 6}
-                        style={{ ...S.btnMain, opacity: (loading || otp.replace(/\s/g,'').length < 6) ? 0.55 : 1, marginBottom: 12 }}>
-                        {loading ? '⏳ Verifying…' : '→ Open Admin Dashboard'}
+                        style={{ ...S.btnMain, opacity: (loading || otp.replace(/\s/g,'').length < 6) ? 0.55 : 1, marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                        {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={14} />}
+                        {loading ? 'Verifying…' : 'Open Admin Dashboard'}
                       </button>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <button onClick={() => { setOtpSent(false); setOtp('      '); setDemoOtp(''); setEmailSent(false); clear(); }}
-                          style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#f97316', cursor: 'pointer', fontFamily: 'inherit' }}>
-                          ← Change email
+                        <button onClick={() => { setOtpSent(false); setOtp('      '); setEmailSent(false); clear(); }}
+                          style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1565c0', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <ArrowLeft size={12} /> Change email
                         </button>
                         {timer > 0
                           ? <span style={{ fontSize: 11.5, color: '#9ca3af' }}>Resend in {timer}s</span>
-                          : <button onClick={handleSendOtp} style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#f97316', cursor: 'pointer', fontFamily: 'inherit' }}>Resend OTP</button>
+                          : <button onClick={handleSendOtp} style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1565c0', cursor: 'pointer', fontFamily: 'inherit' }}>Resend OTP</button>
                         }
                       </div>
                     </>
@@ -351,12 +333,12 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Client / Auditor email login */}
+              {/* Client / Auditor / Sales login */}
               {loginMode !== 'admin' && (
                 <form onSubmit={handleLogin}>
-                  <Field label="Email Address" required>
-                    <FInput type="email"
-                      placeholder={loginMode === 'auditor' ? 'auditor@crm.com' : loginMode === 'sales' ? 'sales@crm.com' : 'client@crm.com'}
+                  <Field label={loginMode === 'client' ? 'Client ID' : 'Email Address'} required>
+                    <FInput type={loginMode === 'client' ? 'text' : 'email'}
+                      placeholder={loginMode === 'client' ? 'Enter your Client ID (e.g. 20261234)' : loginMode === 'auditor' ? 'auditor@crm.com' : 'sales@crm.com'}
                       value={email} onChange={e => setEmail(e.target.value)} />
                   </Field>
                   <Field label="Password" required>
@@ -365,23 +347,24 @@ export default function Login() {
                         value={password} onChange={e => setPassword(e.target.value)} required
                         style={{ ...inp(false), paddingRight: 40 }} />
                       <button type="button" onClick={() => setShowPw(v => !v)}
-                        style={{ position: 'absolute', right: 11, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 15, lineHeight: 1 }}>
-                        {showPw ? '🙈' : '👁'}
+                        style={{ position: 'absolute', right: 11, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
+                        {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
                   </Field>
-                  <button type="submit" disabled={loading} style={{ ...S.btnMain, marginTop: 6, opacity: loading ? 0.7 : 1 }}>
-                    {loading ? '⏳ Signing in…' : `→ ${loginMode === 'auditor' ? 'Auditor' : loginMode === 'sales' ? 'Sales' : 'Client'} Login`}
+                  <button type="submit" disabled={loading} style={{ ...S.btnMain, marginTop: 6, opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                    {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={14} />}
+                    {loading ? 'Signing in…' : `${loginMode === 'auditor' ? 'Auditor' : loginMode === 'sales' ? 'Sales' : 'Client'} Login`}
                   </button>
 
-                  {/* Demo creds */}
-                  <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid #ffedd5' }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#fb923c', marginBottom: 9, textAlign: 'center' }}>Demo Credentials</div>
+                  <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid #bbdefb' }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#1976d2', marginBottom: 9, textAlign: 'center' }}>Demo Credentials</div>
                     {loginMode === 'client' && (
                       <button type="button" onClick={() => { setEmail('client@crm.com'); setPassword('client123'); }}
                         style={{ width: '100%', padding: '8px 14px', background: '#eff6ff', border: '1.5px solid #bfdbfe', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: '#3b82f6' }}>Client</div>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: '#3b82f6' }}>Demo Client</div>
                         <div style={{ fontSize: 10.5, color: '#9ca3af' }}>client@crm.com / client123</div>
+                        <div style={{ fontSize: 10, color: '#1565c0', marginTop: 2 }}>Admin-created clients use Client ID (e.g. 20261234) as username</div>
                       </button>
                     )}
                     {loginMode === 'auditor' && (
@@ -394,9 +377,9 @@ export default function Login() {
                     {loginMode === 'sales' && (
                       <button type="button" onClick={() => { setEmail('sales@crm.com'); setPassword('sales123'); }}
                         style={{ width: '100%', padding: '8px 14px', background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: '#16a34a' }}>📊 Sales Dashboard</div>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: '#16a34a', display: 'flex', alignItems: 'center', gap: 5 }}><BarChart2 size={11} /> Sales Dashboard</div>
                         <div style={{ fontSize: 10.5, color: '#9ca3af', marginTop: 2 }}>sales@crm.com / sales123</div>
-                        <div style={{ fontSize: 10, color: '#16a34a', marginTop: 3 }}>✓ Lead management · Team · Reports · Pipeline</div>
+                        <div style={{ fontSize: 10, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}><Check size={10} /> Lead management · Team · Reports · Pipeline</div>
                       </button>
                     )}
                   </div>
@@ -408,8 +391,9 @@ export default function Login() {
           {/* ────── REGISTER TAB ────── */}
           {tab === 'register' && (
             <form onSubmit={handleRegister}>
-              <div style={{ background: '#fff7ed', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 13px', marginBottom: 18, fontSize: 11.5, color: '#92400e' }}>
-                📋 <strong>New Client Registration</strong> — fill all fields to create your account. Admin will activate it shortly.
+              <div style={{ background: '#e3f2fd', border: '1px solid #90caf9', borderRadius: 10, padding: '10px 13px', marginBottom: 18, fontSize: 11.5, color: '#0d47a1', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                <ClipboardList size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span><strong>New Client Registration</strong> — fill all fields to create your account. Admin will activate it shortly.</span>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 14px' }}>
@@ -451,15 +435,16 @@ export default function Login() {
               </div>
 
               <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', margin: '0 0 14px' }}>
-                <span style={{ color: '#f97316' }}>*</span> Required Field
+                <span style={{ color: '#1565c0' }}>*</span> Required Field
               </p>
-              <button type="submit" disabled={loading} style={{ ...S.btnMain, opacity: loading ? 0.7 : 1 }}>
-                {loading ? '⏳ Creating Account…' : '→ Create My Account'}
+              <button type="submit" disabled={loading} style={{ ...S.btnMain, opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={14} />}
+                {loading ? 'Creating Account…' : 'Create My Account'}
               </button>
               <p style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 14, marginBottom: 0 }}>
                 Already have an account?{' '}
                 <button type="button" onClick={() => { setTab('login'); clear(); }}
-                  style={{ background: 'none', border: 'none', color: '#f97316', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Sign In</button>
+                  style={{ background: 'none', border: 'none', color: '#1565c0', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Sign In</button>
               </p>
             </form>
           )}
@@ -467,35 +452,36 @@ export default function Login() {
           {/* ────── SUCCESS TAB ────── */}
           {tab === 'success' && (
             <div style={{ textAlign: 'center', padding: '8px 0 12px' }}>
-              <div style={{ fontSize: 48, marginBottom: 10 }}>🎉</div>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1c0a00', margin: '0 0 8px' }}>Account Created!</h2>
+              <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>
+              <CheckCircle2 size={52} color="#1565c0" strokeWidth={1.5} />
+            </div>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0d1b2a', margin: '0 0 8px' }}>Account Created!</h2>
               <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 18px', lineHeight: 1.5 }}>
                 Your client account has been created and is <strong>pending admin approval</strong>. You will be able to log in once the admin activates your account.
               </p>
 
-              <div style={{ background: 'linear-gradient(135deg,#fff7ed,#ffedd5)', border: '2px solid #f97316', borderRadius: 14, padding: '18px 20px', marginBottom: 18 }}>
-                <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#f97316', marginBottom: 6 }}>Your Client ID</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#1c0a00', letterSpacing: '.04em', fontFamily: 'monospace', wordBreak: 'break-all' }}>{clientId}</div>
+              <div style={{ background: 'linear-gradient(135deg,#e3f2fd,#bbdefb)', border: '2px solid #1565c0', borderRadius: 14, padding: '18px 20px', marginBottom: 18 }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#1565c0', marginBottom: 6 }}>Your Client ID</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#0d1b2a', letterSpacing: '.04em', fontFamily: 'monospace', wordBreak: 'break-all' }}>{clientId}</div>
                 <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>Save this ID — needed when contacting support</div>
               </div>
 
-              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '10px 14px', marginBottom: 18, fontSize: 12, color: '#166534', textAlign: 'left' }}>
-                ✅ Registration submitted successfully.<br />
-                📞 Admin will review and activate your account.<br />
-                📧 Use your email &amp; password to log in after activation.
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '10px 14px', marginBottom: 18, fontSize: 12, color: '#166534', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><CheckCircle size={13} /> Registration submitted successfully.</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Phone size={13} /> Admin will review and activate your account.</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Mail size={13} /> Use your email &amp; password to log in after activation.</div>
               </div>
 
-              <button onClick={() => { setTab('login'); setLoginMode('client'); clear(); }}
-                style={S.btnMain}>
-                → Go to Login
+              <button onClick={() => { setTab('login'); setLoginMode('client'); clear(); }} style={{ ...S.btnMain, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                <ArrowRight size={14} /> Go to Login
               </button>
             </div>
           )}
         </div>
 
         {tab !== 'success' && (
-          <p style={{ textAlign: 'center', fontSize: 11, color: '#d97706', marginTop: 13, marginBottom: 0 }}>
-            🔒 Secure platform · ISO Certification Management
+          <p style={{ textAlign: 'center', fontSize: 11, color: '#1565c0', marginTop: 13, marginBottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <Lock size={11} /> Secure platform · ISO Certification Management
           </p>
         )}
       </div>

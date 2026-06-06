@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
-import { Target, Users, TrendingUp, ChevronRight, Plus, UserCheck, BarChart2, CheckCircle, Clock, Star, Edit, Trash2, Search, Phone, ArrowRight, FileText } from 'lucide-react';
+import { Target, Users, TrendingUp, ChevronRight, Plus, UserCheck, BarChart2, CheckCircle, Clock, Star, Edit, Trash2, Search, Phone, ArrowRight, FileText, LayoutDashboard, Mail, X, Check, Crosshair } from 'lucide-react';
 import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const STATUS_CFG = {
@@ -119,7 +119,11 @@ export default function SalesDashboard() {
     converted:  leads.filter(l=>(l.assignedTo===m._id||l.assignedTo?._id===m._id)&&l.status==='converted').length,
   }));
 
-  const TABS = [{id:'overview',label:'📊 Overview'},{id:'leads',label:'🎯 Leads'},{id:'team',label:'👥 Sales Team'}];
+  const TABS = [
+    {id:'overview', label:'Overview',    icon: LayoutDashboard },
+    {id:'leads',    label:'Leads',       icon: Crosshair       },
+    {id:'team',     label:'Sales Team',  icon: Users           },
+  ];
 
   /* ── derived data for overview ── */
   const sourceBreakdown = SOURCES.map(s=>({ name:s, count:leads.filter(l=>l.source===s).length })).filter(s=>s.count>0).sort((a,b)=>b.count-a.count);
@@ -147,7 +151,7 @@ export default function SalesDashboard() {
       {/* ── Welcome Banner ── */}
       <div className="welcome-card" style={{marginBottom:18}}>
         <div className="wc-text" style={{position:'relative',zIndex:1}}>
-          <h2>Welcome, {user?.name?.split(' ')[0]} 👋</h2>
+          <h2>Welcome, {user?.name?.split(' ')[0]}</h2>
           <p>{unassigned} leads unassigned · {highPriority > 0 ? `${highPriority} high priority` : 'All priorities managed'}</p>
         </div>
         <div className="wc-stats">
@@ -185,11 +189,11 @@ export default function SalesDashboard() {
       <div style={{display:'flex',gap:4,marginBottom:20,background:'var(--primary-50)',borderRadius:12,padding:4,border:'1.5px solid var(--primary-100)',flexWrap:'wrap',width:'fit-content'}}>
         {TABS.map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{
-            padding:'8px 18px',borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:13,fontWeight:700,transition:'all .15s',whiteSpace:'nowrap',
+            padding:'8px 18px',borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:13,fontWeight:700,transition:'all .15s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:6,
             background:tab===t.id?'linear-gradient(135deg,var(--primary),var(--primary-dark))':'transparent',
             color:tab===t.id?'white':'var(--primary-dark)',
-            boxShadow:tab===t.id?'0 2px 8px rgba(249,115,22,0.3)':'none',
-          }}>{t.label}</button>
+            boxShadow:tab===t.id?'0 2px 8px rgba(21,101,192,0.28)':'none',
+          }}><t.icon size={13}/>{t.label}</button>
         ))}
       </div>
 
@@ -372,8 +376,8 @@ export default function SalesDashboard() {
                     <div><div style={{fontWeight:700,fontSize:14}}>{m.name}</div><span className={`badge bdg-${m.role}`} style={{fontSize:10}}>{m.role}</span></div>
                   </div>
                   <div style={{fontSize:12,color:'var(--gray-600)',marginBottom:13}}>
-                    {m.email&&<div style={{marginBottom:3}}>✉ {m.email}</div>}
-                    {m.phone&&<div>📞 {m.phone}</div>}
+                    {m.email&&<div style={{marginBottom:3,display:'flex',alignItems:'center',gap:5}}><Mail size={11}/>{m.email}</div>}
+                    {m.phone&&<div style={{display:'flex',alignItems:'center',gap:5}}><Phone size={11}/>{m.phone}</div>}
                   </div>
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
                     <div style={{textAlign:'center',padding:'9px 7px',background:'var(--primary-50)',borderRadius:8,border:'1px solid var(--primary-100)'}}>
@@ -406,7 +410,7 @@ export default function SalesDashboard() {
           <div className="modal-box" style={{maxWidth:580}} onClick={e=>e.stopPropagation()}>
             <div className="modal-head">
               <div className="modal-title">{editLead?<><Edit size={14} style={{color:'var(--primary)',marginRight:7,verticalAlign:'middle'}}/>Edit Lead</>:<><Plus size={14} style={{color:'var(--primary)',marginRight:7,verticalAlign:'middle'}}/>Add Lead</>}</div>
-              <button className="modal-close" onClick={()=>setModal(false)}>✕</button>
+              <button className="modal-close" onClick={()=>setModal(false)}><X size={14}/></button>
             </div>
             <div className="modal-body">
               <div className="form-row">
@@ -453,7 +457,7 @@ export default function SalesDashboard() {
           <div className="modal-box" onClick={e=>e.stopPropagation()}>
             <div className="modal-head">
               <div className="modal-title"><UserCheck size={15} style={{color:'var(--primary)',marginRight:7,verticalAlign:'middle'}}/>Assign Lead</div>
-              <button className="modal-close" onClick={()=>setAssignModal(null)}>✕</button>
+              <button className="modal-close" onClick={()=>setAssignModal(null)}><X size={14}/></button>
             </div>
             <div className="modal-body">
               <div style={{background:'var(--primary-50)',borderRadius:9,padding:'9px 13px',marginBottom:14,fontSize:12.5}}>
@@ -466,7 +470,7 @@ export default function SalesDashboard() {
                   {team.map(m=><option key={m._id} value={m._id}>{m.name} ({m.role}) — {leads.filter(l=>l.assignedTo===m._id||l.assignedTo?._id===m._id).length} leads</option>)}
                 </select>
               </div>
-              {assignTo && <div style={{background:'var(--green-50)',border:'1px solid var(--green-200)',borderRadius:8,padding:'9px 13px',fontSize:12.5,color:'var(--green)'}}>✓ Assigning to: <strong>{team.find(m=>m._id===assignTo)?.name}</strong></div>}
+              {assignTo && <div style={{background:'var(--green-50)',border:'1px solid var(--green-200)',borderRadius:8,padding:'9px 13px',fontSize:12.5,color:'var(--green)',display:'flex',alignItems:'center',gap:6}}><Check size={13}/>Assigning to: <strong>{team.find(m=>m._id===assignTo)?.name}</strong></div>}
             </div>
             <div className="modal-foot">
               <button className="btn btn-ghost" onClick={()=>setAssignModal(null)}>Cancel</button>
@@ -482,7 +486,7 @@ export default function SalesDashboard() {
           <div className="modal-box" onClick={e=>e.stopPropagation()}>
             <div className="modal-head">
               <div className="modal-title"><ArrowRight size={14} style={{color:'var(--green)',marginRight:7,verticalAlign:'middle'}}/>Convert to Application</div>
-              <button className="modal-close" onClick={()=>setConvertModal(null)}>✕</button>
+              <button className="modal-close" onClick={()=>setConvertModal(null)}><X size={14}/></button>
             </div>
             <div className="modal-body">
               <div style={{background:'var(--green-50)',border:'1px solid var(--green-200)',borderRadius:9,padding:'12px 14px',marginBottom:16}}>

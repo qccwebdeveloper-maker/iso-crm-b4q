@@ -53,6 +53,17 @@ router.get('/:id', protect, async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
+// Generate unique clientId: YEAR + 4 digits, e.g. "20261234"
+async function generateClientId() {
+  const year = new Date().getFullYear();
+  for (let i = 0; i < 20; i++) {
+    const id = `${year}${String(Math.floor(1000 + Math.random() * 9000))}`;
+    const exists = await User.findOne({ clientId: id });
+    if (!exists) return id;
+  }
+  throw new Error('Could not generate unique client ID');
+}
+
 // POST /api/users — create user (password hashed here directly)
 router.post('/', protect, authorize('admin', 'sales'), async (req, res) => {
   try {
@@ -63,15 +74,18 @@ router.post('/', protect, authorize('admin', 'sales'), async (req, res) => {
     const exists = await User.findOne({ email: email.toLowerCase().trim() });
     if (exists) return res.status(400).json({ message: 'Email already in use' });
 
-    const hashed = await hashPassword(password);
-    const user   = await User.create({
+    const clientId = role === 'client' ? await generateClientId() : undefined;
+    const hashed   = await hashPassword(password);
+    const user     = await User.create({
       name, email: email.toLowerCase().trim(),
       password: hashed, role, phone, company,
+      clientId,
       isActive: true, pendingApproval: false,
     });
 
-    const { password: _pw, ...safe } = user.toObject();
-    res.status(201).json(safe);
+    const safe = user.toObject();
+    delete safe.password;
+    res.status(201).json({ ...safe, _plainPassword: password });
   } catch (err) {
     console.error('[POST /api/users] error:', err.message);
     res.status(500).json({ message: err.message });

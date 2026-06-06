@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
-import { ClipboardCheck, Clock, CheckCircle, ChevronRight, TrendingUp, Star, AlertCircle, Eye, Search, FileText, Send, Upload, Phone, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ClipboardCheck, Clock, CheckCircle, ChevronRight, TrendingUp, Star, AlertCircle, Eye, Search, FileText, Send, Phone, ThumbsUp, ThumbsDown, User, BookOpen, MapPin, X, Check, XCircle } from 'lucide-react';
 
 const FL = ['submitted','under_review','audit_stage1','audit_stage2','approved','certified'];
 
@@ -82,15 +82,15 @@ export default function AuditorDashboard() {
   };
 
   const TABS = [
-    { id:'auditor',  label:'🔍 Auditor View' },
-    { id:'reviewer', label:'⭐ Reviewer View' },
-    { id:'clients',  label:'📋 All Client Applications' },
+    { id:'auditor',  label:'Auditor View',           icon: ClipboardCheck },
+    { id:'reviewer', label:'Reviewer View',           icon: Star           },
+    { id:'clients',  label:'All Client Applications', icon: FileText       },
   ];
 
   return (
     <Layout title="Dashboard">
       <div className="page-hdr">
-        <div><h1 className="page-title">Welcome, {user?.name?.split(' ')[0]} 👋</h1><p className="page-subtitle">Audit, review &amp; all client applications</p></div>
+        <div><h1 className="page-title">Welcome, {user?.name?.split(' ')[0]}</h1><p className="page-subtitle">Audit, review &amp; all client applications</p></div>
         <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
           <button className="btn btn-secondary" onClick={()=>navigate('/auditor/applications')}><ClipboardCheck size={13}/> My Audits</button>
           <button className="btn btn-primary" onClick={()=>setTab('clients')}><FileText size={13}/> All Apps</button>
@@ -114,11 +114,11 @@ export default function AuditorDashboard() {
       <div style={{display:'flex',gap:4,marginBottom:22,background:'var(--primary-50)',borderRadius:12,padding:4,width:'fit-content',border:'1.5px solid var(--primary-100)',flexWrap:'wrap'}}>
         {TABS.map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{
-            padding:'8px 18px',borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:13,fontWeight:700,transition:'all .15s',
+            padding:'8px 18px',borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:13,fontWeight:700,transition:'all .15s',display:'flex',alignItems:'center',gap:6,whiteSpace:'nowrap',
             background:tab===t.id?'linear-gradient(135deg,var(--primary),var(--primary-dark))':'transparent',
             color:tab===t.id?'white':'var(--primary-dark)',
-            boxShadow:tab===t.id?'0 2px 8px rgba(249,115,22,0.3)':'none',
-          }}>{t.label}</button>
+            boxShadow:tab===t.id?'0 2px 8px rgba(21,101,192,0.28)':'none',
+          }}><t.icon size={13}/>{t.label}</button>
         ))}
       </div>
 
@@ -159,9 +159,9 @@ export default function AuditorDashboard() {
                           <td style={{fontSize:12,color:'var(--gray-500)'}}>{a.client?.name}</td>
                           <td><span className={`badge bdg-${a.status}`} style={{fontSize:10}}>{a.status?.replace(/_/g,' ')}</span></td>
                           <td><div className="tbl-actions">
-                            {!a.auditAcceptanceStatus && <button className="btn btn-success btn-sm" onClick={()=>setAcceptAuditModal(a)}>⭐ Accept</button>}
-                            {a.auditAcceptanceStatus === 'accepted' && <span style={{fontSize:11,color:'var(--green)',fontWeight:600}}>✓ Accepted</span>}
-                            {a.auditAcceptanceStatus === 'rejected' && <span style={{fontSize:11,color:'var(--red)',fontWeight:600}}>✗ Rejected</span>}
+                            {!a.auditAcceptanceStatus && <button className="btn btn-success btn-sm" style={{display:'flex',alignItems:'center',gap:4}} onClick={()=>setAcceptAuditModal(a)}><Star size={11}/> Accept</button>}
+                            {a.auditAcceptanceStatus === 'accepted' && <span style={{fontSize:11,color:'var(--green)',fontWeight:600,display:'flex',alignItems:'center',gap:3}}><Check size={11}/>Accepted</span>}
+                            {a.auditAcceptanceStatus === 'rejected' && <span style={{fontSize:11,color:'var(--red)',fontWeight:600,display:'flex',alignItems:'center',gap:3}}><XCircle size={11}/>Rejected</span>}
                             <button className="btn btn-ghost btn-sm" onClick={()=>navigate(`/auditor/applications/${a._id}`)}><Eye size={11}/> View</button>
                             <button className="btn btn-primary btn-sm" onClick={()=>{setNoteModal(a);setNoteText('');setNextStatus('');}}>Update</button>
                           </div></td>
@@ -245,7 +245,7 @@ export default function AuditorDashboard() {
                 <div style={{padding:'4px 0'}}>
                   {apps.filter(a=>a.status==='audit_stage2').slice(0,3).map((a,i)=>(
                     <div key={i} style={{display:'flex',alignItems:'center',gap:9,padding:'10px 16px',borderBottom:'1px solid var(--primary-50)'}}>
-                      <span style={{fontSize:12}}>{i===0?'🔴':'🟡'}</span>
+                      <div style={{width:8,height:8,borderRadius:'50%',background:i===0?'var(--red)':'var(--amber)',flexShrink:0}}/>
                       <div style={{flex:1}}>
                         <div style={{fontSize:12.5,fontWeight:600}}>{a.applicationId}</div>
                         <div style={{fontSize:11,color:'var(--gray-400)'}}>{a.organizationName}</div>
@@ -253,7 +253,7 @@ export default function AuditorDashboard() {
                       <button className="btn btn-ghost btn-sm" onClick={()=>navigate(`/auditor/applications/${a._id}`)}><Eye size={11}/></button>
                     </div>
                   ))}
-                  {apps.filter(a=>a.status==='audit_stage2').length===0 && <p style={{fontSize:12,color:'var(--gray-400)',textAlign:'center',padding:16}}>All caught up ✓</p>}
+                  {apps.filter(a=>a.status==='audit_stage2').length===0 && <p style={{fontSize:12,color:'var(--gray-400)',textAlign:'center',padding:16,display:'flex',alignItems:'center',justifyContent:'center',gap:5}}><Check size={12}/>All caught up</p>}
                 </div>
               </div>
             </div>
@@ -310,10 +310,10 @@ export default function AuditorDashboard() {
                           <span className="mono" style={{fontSize:10.5}}>{app.applicationId}</span>
                           <span className={`badge bdg-${app.status}`} style={{fontSize:9.5}}>{app.status?.replace(/_/g,' ')}</span>
                         </div>
-                        <div style={{fontSize:11.5,color:'var(--gray-400)',display:'flex',gap:12,flexWrap:'wrap'}}>
-                          <span>👤 {app.client?.name||'—'}</span>
-                          <span>📋 {app.isoStandard}</span>
-                          {app.city&&<span>📍 {app.city}</span>}
+                        <div style={{fontSize:11.5,color:'var(--gray-400)',display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
+                          <span style={{display:'flex',alignItems:'center',gap:4}}><User size={11}/>{app.client?.name||'—'}</span>
+                          <span style={{display:'flex',alignItems:'center',gap:4}}><BookOpen size={11}/>{app.isoStandard}</span>
+                          {app.city&&<span style={{display:'flex',alignItems:'center',gap:4}}><MapPin size={11}/>{app.city}</span>}
                         </div>
                       </div>
                       <div style={{width:110,flexShrink:0}}>
@@ -394,7 +394,7 @@ export default function AuditorDashboard() {
           <div className="modal-box" onClick={e=>e.stopPropagation()}>
             <div className="modal-head">
               <div className="modal-title">Update Application — {noteModal.applicationId}</div>
-              <button className="modal-close" onClick={()=>setNoteModal(null)}>✕</button>
+              <button className="modal-close" onClick={()=>setNoteModal(null)}><X size={14}/></button>
             </div>
             <div className="modal-body">
               <div style={{background:'var(--primary-50)',borderRadius:9,padding:'9px 13px',marginBottom:14,fontSize:12.5}}>
@@ -427,7 +427,7 @@ export default function AuditorDashboard() {
           <div className="modal-box" onClick={e=>e.stopPropagation()}>
             <div className="modal-head">
               <div className="modal-title"><ClipboardCheck size={15} style={{ color:'var(--primary)', marginRight:7, verticalAlign:'middle' }}/>Confirm Audit Assignment</div>
-              <button className="modal-close" onClick={()=>setAcceptAuditModal(null)}>✕</button>
+              <button className="modal-close" onClick={()=>setAcceptAuditModal(null)}><X size={14}/></button>
             </div>
             <div className="modal-body">
               <div style={{background:'var(--primary-50)',borderRadius:10,padding:'10px 14px',marginBottom:16,fontSize:13}}>
@@ -437,8 +437,8 @@ export default function AuditorDashboard() {
               <p style={{fontSize:13,color:'var(--gray-600)',marginBottom:16,lineHeight:1.5}}>
                 Do you accept this audit assignment? Once you accept, you'll be responsible for conducting the audit and providing reports.
               </p>
-              <div style={{background:'var(--blue-50)',borderRadius:8,padding:12,fontSize:12,color:'var(--blue-dark)',lineHeight:1.4}}>
-                <strong>✓ Scope:</strong> {acceptAuditModal.scope}
+              <div style={{background:'var(--blue-50)',borderRadius:8,padding:12,fontSize:12,color:'var(--blue-dark)',lineHeight:1.4,display:'flex',alignItems:'flex-start',gap:6}}>
+                <Check size={13} style={{flexShrink:0,marginTop:1}}/><span><strong>Scope:</strong> {acceptAuditModal.scope}</span>
               </div>
             </div>
             <div className="modal-foot">
