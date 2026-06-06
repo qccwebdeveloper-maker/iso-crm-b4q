@@ -125,12 +125,20 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
 
+  // Admin OTP state
   const [adminEmail, setAdminEmail] = useState('');
   const [otpSent, setOtpSent]  = useState(false);
   const [otp, setOtp]          = useState('      ');
   const [timer, setTimer]      = useState(0);
   const timerRef               = useRef(null);
   const [emailSent, setEmailSent] = useState(false);
+
+  // Client 2-step OTP state
+  const [clientStep, setClientStep]           = useState('credentials'); // 'credentials' | 'otp'
+  const [clientOtp, setClientOtp]             = useState('      ');
+  const [clientMaskedEmail, setClientMaskedEmail] = useState('');
+  const [clientTimer, setClientTimer]         = useState(0);
+  const clientTimerRef                        = useRef(null);
 
   const [reg, setReg] = useState({ companyName: '', email: '', password: '', mobile: '', address: '', standard: '', scope: '' });
   const [clientId, setClientId] = useState('');
@@ -142,12 +150,21 @@ export default function Login() {
   const { login, loginWithToken } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => () => clearInterval(timerRef.current), []);
+  useEffect(() => () => {
+    clearInterval(timerRef.current);
+    clearInterval(clientTimerRef.current);
+  }, []);
 
   const startTimer = (sec = 60) => {
     setTimer(sec);
     clearInterval(timerRef.current);
     timerRef.current = setInterval(() => setTimer(t => { if (t <= 1) { clearInterval(timerRef.current); return 0; } return t - 1; }), 1000);
+  };
+
+  const startClientTimer = (sec = 60) => {
+    setClientTimer(sec);
+    clearInterval(clientTimerRef.current);
+    clientTimerRef.current = setInterval(() => setClientTimer(t => { if (t <= 1) { clearInterval(clientTimerRef.current); return 0; } return t - 1; }), 1000);
   };
 
   const clear = () => { setErr(''); setMsg(''); };
@@ -199,6 +216,43 @@ export default function Login() {
     } finally { setLoading(false); }
   };
 
+  const handleClientSendOtp = async () => {
+    if (!email.trim()) { setErr('Enter your Client ID.'); return; }
+    if (!password.trim()) { setErr('Enter your password.'); return; }
+    clear(); setLoading(true);
+    try {
+      const { data } = await axios.post('/api/auth/client-send-otp', { clientId: email.trim(), password });
+      setClientStep('otp');
+      setClientMaskedEmail(data.maskedEmail || '');
+      setMsg(`OTP sent to ${data.maskedEmail}. Check your inbox.`);
+      startClientTimer(60);
+    } catch (ex) {
+      setErr(getErrMsg(ex, 'Failed to send OTP. Check your credentials.'));
+    } finally { setLoading(false); }
+  };
+
+  const handleClientVerifyOtp = async () => {
+    const otpVal = clientOtp.replace(/\s/g, '');
+    if (otpVal.length < 6) { setErr('Enter the complete 6-digit OTP.'); return; }
+    clear(); setLoading(true);
+    try {
+      const { data } = await axios.post('/api/auth/client-verify-otp', { clientId: email.trim(), otp: otpVal });
+      loginWithToken(data, data.token);
+      navigate('/client');
+    } catch (ex) {
+      setErr(getErrMsg(ex, 'Invalid OTP. Please try again.'));
+    } finally { setLoading(false); }
+  };
+
+  const resetClientFlow = () => {
+    setClientStep('credentials');
+    setClientOtp('      ');
+    setClientMaskedEmail('');
+    setClientTimer(0);
+    clearInterval(clientTimerRef.current);
+    clear();
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault(); clear();
     const { companyName, email: re, password: rp, mobile, address, standard, scope } = reg;
@@ -222,7 +276,7 @@ export default function Login() {
   );
 
   const modePill = (id, label) => (
-    <button onClick={() => { setLoginMode(id); clear(); setOtpSent(false); setOtp('      '); setAdminEmail(''); setEmailSent(false); }}
+    <button onClick={() => { setLoginMode(id); clear(); setOtpSent(false); setOtp('      '); setAdminEmail(''); setEmailSent(false); setEmail(''); setPassword(''); resetClientFlow(); }}
       style={{ flex: 1, padding: '7px 4px', border: `1.5px solid ${loginMode === id ? '#1565c0' : '#bbdefb'}`, borderRadius: 9, background: loginMode === id ? '#e3f2fd' : 'transparent', color: loginMode === id ? '#1565c0' : '#9ca3af', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
       {label}
     </button>
@@ -333,12 +387,80 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Client / Auditor / Sales login */}
-              {loginMode !== 'admin' && (
+              {/* Client 2-step OTP login */}
+              {loginMode === 'client' && (
+                <div>
+                  <div style={{ background: '#e3f2fd', border: '1px solid #90caf9', borderRadius: 10, padding: '10px 13px', marginBottom: 16, fontSize: 11.5, color: '#0d47a1', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <Shield size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+                    <span><strong>Secure Client Login</strong> — Enter your Client ID and password. An OTP will be sent to your registered email.</span>
+                  </div>
+
+                  {clientStep === 'credentials' ? (
+                    <>
+                      <Field label="Client ID" required>
+                        <FInput type="text" placeholder="e.g. 20261234"
+                          value={email} onChange={e => setEmail(e.target.value)}
+                          onEnter={handleClientSendOtp} />
+                      </Field>
+                      <Field label="Password" required>
+                        <div style={{ position: 'relative' }}>
+                          <input type={showPw ? 'text' : 'password'} placeholder="Enter your password"
+                            value={password} onChange={e => setPassword(e.target.value)}
+                            style={{ ...inp(false), paddingRight: 40 }}
+                            onKeyDown={e => e.key === 'Enter' && handleClientSendOtp()} />
+                          <button type="button" onClick={() => setShowPw(v => !v)}
+                            style={{ position: 'absolute', right: 11, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
+                            {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </Field>
+                      <button onClick={handleClientSendOtp} disabled={loading}
+                        style={{ ...S.btnMain, marginTop: 6, opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                        {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Mail size={14} />}
+                        {loading ? 'Sending OTP…' : 'Send OTP to Email'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ textAlign: 'center', marginBottom: 6 }}>
+                        <div style={{ fontSize: 12.5, color: '#6b7280' }}>
+                          OTP sent to <strong style={{ color: '#0d1b2a' }}>{clientMaskedEmail}</strong>
+                        </div>
+                        <div style={{ fontSize: 11, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                          <CheckCircle size={12} /> Check your inbox (and spam folder)
+                        </div>
+                      </div>
+
+                      <p style={{ textAlign: 'center', fontSize: 11.5, color: '#9ca3af', margin: '6px 0 2px' }}>Enter the 6-digit code below</p>
+                      <OtpInput value={clientOtp} onChange={setClientOtp} />
+
+                      <button onClick={handleClientVerifyOtp} disabled={loading || clientOtp.replace(/\s/g,'').length < 6}
+                        style={{ ...S.btnMain, opacity: (loading || clientOtp.replace(/\s/g,'').length < 6) ? 0.55 : 1, marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                        {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={14} />}
+                        {loading ? 'Verifying…' : 'Open Client Dashboard'}
+                      </button>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <button onClick={resetClientFlow}
+                          style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1565c0', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <ArrowLeft size={12} /> Change credentials
+                        </button>
+                        {clientTimer > 0
+                          ? <span style={{ fontSize: 11.5, color: '#9ca3af' }}>Resend in {clientTimer}s</span>
+                          : <button onClick={handleClientSendOtp} style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1565c0', cursor: 'pointer', fontFamily: 'inherit' }}>Resend OTP</button>
+                        }
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Auditor / Sales login */}
+              {(loginMode === 'auditor' || loginMode === 'sales') && (
                 <form onSubmit={handleLogin}>
-                  <Field label={loginMode === 'client' ? 'Client ID' : 'Email Address'} required>
-                    <FInput type={loginMode === 'client' ? 'text' : 'email'}
-                      placeholder={loginMode === 'client' ? 'Enter your Client ID (e.g. 20261234)' : loginMode === 'auditor' ? 'auditor@crm.com' : 'sales@crm.com'}
+                  <Field label="Email Address" required>
+                    <FInput type="email"
+                      placeholder={loginMode === 'auditor' ? 'auditor@crm.com' : 'sales@crm.com'}
                       value={email} onChange={e => setEmail(e.target.value)} />
                   </Field>
                   <Field label="Password" required>
@@ -354,19 +476,11 @@ export default function Login() {
                   </Field>
                   <button type="submit" disabled={loading} style={{ ...S.btnMain, marginTop: 6, opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
                     {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={14} />}
-                    {loading ? 'Signing in…' : `${loginMode === 'auditor' ? 'Auditor' : loginMode === 'sales' ? 'Sales' : 'Client'} Login`}
+                    {loading ? 'Signing in…' : `${loginMode === 'auditor' ? 'Auditor' : 'Sales'} Login`}
                   </button>
 
                   <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid #bbdefb' }}>
                     <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#1976d2', marginBottom: 9, textAlign: 'center' }}>Demo Credentials</div>
-                    {loginMode === 'client' && (
-                      <button type="button" onClick={() => { setEmail('client@crm.com'); setPassword('client123'); }}
-                        style={{ width: '100%', padding: '8px 14px', background: '#eff6ff', border: '1.5px solid #bfdbfe', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: '#3b82f6' }}>Demo Client</div>
-                        <div style={{ fontSize: 10.5, color: '#9ca3af' }}>client@crm.com / client123</div>
-                        <div style={{ fontSize: 10, color: '#1565c0', marginTop: 2 }}>Admin-created clients use Client ID (e.g. 20261234) as username</div>
-                      </button>
-                    )}
                     {loginMode === 'auditor' && (
                       <button type="button" onClick={() => { setEmail('auditor@crm.com'); setPassword('auditor123'); }}
                         style={{ width: '100%', padding: '8px 14px', background: '#f5f3ff', border: '1.5px solid #ddd6fe', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>

@@ -41,6 +41,63 @@ router.post('/login', async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
+// POST /api/auth/client-send-otp  — step 1: verify clientId+password, send OTP to client email
+router.post('/client-send-otp', async (req, res) => {
+  try {
+    const { clientId, password } = req.body;
+    if (!clientId || !password) return res.status(400).json({ message: 'Client ID and password are required' });
+
+    const user = await User.findOne({ clientId: clientId.trim() });
+    if (!user) return res.status(401).json({ message: 'Invalid Client ID or password' });
+    if (!user.isActive) return res.status(403).json({ message: 'Account is inactive. Contact admin.' });
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ message: 'Invalid Client ID or password' });
+
+    const otp    = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = Date.now() + 10 * 60 * 1000;
+    OTP_STORE[user.email] = { otp, expiry, userId: user._id.toString() };
+
+    const result = await sendOtpEmail({ to: user.email, name: user.name, otp, expiresInMinutes: 10 });
+    console.log(`[OTP] Client OTP sent to ${user.email} via ${result.via}`);
+
+    // Mask email: ar***@gmail.com
+    const masked = user.email.replace(/^(.{2})(.+)(@.+)$/, (_, a, b, c) => a + '*'.repeat(Math.min(b.length, 4)) + c);
+
+    res.json({
+      message:   `OTP sent to your registered email.`,
+      maskedEmail: masked,
+      emailSent: result.ok,
+      via:       result.via,
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// POST /api/auth/client-verify-otp  — step 2: verify OTP, return token
+router.post('/client-verify-otp', async (req, res) => {
+  try {
+    const { clientId, otp } = req.body;
+    if (!clientId || !otp) return res.status(400).json({ message: 'Client ID and OTP are required' });
+
+    const user = await User.findOne({ clientId: clientId.trim() });
+    if (!user) return res.status(401).json({ message: 'Invalid Client ID' });
+
+    const record = OTP_STORE[user.email];
+    if (!record) return res.status(400).json({ message: 'No OTP requested. Please go back and send OTP again.' });
+    if (Date.now() > record.expiry) {
+      delete OTP_STORE[user.email];
+      return res.status(400).json({ message: 'OTP expired. Please request a new one.' });
+    }
+    if (record.otp !== otp.toString().trim()) return res.status(400).json({ message: 'Invalid OTP. Try again.' });
+
+    delete OTP_STORE[user.email];
+    const fullUser = await User.findById(record.userId).select('-password');
+    if (!fullUser || !fullUser.isActive) return res.status(403).json({ message: 'Account is inactive.' });
+
+    res.json({ ...fullUser.toJSON(), token: genToken(fullUser._id) });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
 // GET /api/auth/me
 router.get('/me', protect, async (req, res) => {
   try {
