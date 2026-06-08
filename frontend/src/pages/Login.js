@@ -211,9 +211,9 @@ export default function Login() {
       setOtpSent(true);
       setOtpVia(data.via || '');
       setPreviewUrl(data.previewUrl || '');
-      setMsg(data.via === 'gmail'
-        ? `OTP sent to ${adminEmail}. Check your inbox.`
-        : `OTP ready — click the button below to view it.`);
+      setMsg(data.previewUrl
+        ? `OTP ready — click the button below to view it.`
+        : `OTP sent to ${adminEmail}. Check your inbox.`);
       startTimer(60);
     } catch (ex) {
       setErr(getErrMsg(ex, 'Failed to send OTP. The server may still be waking up — please try again in 30 seconds.'));
@@ -247,9 +247,9 @@ export default function Login() {
       setClientOtpMaskedEmail(data.maskedEmail || '');
       setClientOtpVia(data.via || '');
       setClientPreviewUrl(data.previewUrl || '');
-      setMsg(data.via === 'gmail'
-        ? `OTP sent to ${data.maskedEmail}. Check your inbox.`
-        : `OTP ready — click the button below to view it.`);
+      setMsg(data.previewUrl
+        ? `OTP ready — click the button below to view it.`
+        : `OTP sent to ${data.maskedEmail}. Check your inbox.`);
       startClientTimer(60);
     } catch (ex) {
       setErr(getErrMsg(ex, 'Invalid Client ID or password.'));
