@@ -99,21 +99,6 @@ router.post('/client-verify-otp', async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// POST /api/auth/fix-admin-email  — one-time migration, remove after use
-router.post('/fix-admin-email', async (req, res) => {
-  try {
-    const result = await User.updateOne(
-      { email: 'aryankumar7645@gmail.com', role: 'admin' },
-      { $set: { email: 'qcc.webdeveloper@gmail.com' } }
-    );
-    if (result.matchedCount === 0) {
-      const admins = await User.find({ role: 'admin' }).select('email');
-      return res.json({ updated: false, message: 'Admin not found with that email', admins });
-    }
-    res.json({ updated: true, message: 'Admin email updated to qcc.webdeveloper@gmail.com' });
-  } catch (err) { res.status(500).json({ message: err.message }); }
-});
-
 // GET /api/auth/email-status  — diagnostic
 router.get('/email-status', async (req, res) => {
   const resendKey = (process.env.RESEND_API_KEY || '').trim();
