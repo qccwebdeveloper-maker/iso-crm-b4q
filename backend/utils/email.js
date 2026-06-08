@@ -1,64 +1,67 @@
-const nodemailer = require('nodemailer');
+// ─────────────────────────────────────────────────────────────
+//  EMAIL SENDER
+//  1. Resend HTTP API  — set RESEND_API_KEY in .env (recommended, works on Render)
+//  2. Gmail SMTP       — fallback if RESEND_API_KEY not set
+// ─────────────────────────────────────────────────────────────
+async function sendMail({ to, subject, html }) {
+  const resendKey = (process.env.RESEND_API_KEY || '').trim();
 
-// ─────────────────────────────────────────────────────────────
-//  TRANSPORTER
-//  1. Gmail SMTP  — set GMAIL_USER + GMAIL_PASS in .env
-//  2. Ethereal    — browser preview fallback (always works)
-// ─────────────────────────────────────────────────────────────
-async function getTransporter() {
-  const gmailUser = (process.env.GMAIL_USER || '').trim();
-  const gmailPass = (process.env.GMAIL_PASS || '').replace(/\s/g, '');
+  // ── Resend (HTTP API — works on Render free tier) ──
+  if (resendKey) {
+    const { Resend } = require('resend');
+    const resend = new Resend(resendKey);
+    const fromAddress = process.env.RESEND_FROM || 'onboarding@resend.dev';
+
+    const { data, error } = await resend.emails.send({
+      from:    `QC Certification CRM <${fromAddress}>`,
+      to:      [to],
+      subject,
+      html,
+    });
+
+    if (error) {
+      console.error('[Email] Resend error:', error.message);
+      throw new Error(`Resend failed: ${error.message}`);
+    }
+
+    console.log(`✅ Email sent via Resend → ${to} (id: ${data.id})`);
+    return { ok: true, via: 'resend' };
+  }
+
+  // ── Gmail SMTP fallback ──
+  const nodemailer = require('nodemailer');
+  const gmailUser  = (process.env.GMAIL_USER || '').trim();
+  const gmailPass  = (process.env.GMAIL_PASS || '').replace(/\s/g, '');
 
   if (gmailUser && gmailPass.length >= 16) {
     const t = nodemailer.createTransport({
-      host:              'smtp.gmail.com',
-      port:              587,
-      secure:            false,
-      auth:              { user: gmailUser, pass: gmailPass },
-      connectionTimeout: 8000,
-      greetingTimeout:   5000,
-      socketTimeout:     10000,
+      host: 'smtp.gmail.com', port: 587, secure: false,
+      auth: { user: gmailUser, pass: gmailPass },
+      connectionTimeout: 8000, greetingTimeout: 5000, socketTimeout: 10000,
     });
     try {
       await t.verify();
-      console.log('[Email] Gmail SMTP connected');
-      return { t, via: 'gmail' };
+      await t.sendMail({ from: `"QC Certification CRM" <${gmailUser}>`, to, subject, html });
+      console.log(`✅ Email sent via Gmail → ${to}`);
+      return { ok: true, via: 'gmail' };
     } catch (e) {
-      console.warn('[Email] Gmail failed:', e.message);
+      console.warn('[Email] Gmail SMTP failed:', e.message);
     }
   }
 
-  // Ethereal fallback — generates browser preview link
-  console.log('[Email] Using Ethereal preview (configure GMAIL_PASS for real inbox delivery)');
+  // ── Ethereal preview fallback (dev only) ──
+  console.log('[Email] Using Ethereal preview — set RESEND_API_KEY for real delivery');
+  const nodemailerFallback = require('nodemailer');
   const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Ethereal timeout')), 10000));
-  const acc = await Promise.race([nodemailer.createTestAccount(), timeout]);
-  const t = nodemailer.createTransport({
+  const acc = await Promise.race([nodemailerFallback.createTestAccount(), timeout]);
+  const t2 = nodemailerFallback.createTransport({
     host: 'smtp.ethereal.email', port: 587, secure: false,
     auth: { user: acc.user, pass: acc.pass },
   });
-  return { t, via: 'ethereal', etherealUser: acc.user };
-}
-
-// ─────────────────────────────────────────────────────────────
-//  SEND
-// ─────────────────────────────────────────────────────────────
-async function sendMail({ to, subject, html }) {
-  const { t, via, etherealUser } = await getTransporter();
-
-  const FROM = via === 'ethereal'
-    ? `"QC Certification CRM" <${etherealUser}>`
-    : `"QC Certification CRM" <${process.env.GMAIL_USER}>`;
-
-  const info = await t.sendMail({ from: FROM, to, subject, html });
-
-  if (via === 'ethereal') {
-    const url = nodemailer.getTestMessageUrl(info);
-    console.log('\n📬 Ethereal Preview URL:', url, '\n');
-    return { ok: true, via, previewUrl: url };
-  }
-
-  console.log(`✅ Email sent via Gmail → ${to}`);
-  return { ok: true, via };
+  const info = await t2.sendMail({ from: `"QC Certification CRM" <${acc.user}>`, to, subject, html });
+  const url = nodemailerFallback.getTestMessageUrl(info);
+  console.log('\n📬 Ethereal Preview URL:', url, '\n');
+  return { ok: true, via: 'ethereal', previewUrl: url };
 }
 
 // ─────────────────────────────────────────────────────────────

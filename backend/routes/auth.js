@@ -99,36 +99,21 @@ router.post('/client-verify-otp', async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// GET /api/auth/email-status  — live SMTP connection test
+// GET /api/auth/email-status  — diagnostic
 router.get('/email-status', async (req, res) => {
-  try {
-    const nodemailer = require('nodemailer');
-    const gmailUser  = (process.env.GMAIL_USER || '').trim();
-    const gmailPass  = (process.env.GMAIL_PASS || '').replace(/\s/g, '');
-    const varsSet    = !!(gmailUser && gmailPass.length >= 16);
+  const resendKey = (process.env.RESEND_API_KEY || '').trim();
+  const gmailUser = (process.env.GMAIL_USER || '').trim();
+  const gmailPass = (process.env.GMAIL_PASS || '').replace(/\s/g, '');
 
-    if (!varsSet) {
-      return res.json({ smtpOk: false, mode: 'ethereal-fallback', gmailUser: null,
-        error: 'GMAIL_USER / GMAIL_PASS missing or too short in environment.' });
-    }
-
-    // Actually test the SMTP connection
-    const t = nodemailer.createTransport({
-      host: 'smtp.gmail.com', port: 587, secure: false,
-      auth: { user: gmailUser, pass: gmailPass },
-      connectionTimeout: 8000, greetingTimeout: 5000, socketTimeout: 10000,
-    });
-
-    try {
-      await t.verify();
-      res.json({ smtpOk: true, mode: 'gmail', gmailUser,
-        note: 'SMTP connection verified. OTPs will reach real inboxes.' });
-    } catch (smtpErr) {
-      res.json({ smtpOk: false, mode: 'ethereal-fallback', gmailUser,
-        error: smtpErr.message,
-        hint: 'Gmail rejected the connection. Regenerate the App Password at myaccount.google.com/apppasswords' });
-    }
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  if (resendKey) {
+    return res.json({ ok: true, mode: 'resend', note: 'Resend API key is set. Emails will be delivered.' });
+  }
+  if (gmailUser && gmailPass.length >= 16) {
+    return res.json({ ok: false, mode: 'gmail-smtp', gmailUser,
+      warning: 'Gmail SMTP is configured but Render blocks port 587. Set RESEND_API_KEY instead.' });
+  }
+  res.json({ ok: false, mode: 'ethereal-fallback',
+    error: 'No email provider configured. Set RESEND_API_KEY in Render environment variables.' });
 });
 
 // GET /api/auth/me
