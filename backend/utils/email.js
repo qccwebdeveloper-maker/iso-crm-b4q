@@ -1,37 +1,63 @@
 // ─────────────────────────────────────────────────────────────
 //  EMAIL SENDER
-//  1. Resend HTTP API  — set RESEND_API_KEY in .env (recommended, works on Render)
-//  2. Gmail SMTP       — fallback if RESEND_API_KEY not set
+//  Priority order:
+//  1. Brevo SMTP      — set BREVO_USER + BREVO_PASS  (free, any recipient)
+//  2. Resend API      — set RESEND_API_KEY            (free, owner email only)
+//  3. Gmail SMTP      — set GMAIL_USER + GMAIL_PASS   (local fallback)
+//  4. Ethereal        — preview URL fallback           (always works)
 // ─────────────────────────────────────────────────────────────
 async function sendMail({ to, subject, html }) {
+  const nodemailer = require('nodemailer');
+
+  // ── 1. Brevo SMTP (works on Render, sends to any address) ──
+  const brevoUser = (process.env.BREVO_USER || '').trim();
+  const brevoPass = (process.env.BREVO_PASS || '').trim();
+
+  if (brevoUser && brevoPass) {
+    const t = nodemailer.createTransport({
+      host: 'smtp-relay.brevo.com',
+      port: 587,
+      secure: false,
+      auth: { user: brevoUser, pass: brevoPass },
+      connectionTimeout: 10000,
+      greetingTimeout:   8000,
+      socketTimeout:     15000,
+    });
+    try {
+      await t.sendMail({ from: `"QC Certification CRM" <${brevoUser}>`, to, subject, html });
+      console.log(`✅ Email sent via Brevo → ${to}`);
+      return { ok: true, via: 'brevo' };
+    } catch (e) {
+      console.warn('[Email] Brevo SMTP failed:', e.message);
+    }
+  }
+
+  // ── 2. Resend HTTP API ──
   const resendKey = (process.env.RESEND_API_KEY || '').trim();
 
-  // ── Resend (HTTP API — works on Render free tier) ──
   if (resendKey) {
     const { Resend } = require('resend');
-    const resend = new Resend(resendKey);
+    const resend      = new Resend(resendKey);
     const fromAddress = process.env.RESEND_FROM || 'onboarding@resend.dev';
 
     const { data, error } = await resend.emails.send({
-      from:    `QC Certification CRM <${fromAddress}>`,
-      to:      [to],
+      from: `QC Certification CRM <${fromAddress}>`,
+      to:   [to],
       subject,
       html,
     });
 
     if (error) {
-      console.warn('[Email] Resend failed (falling back to Ethereal):', error.message);
-      // fall through to Ethereal below
+      console.warn('[Email] Resend failed:', error.message);
     } else {
       console.log(`✅ Email sent via Resend → ${to} (id: ${data.id})`);
       return { ok: true, via: 'resend' };
     }
   }
 
-  // ── Gmail SMTP fallback ──
-  const nodemailer = require('nodemailer');
-  const gmailUser  = (process.env.GMAIL_USER || '').trim();
-  const gmailPass  = (process.env.GMAIL_PASS || '').replace(/\s/g, '');
+  // ── 3. Gmail SMTP fallback ──
+  const gmailUser = (process.env.GMAIL_USER || '').trim();
+  const gmailPass = (process.env.GMAIL_PASS || '').replace(/\s/g, '');
 
   if (gmailUser && gmailPass.length >= 16) {
     const t = nodemailer.createTransport({
@@ -49,17 +75,16 @@ async function sendMail({ to, subject, html }) {
     }
   }
 
-  // ── Ethereal preview fallback (dev only) ──
-  console.log('[Email] Using Ethereal preview — set RESEND_API_KEY for real delivery');
-  const nodemailerFallback = require('nodemailer');
+  // ── 4. Ethereal preview fallback ──
+  console.log('[Email] Using Ethereal preview — add BREVO_USER + BREVO_PASS for real delivery');
   const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Ethereal timeout')), 10000));
-  const acc = await Promise.race([nodemailerFallback.createTestAccount(), timeout]);
-  const t2 = nodemailerFallback.createTransport({
+  const acc     = await Promise.race([nodemailer.createTestAccount(), timeout]);
+  const t2      = nodemailer.createTransport({
     host: 'smtp.ethereal.email', port: 587, secure: false,
     auth: { user: acc.user, pass: acc.pass },
   });
   const info = await t2.sendMail({ from: `"QC Certification CRM" <${acc.user}>`, to, subject, html });
-  const url = nodemailerFallback.getTestMessageUrl(info);
+  const url  = nodemailer.getTestMessageUrl(info);
   console.log('\n📬 Ethereal Preview URL:', url, '\n');
   return { ok: true, via: 'ethereal', previewUrl: url };
 }

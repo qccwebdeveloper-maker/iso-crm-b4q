@@ -101,19 +101,21 @@ router.post('/client-verify-otp', async (req, res) => {
 
 // GET /api/auth/email-status  — diagnostic
 router.get('/email-status', async (req, res) => {
+  const brevoUser = (process.env.BREVO_USER || '').trim();
+  const brevoPass = (process.env.BREVO_PASS || '').trim();
   const resendKey = (process.env.RESEND_API_KEY || '').trim();
   const gmailUser = (process.env.GMAIL_USER || '').trim();
-  const gmailPass = (process.env.GMAIL_PASS || '').replace(/\s/g, '');
 
+  if (brevoUser && brevoPass) {
+    return res.json({ ok: true, mode: 'brevo', note: 'Brevo SMTP is set. Emails deliver to any address.' });
+  }
   if (resendKey) {
-    return res.json({ ok: true, mode: 'resend', note: 'Resend API key is set. Emails will be delivered.' });
+    return res.json({ ok: true, mode: 'resend', warning: 'Resend only delivers to qcc.webdeveloper@gmail.com on free plan. Add BREVO_USER + BREVO_PASS for all recipients.' });
   }
-  if (gmailUser && gmailPass.length >= 16) {
-    return res.json({ ok: false, mode: 'gmail-smtp', gmailUser,
-      warning: 'Gmail SMTP is configured but Render blocks port 587. Set RESEND_API_KEY instead.' });
+  if (gmailUser) {
+    return res.json({ ok: false, mode: 'gmail-smtp', warning: 'Gmail SMTP unreachable from Render. Add BREVO_USER + BREVO_PASS.' });
   }
-  res.json({ ok: false, mode: 'ethereal-fallback',
-    error: 'No email provider configured. Set RESEND_API_KEY in Render environment variables.' });
+  res.json({ ok: false, mode: 'ethereal-fallback', error: 'No email provider configured. Add BREVO_USER + BREVO_PASS to Render env vars.' });
 });
 
 // GET /api/auth/me
