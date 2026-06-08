@@ -99,6 +99,23 @@ router.post('/client-verify-otp', async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
+// GET /api/auth/email-status  — diagnostic: shows whether Gmail or Ethereal is active
+router.get('/email-status', async (req, res) => {
+  try {
+    const gmailUser = (process.env.GMAIL_USER || '').trim();
+    const gmailPass = (process.env.GMAIL_PASS || '').replace(/\s/g, '');
+    const configured = !!(gmailUser && gmailPass.length >= 16);
+    res.json({
+      gmailConfigured: configured,
+      gmailUser:       configured ? gmailUser : null,
+      mode:            configured ? 'gmail' : 'ethereal-fallback',
+      note:            configured
+        ? 'Gmail SMTP is configured. OTPs will be delivered to real inboxes.'
+        : 'GMAIL_USER / GMAIL_PASS not set — OTPs go to Ethereal preview only, NOT real email.',
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
 // GET /api/auth/me
 router.get('/me', protect, async (req, res) => {
   try {
