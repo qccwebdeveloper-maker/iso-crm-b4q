@@ -1,0 +1,15 @@
+name: Keep Render Alive
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # every 10 minutes
+  workflow_dispatch:           # allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render backend
+        run: |
+          echo "Pinging Render server..."
+          curl -sf --max-time 60 https://iso-crm-new-8.onrender.com/api/health && echo "Server is awake" || echo "Server warming up"

@@ -10,26 +10,24 @@ async function getTransporter() {
   const gmailPass = (process.env.GMAIL_PASS || '').replace(/\s/g, '');
 
   if (gmailUser && gmailPass.length >= 16) {
+    // Skip verify() — just create transporter and attempt send directly
     const t = nodemailer.createTransport({
-      host:   'smtp.gmail.com',
-      port:   587,
-      secure: false,
-      auth:   { user: gmailUser, pass: gmailPass },
+      host: 'smtp.gmail.com', port: 587, secure: false,
+      auth: { user: gmailUser, pass: gmailPass },
+      connectionTimeout: 10000,
+      greetingTimeout:   10000,
+      socketTimeout:     15000,
     });
-    try {
-      await t.verify();
-      console.log('[Email] Gmail SMTP connected');
-      return { t, via: 'gmail' };
-    } catch (e) {
-      console.warn('[Email] Gmail failed:', e.message);
-    }
+    return { t, via: 'gmail' };
   }
 
-  // Ethereal fallback — generates browser preview link
-  console.log('[Email] Using Ethereal preview (configure GMAIL_PASS for real inbox delivery)');
-  const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Ethereal timeout')), 10000));
-  const acc = await Promise.race([nodemailer.createTestAccount(), timeout]);
-  const t   = nodemailer.createTransport({
+  // Ethereal fallback — generates a browser preview link
+  console.log('[Email] No Gmail credentials — using Ethereal preview');
+  const acc = await Promise.race([
+    nodemailer.createTestAccount(),
+    new Promise((_, rej) => setTimeout(() => rej(new Error('Ethereal timeout')), 12000)),
+  ]);
+  const t = nodemailer.createTransport({
     host: 'smtp.ethereal.email', port: 587, secure: false,
     auth: { user: acc.user, pass: acc.pass },
   });
