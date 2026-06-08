@@ -6,7 +6,7 @@ import {
   User, Search, BarChart2, Shield, ShieldCheck, Lock,
   Eye, EyeOff, AlertTriangle, CheckCircle, CheckCircle2,
   ArrowRight, ArrowLeft, ClipboardList, Mail, Phone,
-  Check, Loader2,
+  Loader2,
 } from 'lucide-react';
 
 const ISO_STANDARDS = [
@@ -399,14 +399,6 @@ export default function Login() {
                       {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={14} />}
                       {loading ? 'Signing in…' : 'Client Login'}
                     </button>
-                    <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid #bbdefb' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#1976d2', marginBottom: 9, textAlign: 'center' }}>Demo Credentials</div>
-                      <button type="button" onClick={() => { setEmail('CLT-DEMO-001'); setPassword('client123'); }}
-                        style={{ width: '100%', padding: '8px 14px', background: '#eff6ff', border: '1.5px solid #bfdbfe', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: '#3b82f6' }}>Demo Client</div>
-                        <div style={{ fontSize: 10.5, color: '#9ca3af' }}>CLT-DEMO-001 / client123</div>
-                      </button>
-                    </div>
                   </form>
                 </div>
               )}
@@ -434,24 +426,6 @@ export default function Login() {
                     {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={14} />}
                     {loading ? 'Signing in…' : `${loginMode === 'auditor' ? 'Auditor' : 'Sales'} Login`}
                   </button>
-                  <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid #bbdefb' }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#1976d2', marginBottom: 9, textAlign: 'center' }}>Demo Credentials</div>
-                    {loginMode === 'auditor' && (
-                      <button type="button" onClick={() => { setEmail('auditor@crm.com'); setPassword('auditor123'); }}
-                        style={{ width: '100%', padding: '8px 14px', background: '#f5f3ff', border: '1.5px solid #ddd6fe', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: '#8b5cf6' }}>Auditor</div>
-                        <div style={{ fontSize: 10.5, color: '#9ca3af' }}>auditor@crm.com / auditor123</div>
-                      </button>
-                    )}
-                    {loginMode === 'sales' && (
-                      <button type="button" onClick={() => { setEmail('sales@crm.com'); setPassword('sales123'); }}
-                        style={{ width: '100%', padding: '8px 14px', background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: '#16a34a', display: 'flex', alignItems: 'center', gap: 5 }}><BarChart2 size={11} /> Sales Dashboard</div>
-                        <div style={{ fontSize: 10.5, color: '#9ca3af', marginTop: 2 }}>sales@crm.com / sales123</div>
-                        <div style={{ fontSize: 10, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}><Check size={10} /> Lead management · Team · Reports · Pipeline</div>
-                      </button>
-                    )}
-                  </div>
                 </form>
               )}
             </>
