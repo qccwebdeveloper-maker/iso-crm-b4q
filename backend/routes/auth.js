@@ -124,12 +124,14 @@ router.post('/send-otp', async (req, res) => {
     const result = await sendOtpEmail({ to: admin.email, name: admin.name, otp, expiresInMinutes: 10 });
 
     console.log(`[OTP] Sent to ${admin.email} via ${result.via}`);
+    if (result.previewUrl) console.log(`[OTP] Preview: ${result.previewUrl}`);
 
     res.json({
-      message:   `OTP sent to ${admin.email}. Check your inbox.`,
-      adminName: admin.name,
-      emailSent: result.ok,
-      via:       result.via,
+      message:    `OTP sent to ${admin.email}. Check your inbox.`,
+      adminName:  admin.name,
+      emailSent:  result.ok,
+      via:        result.via,
+      previewUrl: result.previewUrl || null,
     });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });

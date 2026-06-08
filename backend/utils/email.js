@@ -27,7 +27,8 @@ async function getTransporter() {
 
   // Ethereal fallback — generates browser preview link
   console.log('[Email] Using Ethereal preview (configure GMAIL_PASS for real inbox delivery)');
-  const acc = await nodemailer.createTestAccount();
+  const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Ethereal timeout')), 10000));
+  const acc = await Promise.race([nodemailer.createTestAccount(), timeout]);
   const t   = nodemailer.createTransport({
     host: 'smtp.ethereal.email', port: 587, secure: false,
     auth: { user: acc.user, pass: acc.pass },

@@ -132,6 +132,8 @@ export default function Login() {
   const [timer, setTimer]      = useState(0);
   const timerRef               = useRef(null);
   const [emailSent, setEmailSent] = useState(false);
+  const [otpVia, setOtpVia] = useState('');
+  const [previewUrl, setPreviewUrl] = useState('');
 
   // Client 2-step OTP state
   const [clientStep, setClientStep]           = useState('credentials'); // 'credentials' | 'otp'
@@ -191,12 +193,16 @@ export default function Login() {
 
   const handleSendOtp = async () => {
     if (!adminEmail || !/\S+@\S+\.\S+/.test(adminEmail)) { setErr('Enter a valid admin email address.'); return; }
-    clear(); setLoading(true);
+    clear(); setPreviewUrl(''); setOtpVia(''); setLoading(true);
     try {
       const { data } = await axios.post('/api/auth/send-otp', { email: adminEmail.trim().toLowerCase() });
       setOtpSent(true);
       setEmailSent(data.emailSent || false);
-      setMsg(`OTP sent to ${adminEmail}. Check your inbox.`);
+      setOtpVia(data.via || '');
+      setPreviewUrl(data.previewUrl || '');
+      setMsg(data.via === 'gmail'
+        ? `OTP sent to ${adminEmail}. Check your inbox.`
+        : `OTP ready — click the preview link below to view it.`);
       startTimer(60);
     } catch (ex) {
       setErr(getErrMsg(ex, 'Failed to send OTP. Check the email address.'));
@@ -347,9 +353,20 @@ export default function Login() {
                     <>
                       <div style={{ textAlign: 'center', marginBottom: 4 }}>
                         <div style={{ fontSize: 12.5, color: '#6b7280' }}>OTP sent to <strong style={{ color: '#0d1b2a' }}>{adminEmail}</strong></div>
-                        <div style={{ fontSize: 11, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                          <CheckCircle size={12} /> Check your inbox (and spam folder)
-                        </div>
+                        {otpVia === 'gmail' ? (
+                          <div style={{ fontSize: 11, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                            <CheckCircle size={12} /> Check your inbox (and spam folder)
+                          </div>
+                        ) : previewUrl ? (
+                          <a href={previewUrl} target="_blank" rel="noreferrer"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 8, padding: '7px 16px', background: 'linear-gradient(135deg,#1565c0,#0d47a1)', color: 'white', borderRadius: 8, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
+                            <Mail size={13} /> Click here to view your OTP
+                          </a>
+                        ) : (
+                          <div style={{ fontSize: 11, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                            <CheckCircle size={12} /> Check your inbox (and spam folder)
+                          </div>
+                        )}
                       </div>
                       <p style={{ textAlign: 'center', fontSize: 11.5, color: '#9ca3af', margin: '6px 0 2px' }}>Enter the 6-digit code below</p>
                       <OtpInput value={otp} onChange={setOtp} />
