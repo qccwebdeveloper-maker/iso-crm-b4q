@@ -138,11 +138,23 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
+  const [serverReady, setServerReady] = useState(false);
 
   const { login, loginWithToken } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => () => clearInterval(timerRef.current), []);
+  // Ping Render directly (not via Vercel proxy) to wake it from sleep.
+  // Render free tier sleeps after 15 min; cold start takes ~30-60 sec.
+  useEffect(() => {
+    const warmUp = async () => {
+      try {
+        await axios.get('https://iso-crm-new-8.onrender.com/api/health', { timeout: 70000 });
+      } catch { /* ignore — server is up or unreachable */ }
+      setServerReady(true);
+    };
+    warmUp();
+    return () => clearInterval(timerRef.current);
+  }, []);
 
   const startTimer = (sec = 60) => {
     setTimer(sec);
@@ -164,6 +176,7 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault(); clear(); setLoading(true);
+    if (!serverReady) setMsg('Server is waking up, please wait…');
     try {
       const user = await login(email, password);
       navigate(user.role === 'reviewer' ? '/auditor' : `/${user.role}`);
@@ -175,8 +188,12 @@ export default function Login() {
   const handleSendOtp = async () => {
     if (!adminEmail || !/\S+@\S+\.\S+/.test(adminEmail)) { setErr('Enter a valid admin email address.'); return; }
     clear(); setPreviewUrl(''); setOtpVia(''); setLoading(true);
+    if (!serverReady) setMsg('Server is waking up, please wait…');
     try {
-      const { data } = await axios.post('/api/auth/send-otp', { email: adminEmail.trim().toLowerCase() });
+      const { data } = await axios.post('/api/auth/send-otp',
+        { email: adminEmail.trim().toLowerCase() },
+        { timeout: 90000 }
+      );
       setOtpSent(true);
       setOtpVia(data.via || '');
       setPreviewUrl(data.previewUrl || '');
@@ -185,7 +202,7 @@ export default function Login() {
         : `OTP ready — click the button below to view it.`);
       startTimer(60);
     } catch (ex) {
-      setErr(getErrMsg(ex, 'Failed to send OTP. Check the email address.'));
+      setErr(getErrMsg(ex, 'Failed to send OTP. The server may still be waking up — please try again in 30 seconds.'));
     } finally { setLoading(false); }
   };
 
@@ -257,6 +274,12 @@ export default function Login() {
             </div>
           )}
 
+          {!serverReady && (
+            <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: '9px 14px', marginBottom: 14, fontSize: 12, color: '#92400e', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Loader2 size={13} style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
+              Connecting to server… (first load may take ~30 sec)
+            </div>
+          )}
           <Alert type="error" msg={err} />
           <Alert type="success" msg={msg} />
 
