@@ -134,6 +134,8 @@ export default function Login() {
 
   const [clientOtpSent, setClientOtpSent]             = useState(false);
   const [clientOtpMaskedEmail, setClientOtpMaskedEmail] = useState('');
+  const [clientOtpVia, setClientOtpVia]               = useState('');
+  const [clientPreviewUrl, setClientPreviewUrl]       = useState('');
   const [clientOtp, setClientOtp]                      = useState('      ');
   const [clientTimer, setClientTimer]                  = useState(0);
   const clientTimerRef                                 = useRef(null);
@@ -243,7 +245,11 @@ export default function Login() {
       );
       setClientOtpSent(true);
       setClientOtpMaskedEmail(data.maskedEmail || '');
-      setMsg(`OTP sent to ${data.maskedEmail}. Check your inbox.`);
+      setClientOtpVia(data.via || '');
+      setClientPreviewUrl(data.previewUrl || '');
+      setMsg(data.via === 'gmail'
+        ? `OTP sent to ${data.maskedEmail}. Check your inbox.`
+        : `OTP ready — click the button below to view it.`);
       startClientTimer(60);
     } catch (ex) {
       setErr(getErrMsg(ex, 'Invalid Client ID or password.'));
@@ -289,7 +295,7 @@ export default function Login() {
   );
 
   const modePill = (id, label) => (
-    <button onClick={() => { setLoginMode(id); clear(); setOtpSent(false); setOtp('      '); setAdminEmail(''); setPreviewUrl(''); setOtpVia(''); setClientOtpSent(false); setClientOtp('      '); setClientOtpMaskedEmail(''); setEmail(''); setPassword(''); }}
+    <button onClick={() => { setLoginMode(id); clear(); setOtpSent(false); setOtp('      '); setAdminEmail(''); setPreviewUrl(''); setOtpVia(''); setClientOtpSent(false); setClientOtp('      '); setClientOtpMaskedEmail(''); setClientOtpVia(''); setClientPreviewUrl(''); setEmail(''); setPassword(''); }}
       style={{ flex: 1, padding: '7px 4px', border: `1.5px solid ${loginMode === id ? '#1565c0' : '#bbdefb'}`, borderRadius: 9, background: loginMode === id ? '#e3f2fd' : 'transparent', color: loginMode === id ? '#1565c0' : '#9ca3af', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
       {label}
     </button>
@@ -449,9 +455,20 @@ export default function Login() {
                         <div style={{ fontSize: 12.5, color: '#6b7280' }}>
                           OTP sent to <strong style={{ color: '#0d1b2a' }}>{clientOtpMaskedEmail}</strong>
                         </div>
-                        <div style={{ fontSize: 11, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                          <CheckCircle size={12} /> Check your inbox (and spam folder)
-                        </div>
+                        {clientOtpVia === 'gmail' ? (
+                          <div style={{ fontSize: 11, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                            <CheckCircle size={12} /> Check your inbox (and spam folder)
+                          </div>
+                        ) : clientPreviewUrl ? (
+                          <a href={clientPreviewUrl} target="_blank" rel="noreferrer"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '8px 18px', background: 'linear-gradient(135deg,#1565c0,#0d47a1)', color: 'white', borderRadius: 9, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
+                            <Mail size={13} /> Click here to view your OTP
+                          </a>
+                        ) : (
+                          <div style={{ fontSize: 11, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                            <CheckCircle size={12} /> Check your inbox (and spam folder)
+                          </div>
+                        )}
                       </div>
                       <p style={{ textAlign: 'center', fontSize: 11.5, color: '#9ca3af', margin: '6px 0 2px' }}>Enter the 6-digit code below</p>
                       <OtpInput value={clientOtp} onChange={setClientOtp} />
@@ -461,7 +478,7 @@ export default function Login() {
                         {loading ? 'Verifying…' : 'Client Login'}
                       </button>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <button onClick={() => { setClientOtpSent(false); setClientOtp('      '); setClientOtpMaskedEmail(''); clear(); }}
+                        <button onClick={() => { setClientOtpSent(false); setClientOtp('      '); setClientOtpMaskedEmail(''); setClientOtpVia(''); setClientPreviewUrl(''); clear(); }}
                           style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1565c0', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}>
                           <ArrowLeft size={12} /> Back
                         </button>
