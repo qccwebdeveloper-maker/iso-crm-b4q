@@ -3,6 +3,8 @@
 // Seeds all collections with realistic dummy data
 // ============================================================
 require('dotenv').config();
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 const mongoose    = require('mongoose');
 const bcrypt      = require('bcryptjs');
 const User        = require('./models/User');
@@ -15,7 +17,8 @@ const Standard    = require('./models/Standard');
 const Role        = require('./models/Role');
 const CertSetting = require('./models/CertSetting');
 
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/iso-crm';
+// const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/iso-crm';
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://qccwebdeveloper_db:iso_crm_qcc_101@cluster0.nhou9fq.mongodb.net/?appName=Cluster0';
 
 // insertMany skips pre-save hooks — hash passwords manually
 const h = (pw) => bcrypt.hashSync(pw, 10);
