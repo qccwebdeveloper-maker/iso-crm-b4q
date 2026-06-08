@@ -127,9 +127,6 @@ export default function Login() {
 
   // Admin OTP state
   const [adminEmail, setAdminEmail] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
-  const [adminLoginMethod, setAdminLoginMethod] = useState('password'); // 'password' | 'otp'
-  const [showAdminPw, setShowAdminPw] = useState(false);
   const [otpSent, setOtpSent]  = useState(false);
   const [otp, setOtp]          = useState('      ');
   const [timer, setTimer]      = useState(0);
@@ -203,20 +200,6 @@ export default function Login() {
       startTimer(60);
     } catch (ex) {
       setErr(getErrMsg(ex, 'Failed to send OTP. Check the email address.'));
-    } finally { setLoading(false); }
-  };
-
-  const handleAdminPasswordLogin = async () => {
-    if (!adminEmail) { setErr('Enter admin email.'); return; }
-    if (!adminPassword) { setErr('Enter admin password.'); return; }
-    clear(); setLoading(true);
-    try {
-      const { data } = await axios.post('/api/auth/login', { email: adminEmail.trim().toLowerCase(), password: adminPassword });
-      if (data.role !== 'admin') { setErr('This account does not have admin access.'); return; }
-      loginWithToken(data, data.token);
-      navigate('/admin');
-    } catch (ex) {
-      setErr(getErrMsg(ex, 'Invalid email or password.'));
     } finally { setLoading(false); }
   };
 
@@ -335,7 +318,7 @@ export default function Login() {
                 {modePill('client',  <><User size={12} /> Client</>)}
                 {modePill('auditor', <><Search size={12} /> Auditor</>)}
                 {modePill('sales',   <><BarChart2 size={12} /> Sales</>)}
-                {modePill('admin',   <><Shield size={12} /> Admin</>)}
+                {modePill('admin',   <><Shield size={12} /> Admin OTP</>)}
               </div>
 
               {/* Admin login */}
@@ -346,93 +329,45 @@ export default function Login() {
                     <span><strong>Admin access only</strong></span>
                   </div>
 
-                  {/* Method toggle */}
-                  <div style={{ display: 'flex', background: '#e3f2fd', borderRadius: 9, padding: 3, marginBottom: 16, border: '1px solid #90caf9' }}>
-                    <button onClick={() => { setAdminLoginMethod('password'); clear(); setOtpSent(false); setOtp('      '); }}
-                      style={{ flex: 1, padding: '7px 0', border: 'none', borderRadius: 7, background: adminLoginMethod === 'password' ? 'linear-gradient(135deg,#1565c0,#0d47a1)' : 'transparent', color: adminLoginMethod === 'password' ? 'white' : '#9ca3af', fontSize: 11.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                      <Lock size={11} /> Password
-                    </button>
-                    <button onClick={() => { setAdminLoginMethod('otp'); clear(); }}
-                      style={{ flex: 1, padding: '7px 0', border: 'none', borderRadius: 7, background: adminLoginMethod === 'otp' ? 'linear-gradient(135deg,#1565c0,#0d47a1)' : 'transparent', color: adminLoginMethod === 'otp' ? 'white' : '#9ca3af', fontSize: 11.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                      <Mail size={11} /> OTP Email
-                    </button>
-                  </div>
-
-                  {/* Password login */}
-                  {adminLoginMethod === 'password' && (
-                    <>
-                      <Field label="Admin Email Address" required>
+                  {!otpSent ? (
+                    <Field label="Admin Email Address" required>
+                      <div style={{ display: 'flex', gap: 8 }}>
                         <input type="email" placeholder="Enter admin email" value={adminEmail}
                           onChange={e => setAdminEmail(e.target.value)}
-                          style={inp(false)}
-                          onKeyDown={e => e.key === 'Enter' && handleAdminPasswordLogin()} />
-                      </Field>
-                      <Field label="Password" required>
-                        <div style={{ position: 'relative' }}>
-                          <input type={showAdminPw ? 'text' : 'password'} placeholder="Enter admin password"
-                            value={adminPassword} onChange={e => setAdminPassword(e.target.value)}
-                            style={{ ...inp(false), paddingRight: 40 }}
-                            onKeyDown={e => e.key === 'Enter' && handleAdminPasswordLogin()} />
-                          <button type="button" onClick={() => setShowAdminPw(v => !v)}
-                            style={{ position: 'absolute', right: 11, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
-                            {showAdminPw ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
-                      </Field>
-                      <button onClick={handleAdminPasswordLogin} disabled={loading}
-                        style={{ ...S.btnMain, marginTop: 4, opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-                        {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={14} />}
-                        {loading ? 'Signing in…' : 'Open Admin Dashboard'}
-                      </button>
-                    </>
-                  )}
-
-                  {/* OTP login */}
-                  {adminLoginMethod === 'otp' && (
+                          style={{ ...inp(false), flex: 1 }}
+                          onKeyDown={e => e.key === 'Enter' && handleSendOtp()} />
+                        <button onClick={handleSendOtp} disabled={loading}
+                          style={{ ...S.btnMain, width: 'auto', padding: '0 18px', flexShrink: 0, boxShadow: 'none', opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {loading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Mail size={13} />}
+                          {loading ? 'Sending…' : 'Send OTP'}
+                        </button>
+                      </div>
+                    </Field>
+                  ) : (
                     <>
-                      {!otpSent ? (
-                        <>
-                          <Field label="Admin Email Address" required>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                              <input type="email" placeholder="Enter admin email" value={adminEmail}
-                                onChange={e => setAdminEmail(e.target.value)}
-                                style={{ ...inp(false), flex: 1 }}
-                                onKeyDown={e => e.key === 'Enter' && handleSendOtp()} />
-                              <button onClick={handleSendOtp} disabled={loading}
-                                style={{ ...S.btnMain, width: 'auto', padding: '0 18px', flexShrink: 0, boxShadow: 'none', opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                {loading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Mail size={13} />}
-                                {loading ? 'Sending…' : 'Send OTP'}
-                              </button>
-                            </div>
-                          </Field>
-                        </>
-                      ) : (
-                        <>
-                          <div style={{ textAlign: 'center', marginBottom: 4 }}>
-                            <div style={{ fontSize: 12.5, color: '#6b7280' }}>OTP sent to <strong style={{ color: '#0d1b2a' }}>{adminEmail}</strong></div>
-                            <div style={{ fontSize: 11, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                              <CheckCircle size={12} /> Check your inbox (and spam folder)
-                            </div>
-                          </div>
-                          <p style={{ textAlign: 'center', fontSize: 11.5, color: '#9ca3af', margin: '6px 0 2px' }}>Enter the 6-digit code below</p>
-                          <OtpInput value={otp} onChange={setOtp} />
-                          <button onClick={handleVerifyOtp} disabled={loading || otp.replace(/\s/g,'').length < 6}
-                            style={{ ...S.btnMain, opacity: (loading || otp.replace(/\s/g,'').length < 6) ? 0.55 : 1, marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-                            {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={14} />}
-                            {loading ? 'Verifying…' : 'Open Admin Dashboard'}
-                          </button>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <button onClick={() => { setOtpSent(false); setOtp('      '); setEmailSent(false); clear(); }}
-                              style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1565c0', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <ArrowLeft size={12} /> Change email
-                            </button>
-                            {timer > 0
-                              ? <span style={{ fontSize: 11.5, color: '#9ca3af' }}>Resend in {timer}s</span>
-                              : <button onClick={handleSendOtp} style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1565c0', cursor: 'pointer', fontFamily: 'inherit' }}>Resend OTP</button>
-                            }
-                          </div>
-                        </>
-                      )}
+                      <div style={{ textAlign: 'center', marginBottom: 4 }}>
+                        <div style={{ fontSize: 12.5, color: '#6b7280' }}>OTP sent to <strong style={{ color: '#0d1b2a' }}>{adminEmail}</strong></div>
+                        <div style={{ fontSize: 11, color: '#16a34a', marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                          <CheckCircle size={12} /> Check your inbox (and spam folder)
+                        </div>
+                      </div>
+                      <p style={{ textAlign: 'center', fontSize: 11.5, color: '#9ca3af', margin: '6px 0 2px' }}>Enter the 6-digit code below</p>
+                      <OtpInput value={otp} onChange={setOtp} />
+                      <button onClick={handleVerifyOtp} disabled={loading || otp.replace(/\s/g,'').length < 6}
+                        style={{ ...S.btnMain, opacity: (loading || otp.replace(/\s/g,'').length < 6) ? 0.55 : 1, marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                        {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={14} />}
+                        {loading ? 'Verifying…' : 'Open Admin Dashboard'}
+                      </button>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <button onClick={() => { setOtpSent(false); setOtp('      '); setEmailSent(false); clear(); }}
+                          style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1565c0', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <ArrowLeft size={12} /> Change email
+                        </button>
+                        {timer > 0
+                          ? <span style={{ fontSize: 11.5, color: '#9ca3af' }}>Resend in {timer}s</span>
+                          : <button onClick={handleSendOtp} style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1565c0', cursor: 'pointer', fontFamily: 'inherit' }}>Resend OTP</button>
+                        }
+                      </div>
                     </>
                   )}
                 </div>
