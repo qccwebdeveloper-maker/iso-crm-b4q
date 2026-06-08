@@ -41,7 +41,7 @@ async function seed() {
   const users = await User.insertMany([
     // ── Admin
     {
-      name: 'Admin User', email: 'aryankumar7645@gmail.com', password: h('admin123'),
+      name: 'Admin User', email: 'qcc.webdeveloper@gmail.com', password: h('admin123'),
       role: 'admin', company: 'QC Certification', phone: '9000000001',
       isActive: true, pendingApproval: false,
     },

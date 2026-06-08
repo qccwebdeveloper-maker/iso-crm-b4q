@@ -3,13 +3,15 @@ const router  = express.Router();
 const jwt     = require('jsonwebtoken');
 const bcrypt  = require('bcryptjs');
 const User    = require('../models/User');
-const Otp     = require('../models/Otp');
 const { protect } = require('../middleware/auth');
 const { sendOtpEmail, sendWelcomeEmail } = require('../utils/email');
 
 const SECRET   = process.env.JWT_SECRET || 'crm_secret_key_2024';
 const genToken = (id) => jwt.sign({ id }, SECRET, { expiresIn: '7d' });
 const hashPw   = (pw)  => bcrypt.hash(pw, 10);
+
+// In-memory OTP store { email: { otp, expiry, userId } }
+const OTP_STORE = {};
 
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
@@ -52,26 +54,21 @@ router.post('/client-send-otp', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: 'Invalid Client ID or password' });
 
-    const otp       = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-    await Otp.findOneAndReplace(
-      { email: user.email },
-      { email: user.email, otp, userId: user._id, expiresAt },
-      { upsert: true }
-    );
+    const otp    = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = Date.now() + 10 * 60 * 1000;
+    OTP_STORE[user.email] = { otp, expiry, userId: user._id.toString() };
 
     const result = await sendOtpEmail({ to: user.email, name: user.name, otp, expiresInMinutes: 10 });
     console.log(`[OTP] Client OTP sent to ${user.email} via ${result.via}`);
 
+    // Mask email: ar***@gmail.com
     const masked = user.email.replace(/^(.{2})(.+)(@.+)$/, (_, a, b, c) => a + '*'.repeat(Math.min(b.length, 4)) + c);
 
     res.json({
-      message:     'OTP sent to your registered email.',
+      message:   `OTP sent to your registered email.`,
       maskedEmail: masked,
-      emailSent:   result.ok,
-      via:         result.via,
-      previewUrl:  result.previewUrl || null,
+      emailSent: result.ok,
+      via:       result.via,
     });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
@@ -85,12 +82,15 @@ router.post('/client-verify-otp', async (req, res) => {
     const user = await User.findOne({ clientId: clientId.trim() });
     if (!user) return res.status(401).json({ message: 'Invalid Client ID' });
 
-    const record = await Otp.findOne({ email: user.email, expiresAt: { $gt: new Date() } });
+    const record = OTP_STORE[user.email];
     if (!record) return res.status(400).json({ message: 'No OTP requested. Please go back and send OTP again.' });
+    if (Date.now() > record.expiry) {
+      delete OTP_STORE[user.email];
+      return res.status(400).json({ message: 'OTP expired. Please request a new one.' });
+    }
     if (record.otp !== otp.toString().trim()) return res.status(400).json({ message: 'Invalid OTP. Try again.' });
 
-    await Otp.deleteOne({ _id: record._id });
-
+    delete OTP_STORE[user.email];
     const fullUser = await User.findById(record.userId).select('-password');
     if (!fullUser || !fullUser.isActive) return res.status(403).json({ message: 'Account is inactive.' });
 
@@ -117,14 +117,9 @@ router.post('/send-otp', async (req, res) => {
     if (!admin) return res.status(404).json({ message: 'No admin account found with this email' });
     if (!admin.isActive) return res.status(403).json({ message: 'Admin account is inactive' });
 
-    const otp       = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-    await Otp.findOneAndReplace(
-      { email: admin.email },
-      { email: admin.email, otp, userId: admin._id, expiresAt },
-      { upsert: true }
-    );
+    const otp    = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = Date.now() + 10 * 60 * 1000;
+    OTP_STORE[email.toLowerCase()] = { otp, expiry, userId: admin._id.toString() };
 
     const result = await sendOtpEmail({ to: admin.email, name: admin.name, otp, expiresInMinutes: 10 });
 
@@ -148,12 +143,11 @@ router.post('/verify-otp', async (req, res) => {
     if (!email || !otp) return res.status(400).json({ message: 'Email and OTP required' });
 
     const key    = email.toLowerCase().trim();
-    const record = await Otp.findOne({ email: key, expiresAt: { $gt: new Date() } });
-
-    if (!record) return res.status(400).json({ message: 'No OTP sent to this email. Request a new one.' });
+    const record = OTP_STORE[key];
+    if (!record)                    return res.status(400).json({ message: 'No OTP sent to this email. Request a new one.' });
+    if (Date.now() > record.expiry) { delete OTP_STORE[key]; return res.status(400).json({ message: 'OTP expired. Request a new one.' }); }
     if (record.otp !== otp.toString().trim()) return res.status(400).json({ message: 'Invalid OTP.' });
-
-    await Otp.deleteOne({ _id: record._id });
+    delete OTP_STORE[key];
 
     const user = await User.findById(record.userId).select('-password');
     if (!user || !user.isActive) return res.status(403).json({ message: 'Admin account is inactive' });
