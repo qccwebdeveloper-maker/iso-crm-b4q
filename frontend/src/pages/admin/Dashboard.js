@@ -28,6 +28,8 @@ export default function AdminDashboard() {
   const [assignLeadModal, setAssignLeadModal] = useState(null);
   const [assignTo,        setAssignTo]        = useState('');
   const [saving,          setSaving]          = useState(false);
+  const [otpEnabled,      setOtpEnabled]      = useState(true);
+  const [savingOtp,       setSavingOtp]       = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -38,7 +40,9 @@ export default function AdminDashboard() {
       axios.get('/api/leads').catch(() => ({ data: [] })),
       axios.get('/api/auditors').catch(() => ({ data: [] })),
       axios.get('/api/users').catch(() => ({ data: [] })),
-    ]).then(([s, a, l, au, u]) => {
+      axios.get('/api/settings').catch(() => ({ data: { clientOtpEnabled: true } })),
+    ]).then(([s, a, l, au, u, cfg]) => {
+      setOtpEnabled((cfg.data || {}).clientOtpEnabled !== false);
       const statsData = s.data || {};
       const appsData  = a.data || [];
       setStats({
@@ -97,6 +101,16 @@ export default function AdminDashboard() {
     { label: 'Pending Review',     value: pending,                 icon: FiClock,       color: 'amber',  to: '/admin/approval-pending' },
     { label: 'Compliance Rate',    value: `${compliance}%`,        icon: FiTrendingUp,  color: 'teal',   to: '/admin/reports' },
   ];
+
+  const handleToggleOtp = async () => {
+    setSavingOtp(true);
+    try {
+      const { data } = await axios.put('/api/settings', { key: 'clientOtpEnabled', value: !otpEnabled });
+      setOtpEnabled(data.clientOtpEnabled !== false);
+      toast.success(data.clientOtpEnabled !== false ? 'Client OTP enabled' : 'Client OTP disabled');
+    } catch { toast.error('Failed to update setting'); }
+    finally { setSavingOtp(false); }
+  };
 
   const handleAssignAudit = async () => {
     if (!assignForm.auditorId && !assignForm.reviewerId) return toast.error('Select at least one person');
@@ -407,6 +421,43 @@ export default function AdminDashboard() {
               </button>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Security Settings */}
+      <div className="card" style={{ marginBottom: 18 }}>
+        <div className="card-hdr">
+          <div className="card-title"><FiSettings size={14} style={{ color:'var(--primary)' }}/>Security Settings</div>
+        </div>
+        <div style={{ padding:'14px 16px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:16 }}>
+          <div>
+            <div style={{ fontWeight:600, fontSize:13 }}>Client Login OTP</div>
+            <div style={{ fontSize:11.5, color:'var(--gray-400)', marginTop:3 }}>
+              {otpEnabled
+                ? 'Clients must verify via email OTP on each login.'
+                : 'OTP disabled — clients log in with password only.'}
+            </div>
+          </div>
+          <button
+            onClick={handleToggleOtp}
+            disabled={savingOtp}
+            title={otpEnabled ? 'Click to disable OTP' : 'Click to enable OTP'}
+            style={{
+              width:46, height:26, borderRadius:13, border:'none',
+              cursor: savingOtp ? 'default' : 'pointer',
+              background: otpEnabled ? 'var(--primary, #1565c0)' : '#d1d5db',
+              position:'relative', transition:'background .2s', flexShrink:0,
+              opacity: savingOtp ? 0.7 : 1,
+            }}
+          >
+            <span style={{
+              position:'absolute', top:3,
+              left: otpEnabled ? 23 : 3,
+              width:20, height:20, borderRadius:'50%', background:'white',
+              transition:'left .2s', boxShadow:'0 1px 4px rgba(0,0,0,0.18)',
+              display:'block',
+            }} />
+          </button>
         </div>
       </div>
 

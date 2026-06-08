@@ -243,6 +243,12 @@ export default function Login() {
         { clientId: email.trim(), password },
         { timeout: 90000 }
       );
+      // OTP disabled globally — backend returned token directly
+      if (data.otpDisabled && data.token) {
+        loginWithToken(data, data.token);
+        navigate('/client');
+        return;
+      }
       setClientOtpSent(true);
       setClientOtpMaskedEmail(data.maskedEmail || '');
       setClientOtpVia(data.via || '');

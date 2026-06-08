@@ -1,9 +1,10 @@
-const express = require('express');
-const router  = express.Router();
-const jwt     = require('jsonwebtoken');
-const bcrypt  = require('bcryptjs');
-const User    = require('../models/User');
-const Otp     = require('../models/Otp');
+const express     = require('express');
+const router      = express.Router();
+const jwt         = require('jsonwebtoken');
+const bcrypt      = require('bcryptjs');
+const User        = require('../models/User');
+const Otp         = require('../models/Otp');
+const AppSetting  = require('../models/AppSetting');
 const { protect } = require('../middleware/auth');
 const { sendOtpEmail, sendWelcomeEmail } = require('../utils/email');
 
@@ -39,7 +40,7 @@ router.post('/login', async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// POST /api/auth/client-send-otp  — step 1: verify clientId+password, send OTP to client email
+// POST /api/auth/client-send-otp  — step 1: verify clientId+password, send OTP (or direct login if OTP disabled)
 router.post('/client-send-otp', async (req, res) => {
   try {
     const { clientId, password } = req.body;
@@ -51,6 +52,15 @@ router.post('/client-send-otp', async (req, res) => {
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: 'Invalid Client ID or password' });
+
+    // Check if OTP is globally disabled
+    const otpSetting = await AppSetting.findOne({ key: 'clientOtpEnabled' });
+    const otpEnabled = otpSetting ? otpSetting.value : true;
+
+    if (!otpEnabled) {
+      // OTP disabled — return token directly (direct login)
+      return res.json({ ...user.toJSON(), token: genToken(user._id), otpDisabled: true });
+    }
 
     const otp       = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
