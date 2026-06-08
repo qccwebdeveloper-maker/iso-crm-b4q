@@ -20,12 +20,12 @@ async function sendMail({ to, subject, html }) {
     });
 
     if (error) {
-      console.error('[Email] Resend error:', error.message);
-      throw new Error(`Resend failed: ${error.message}`);
+      console.warn('[Email] Resend failed (falling back to Ethereal):', error.message);
+      // fall through to Ethereal below
+    } else {
+      console.log(`✅ Email sent via Resend → ${to} (id: ${data.id})`);
+      return { ok: true, via: 'resend' };
     }
-
-    console.log(`✅ Email sent via Resend → ${to} (id: ${data.id})`);
-    return { ok: true, via: 'resend' };
   }
 
   // ── Gmail SMTP fallback ──
