@@ -147,6 +147,7 @@ export default function Login() {
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
   const [serverReady, setServerReady] = useState(false);
+  const [clientOtpEnabled, setClientOtpEnabled] = useState(true);
 
   const { login, loginWithToken } = useAuth();
   const navigate = useNavigate();
@@ -161,6 +162,10 @@ export default function Login() {
       setServerReady(true);
     };
     warmUp();
+    // Fetch OTP setting so the login UI reflects the current admin configuration
+    axios.get('/api/settings').then(({ data }) => {
+      setClientOtpEnabled(data.clientOtpEnabled !== false);
+    }).catch(() => {});
     return () => { clearInterval(timerRef.current); clearInterval(clientTimerRef.current); };
   }, []);
 
@@ -422,7 +427,7 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Client login — password + OTP 2-step */}
+              {/* Client login — password + OTP 2-step (or direct login if OTP disabled) */}
               {loginMode === 'client' && (
                 <div>
                   {!clientOtpSent ? (
@@ -443,8 +448,12 @@ export default function Login() {
                         </div>
                       </Field>
                       <button type="submit" disabled={loading} style={{ ...S.btnMain, marginTop: 6, opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-                        {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Mail size={14} />}
-                        {loading ? 'Sending OTP…' : 'Send OTP'}
+                        {loading
+                          ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                          : clientOtpEnabled ? <Mail size={14} /> : <ArrowRight size={14} />}
+                        {loading
+                          ? (clientOtpEnabled ? 'Sending OTP…' : 'Signing in…')
+                          : (clientOtpEnabled ? 'Send OTP' : 'Client Login')}
                       </button>
                       <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid #bbdefb' }}>
                         <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#1976d2', marginBottom: 9, textAlign: 'center' }}>Demo Credentials</div>
