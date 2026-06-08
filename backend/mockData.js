@@ -11,7 +11,7 @@ const USERS = [
   {
     _id: 'u1',
     name: 'Admin User',
-    email: 'admin@crm.com',
+    email: 'qcc.webdeveloper@gmail.com',
     password: hash('admin123'),
     role: 'admin',
     company: 'CertifyPro',

@@ -41,7 +41,7 @@ async function seed() {
   const users = await User.insertMany([
     // ── Admin
     {
-      name: 'Admin User', email: 'admin@crm.com', password: h('admin123'),
+      name: 'Admin User', email: 'qcc.webdeveloper@gmail.com', password: h('admin123'),
       role: 'admin', company: 'QC Certification', phone: '9000000001',
       isActive: true, pendingApproval: false,
     },
@@ -651,7 +651,7 @@ async function seed() {
   console.log('\n✅ Seed complete!');
   console.log('─────────────────────────────────────────');
   console.log('Login credentials:');
-  console.log('  admin@crm.com        / admin123');
+  console.log('  qcc.webdeveloper@gmail.com / admin123');
   console.log('  client@crm.com       / client123   (John Client — ABC Corp)');
   console.log('  priya@xyzit.com      / client123   (Priya Sharma — XYZ IT)');
   console.log('  ravi@greenenergy.com / client123   (Ravi Kumar — Green Energy)');

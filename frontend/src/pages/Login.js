@@ -347,11 +347,6 @@ export default function Login() {
                         </div>
                       </Field>
 
-                      <button type="button" onClick={() => setAdminEmail('admin@crm.com')}
-                        style={{ width: '100%', padding: '8px 14px', background: '#e3f2fd', border: '1.5px solid #64b5f6', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', marginTop: 4 }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: '#0d47a1', display: 'flex', alignItems: 'center', gap: 5 }}><Lock size={11} /> Demo Admin</div>
-                        <div style={{ fontSize: 10.5, color: '#9ca3af' }}>admin@crm.com — click to autofill</div>
-                      </button>
                     </>
                   ) : (
                     <>
