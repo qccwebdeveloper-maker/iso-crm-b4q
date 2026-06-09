@@ -802,11 +802,24 @@ select.form-control { cursor: pointer; }
 .mobile-input-row select { width: 140px; flex-shrink: 0; }
 .mobile-input-row input  { flex: 1; min-width: 0; }
 
+/* ── ApplicationDetail edit form — responsive grids ── */
+@media (max-width: 768px) {
+  div[style*="minmax(240px"] { grid-template-columns: 1fr !important; }
+  div[style*="minmax(220px"] { grid-template-columns: 1fr !important; }
+  div[style*="minmax(210px"] { grid-template-columns: 1fr 1fr !important; }
+  div[style*="minmax(180px"] { grid-template-columns: 1fr 1fr !important; }
+}
+
 @media (max-width: 480px) {
   .mobile-input-row { flex-direction: column; }
   .mobile-input-row select { width: 100%; }
   div[style*="minmax(240px"] { grid-template-columns: 1fr !important; }
+  div[style*="minmax(220px"] { grid-template-columns: 1fr !important; }
+  div[style*="minmax(210px"] { grid-template-columns: 1fr !important; }
   div[style*="minmax(190px"] { grid-template-columns: 1fr 1fr !important; }
+  div[style*="minmax(180px"] { grid-template-columns: 1fr !important; }
+  /* Combined audit / env section labels wrap */
+  .yn-label { font-size: 11.5px !important; }
 }
 
 /* ── Reduce motion ── */
