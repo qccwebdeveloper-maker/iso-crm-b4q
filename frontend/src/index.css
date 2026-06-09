@@ -797,6 +797,18 @@ select.form-control { cursor: pointer; }
   .card-hdr { padding: 9px 10px; }
 }
 
+/* ── Application form: country code + mobile ── */
+.mobile-input-row { display: flex; gap: 6px; }
+.mobile-input-row select { width: 140px; flex-shrink: 0; }
+.mobile-input-row input  { flex: 1; min-width: 0; }
+
+@media (max-width: 480px) {
+  .mobile-input-row { flex-direction: column; }
+  .mobile-input-row select { width: 100%; }
+  div[style*="minmax(240px"] { grid-template-columns: 1fr !important; }
+  div[style*="minmax(190px"] { grid-template-columns: 1fr 1fr !important; }
+}
+
 /* ── Reduce motion ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }

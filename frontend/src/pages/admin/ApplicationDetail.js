@@ -3,8 +3,24 @@ import{useParams,useNavigate}from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
-import{ArrowLeft,Download,Upload,FileText,CheckCircle,Star,User,Building,Globe,Send}from 'lucide-react';
+import{ArrowLeft,Download,Upload,FileText,CheckCircle,Star,User,Building,Globe,Send,Edit2,Save,X}from 'lucide-react';
 const FL=['draft','submitted','under_review','audit_stage1','audit_stage2','approved','certified'];
+const ISO_LIST=['ISO 9001:2015','ISO 14001:2015','ISO 45001:2018','ISO 22000:2018','ISO 27001:2022','ISO/IEC 27701:2025','ISO/IEC 42001:2023','ISO 22301:2019','ISO 37001:2016','ISO 21001:2018'];
+const APP_TYPES=['Initial','Surveillance','Re-certification','Un-Announced','Follow-up'];
+const ACCRED=['USF','UASL'];
+const COUNTRY_CODES=[
+  {code:'+1',country:'US/Canada'},{code:'+7',country:'Russia'},{code:'+20',country:'Egypt'},
+  {code:'+27',country:'South Africa'},{code:'+31',country:'Netherlands'},{code:'+33',country:'France'},
+  {code:'+34',country:'Spain'},{code:'+39',country:'Italy'},{code:'+44',country:'UK'},
+  {code:'+45',country:'Denmark'},{code:'+46',country:'Sweden'},{code:'+49',country:'Germany'},
+  {code:'+52',country:'Mexico'},{code:'+55',country:'Brazil'},{code:'+60',country:'Malaysia'},
+  {code:'+61',country:'Australia'},{code:'+62',country:'Indonesia'},{code:'+65',country:'Singapore'},
+  {code:'+66',country:'Thailand'},{code:'+81',country:'Japan'},{code:'+82',country:'South Korea'},
+  {code:'+86',country:'China'},{code:'+90',country:'Turkey'},{code:'+91',country:'India'},
+  {code:'+92',country:'Pakistan'},{code:'+94',country:'Sri Lanka'},{code:'+234',country:'Nigeria'},
+  {code:'+254',country:'Kenya'},{code:'+880',country:'Bangladesh'},{code:'+966',country:'Saudi Arabia'},
+  {code:'+971',country:'UAE'},{code:'+974',country:'Qatar'},{code:'+977',country:'Nepal'},
+];
 export default function AdminApplicationDetail(){
   const{id}=useParams();const navigate=useNavigate();
   const[app,setApp]=useState(null);const[loading,setLoading]=useState(true);
@@ -13,12 +29,50 @@ export default function AdminApplicationDetail(){
   const[selectedAuditor,setSelectedAuditor]=useState('');
   const[selectedReviewer,setSelectedReviewer]=useState('');
   const[tab,setTab]=useState('overview');const[ns,setNs]=useState('');const[note,setNote]=useState('');const[uploading,setUploading]=useState(false);
-  const load=()=>{setLoading(true);axios.get(`/api/applications/${id}`).then(r=>{setApp(r.data);setNs(r.data.status);}).finally(()=>setLoading(false));};
+  const[editForm,setEditForm]=useState({});const[saving,setSaving]=useState(false);
+  const load=()=>{setLoading(true);axios.get(`/api/applications/${id}`).then(r=>{
+    const d=r.data;setApp(d);setNs(d.status);
+    setEditForm({
+      organizationName:d.organizationName||'',
+      address:d.address||'',
+      additionalSites:d.additionalSites||'',
+      countryCode:d.countryCode||'+91',
+      mobileNumber:d.mobileNumber||'',
+      contactNumbers:d.contactNumbers||'',
+      emailId:d.emailId||'',
+      contactPerson:d.contactPerson||'',
+      designation:d.designation||'',
+      modeOfWorking:d.modeOfWorking||'Onsite',
+      scopeOfCertification:d.scopeOfCertification||d.scope||'',
+      mainProcesses:d.mainProcesses||'',
+      outsourcedProcesses:d.outsourcedProcesses||'',
+      standards:d.standards||[d.isoStandard].filter(Boolean),
+      applicationType:d.applicationType||'Initial',
+      accreditationBody:d.accreditationBody||'USF',
+      totalEmployees:d.totalEmployees||d.employeeCount?.total||0,
+      adminNotes:d.adminNotes||'',
+    });
+  }).finally(()=>setLoading(false));};
   useEffect(()=>{
     axios.get('/api/auditors').then(r=>setAuditorsList(r.data||[])).catch(()=>setAuditorsList([]));
   },[]);
   useEffect(load,[id]);
   const updateStatus=async()=>{try{await axios.put(`/api/applications/${id}/status`,{status:ns,notes:note});toast.success('Status updated & client notified');setNote('');load();}catch{toast.error('Failed');}};
+  const ef=(k,v)=>setEditForm(p=>({...p,[k]:v}));
+  const toggleStd=(s)=>setEditForm(p=>({...p,standards:p.standards.includes(s)?p.standards.filter(x=>x!==s):[...p.standards,s]}));
+  const saveEdit=async()=>{
+    if(!editForm.organizationName.trim()){toast.error('Organization name required');return;}
+    if(!editForm.address.trim()){toast.error('Address required');return;}
+    if(!editForm.mobileNumber.trim()){toast.error('Mobile number required');return;}
+    if(!editForm.contactPerson.trim()){toast.error('Contact person required');return;}
+    setSaving(true);
+    try{
+      const payload={...editForm,scope:editForm.scopeOfCertification,isoStandard:editForm.standards[0]||app.isoStandard};
+      await axios.put(`/api/applications/${id}`,payload);
+      toast.success('Application updated');load();setTab('overview');
+    }catch{toast.error('Save failed');}
+    finally{setSaving(false);}
+  };
   const upload=async(e,dt)=>{const f=e.target.files[0];if(!f)return;const fd=new FormData();fd.append('document',f);fd.append('docType',dt);setUploading(true);try{await axios.post(`/api/applications/${id}/upload`,fd,{headers:{'Content-Type':'multipart/form-data'}});toast.success('Uploaded');load();}catch{toast.error('Upload failed');}finally{setUploading(false);};};
   if(loading)return<Layout title="Application"><div className="loading-box"><div className="spinner"/></div></Layout>;
   if(!app)return<Layout title="Not Found"><p style={{padding:20}}>Not found</p></Layout>;
@@ -47,7 +101,28 @@ export default function AdminApplicationDetail(){
           ))}
         </div>
       </div></div>
-      <div className="tabs-bar">{['overview','documents','status','feedback'].map(t=><button key={t} className={`tab-item ${tab===t?'on':''}`} onClick={()=>setTab(t)}>{t.charAt(0).toUpperCase()+t.slice(1)}</button>)}</div>
+      <div className="tabs-bar">{['overview','edit','documents','status','feedback'].map(t=><button key={t} className={`tab-item ${tab===t?'on':''}`} onClick={()=>setTab(t)} style={{display:'flex',alignItems:'center',gap:5}}>{t==='edit'&&<Edit2 size={11}/>}{t.charAt(0).toUpperCase()+t.slice(1)}</button>)}</div>
+      {tab==='edit'&&<div className="card"><div className="card-hdr" style={{justifyContent:'space-between'}}><div className="card-title"><Edit2 size={14} style={{color:'var(--primary)'}}/>Edit Application</div><div style={{display:'flex',gap:8}}><button className="btn btn-ghost btn-sm" onClick={()=>setTab('overview')}><X size={13}/>Cancel</button><button className="btn btn-primary btn-sm" onClick={saveEdit} disabled={saving}><Save size={13}/>{saving?'Saving…':'Save Changes'}</button></div></div><div className="card-body" style={{display:'flex',flexDirection:'column',gap:16}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:'0 16px'}}>
+          <div className="form-group" style={{gridColumn:'1/-1'}}><label className="form-label">Organization Name <span style={{color:'var(--red)'}}>*</span></label><input className="form-control" value={editForm.organizationName||''} onChange={e=>ef('organizationName',e.target.value)}/></div>
+          <div className="form-group" style={{gridColumn:'1/-1'}}><label className="form-label">Address <span style={{color:'var(--red)'}}>*</span></label><textarea className="form-control" rows={2} value={editForm.address||''} onChange={e=>ef('address',e.target.value)}/></div>
+          <div className="form-group" style={{gridColumn:'1/-1'}}><label className="form-label">Additional Sites</label><textarea className="form-control" rows={2} value={editForm.additionalSites||''} onChange={e=>ef('additionalSites',e.target.value)}/></div>
+          <div className="form-group"><label className="form-label">Mobile Number <span style={{color:'var(--red)'}}>*</span></label><div className="mobile-input-row"><select className="form-control" value={editForm.countryCode||'+91'} onChange={e=>ef('countryCode',e.target.value)}>{COUNTRY_CODES.map(c=><option key={c.code+c.country} value={c.code}>{c.code} {c.country}</option>)}</select><input className="form-control" value={editForm.mobileNumber||''} onChange={e=>ef('mobileNumber',e.target.value.replace(/\D/g,'').slice(0,15))}/></div></div>
+          <div className="form-group"><label className="form-label">Email</label><input type="email" className="form-control" value={editForm.emailId||''} onChange={e=>ef('emailId',e.target.value)}/></div>
+          <div className="form-group"><label className="form-label">Contact Person <span style={{color:'var(--red)'}}>*</span></label><input className="form-control" value={editForm.contactPerson||''} onChange={e=>ef('contactPerson',e.target.value)}/></div>
+          <div className="form-group"><label className="form-label">Designation</label><input className="form-control" value={editForm.designation||''} onChange={e=>ef('designation',e.target.value)}/></div>
+          <div className="form-group"><label className="form-label">Mode of Working</label><select className="form-control" value={editForm.modeOfWorking||'Onsite'} onChange={e=>ef('modeOfWorking',e.target.value)}><option>Online</option><option>Onsite</option><option>Hybrid</option></select></div>
+          <div className="form-group"><label className="form-label">Application Type</label><select className="form-control" value={editForm.applicationType||'Initial'} onChange={e=>ef('applicationType',e.target.value)}>{APP_TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
+          <div className="form-group"><label className="form-label">Accreditation Body</label><select className="form-control" value={editForm.accreditationBody||'USF'} onChange={e=>ef('accreditationBody',e.target.value)}>{ACCRED.map(a=><option key={a}>{a}</option>)}</select></div>
+          <div className="form-group"><label className="form-label">Total Employees</label><input type="number" className="form-control" min={0} value={editForm.totalEmployees||0} onChange={e=>ef('totalEmployees',Number(e.target.value))}/></div>
+          <div className="form-group" style={{gridColumn:'1/-1'}}><label className="form-label">Scope of Certification</label><textarea className="form-control" rows={3} value={editForm.scopeOfCertification||''} onChange={e=>ef('scopeOfCertification',e.target.value)}/></div>
+          <div className="form-group" style={{gridColumn:'1/-1'}}><label className="form-label">Main Processes</label><input className="form-control" value={editForm.mainProcesses||''} onChange={e=>ef('mainProcesses',e.target.value)}/></div>
+          <div className="form-group" style={{gridColumn:'1/-1'}}><label className="form-label">Outsourced Processes</label><input className="form-control" value={editForm.outsourcedProcesses||''} onChange={e=>ef('outsourcedProcesses',e.target.value)}/></div>
+        </div>
+        <div><label className="form-label">Standards</label><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(190px,1fr))',gap:8,marginTop:6}}>{ISO_LIST.map(s=><label key={s} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',border:`1.5px solid ${(editForm.standards||[]).includes(s)?'var(--primary)':'var(--gray-200)'}`,borderRadius:8,cursor:'pointer',background:(editForm.standards||[]).includes(s)?'var(--primary-50)':'white',fontSize:12.5,fontWeight:(editForm.standards||[]).includes(s)?700:500}}><input type="checkbox" checked={(editForm.standards||[]).includes(s)} onChange={()=>toggleStd(s)} style={{accentColor:'var(--primary)'}}/>{s}</label>)}</div></div>
+        <div className="form-group"><label className="form-label">Internal Notes (Admin only)</label><textarea className="form-control" rows={3} value={editForm.adminNotes||''} onChange={e=>ef('adminNotes',e.target.value)}/></div>
+        <div style={{display:'flex',justifyContent:'flex-end',gap:8,paddingTop:8,borderTop:'1px solid var(--primary-100)'}}><button className="btn btn-ghost" onClick={()=>setTab('overview')}><X size={13}/>Cancel</button><button className="btn btn-primary" onClick={saveEdit} disabled={saving}><Save size={13}/>{saving?'Saving…':'Save Changes'}</button></div>
+      </div></div>}
       {tab==='overview'&&<div className="dash-grid">
         <div className="card"><div className="card-hdr"><div className="card-title"><Building size={14} style={{color:'var(--primary)'}}/>Organization</div></div><div className="card-body">
           {[['Name',app.organizationName],['Abbr',app.organizationAbbr],['Address',[app.address1,app.city,app.state,app.country].filter(Boolean).join(', ')],['Website',app.website],['Submitted',app.submittedAt?new Date(app.submittedAt).toLocaleDateString():'—']].map(([l,v])=>v?<div key={l} className="info-row"><span className="ir-label">{l}</span><span className="ir-value">{v}</span></div>:null)}

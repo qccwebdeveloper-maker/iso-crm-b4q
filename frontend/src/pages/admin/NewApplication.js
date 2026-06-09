@@ -16,7 +16,31 @@ const ISO_LIST = [
   'ISO 22301:2019','ISO 37001:2016','ISO 21001:2018',
 ];
 const APP_TYPES   = ['Initial','Surveillance','Re-certification','Un-Announced','Follow-up'];
-const ACCRED      = ['NABCB','DAkkS','UKAS','NAB','ANAB','JAB','KAN'];
+const ACCRED      = ['USF','UASL'];
+const COUNTRY_CODES = [
+  {code:'+1',country:'US/Canada'},{code:'+7',country:'Russia'},{code:'+20',country:'Egypt'},
+  {code:'+27',country:'South Africa'},{code:'+30',country:'Greece'},{code:'+31',country:'Netherlands'},
+  {code:'+32',country:'Belgium'},{code:'+33',country:'France'},{code:'+34',country:'Spain'},
+  {code:'+36',country:'Hungary'},{code:'+39',country:'Italy'},{code:'+40',country:'Romania'},
+  {code:'+41',country:'Switzerland'},{code:'+43',country:'Austria'},{code:'+44',country:'UK'},
+  {code:'+45',country:'Denmark'},{code:'+46',country:'Sweden'},{code:'+47',country:'Norway'},
+  {code:'+48',country:'Poland'},{code:'+49',country:'Germany'},{code:'+52',country:'Mexico'},
+  {code:'+54',country:'Argentina'},{code:'+55',country:'Brazil'},{code:'+56',country:'Chile'},
+  {code:'+57',country:'Colombia'},{code:'+60',country:'Malaysia'},{code:'+61',country:'Australia'},
+  {code:'+62',country:'Indonesia'},{code:'+63',country:'Philippines'},{code:'+64',country:'New Zealand'},
+  {code:'+65',country:'Singapore'},{code:'+66',country:'Thailand'},{code:'+81',country:'Japan'},
+  {code:'+82',country:'South Korea'},{code:'+84',country:'Vietnam'},{code:'+86',country:'China'},
+  {code:'+90',country:'Turkey'},{code:'+91',country:'India'},{code:'+92',country:'Pakistan'},
+  {code:'+94',country:'Sri Lanka'},{code:'+98',country:'Iran'},{code:'+212',country:'Morocco'},
+  {code:'+213',country:'Algeria'},{code:'+216',country:'Tunisia'},{code:'+234',country:'Nigeria'},
+  {code:'+254',country:'Kenya'},{code:'+255',country:'Tanzania'},{code:'+351',country:'Portugal'},
+  {code:'+353',country:'Ireland'},{code:'+358',country:'Finland'},{code:'+380',country:'Ukraine'},
+  {code:'+420',country:'Czech Republic'},{code:'+880',country:'Bangladesh'},{code:'+960',country:'Maldives'},
+  {code:'+961',country:'Lebanon'},{code:'+962',country:'Jordan'},{code:'+964',country:'Iraq'},
+  {code:'+965',country:'Kuwait'},{code:'+966',country:'Saudi Arabia'},{code:'+968',country:'Oman'},
+  {code:'+971',country:'UAE'},{code:'+972',country:'Israel'},{code:'+973',country:'Bahrain'},
+  {code:'+974',country:'Qatar'},{code:'+977',country:'Nepal'},
+];
 const EMP_ROWS    = ['Top Management','Production Area / Service','Quality Control / Technical','Administration','Other'];
 const EMP_COLS    = ['Full Time','Part Time','Performing Same type of Job','Temporary Unskilled Workers','Effective No. Filled by QCC'];
 const LOCATION_CONDITIONS = ['Special countermeasure area','Protection area of source water','Industrial complex','City'];
@@ -26,13 +50,13 @@ const emptyRow = () => Array(EMP_COLS.length).fill(0);
 const INIT = {
   /* step 1 */
   refno:'', client:'', organizationName:'', address:'', additionalSites:'',
-  contactNumbers:'', emailId:'', contactPerson:'', designation:'',
+  countryCode:'+91', mobileNumber:'', contactNumbers:'', emailId:'', contactPerson:'', designation:'',
   modeOfWorking:'Onsite', hybridCoreActivities:'',
   scopeOfCertification:'',
   /* step 2 */
   mainProcesses:'', outsourcedProcesses:'',
   standards:[], othersStandard:'',
-  applicationType:'Initial', accreditationBody:'NABCB',
+  applicationType:'Initial', accreditationBody:'USF',
   /* step 3 */
   totalEmployees:0, contractual:0, workingShifts:1,
   empTable: EMP_ROWS.map(() => emptyRow()),
@@ -152,6 +176,9 @@ export default function AdminNewApplication() {
 
   const validate = () => {
     if(step===0&&!form.organizationName.trim()){toast.error('Organization name required');return false;}
+    if(step===0&&!form.address.trim()){toast.error('Address is required');return false;}
+    if(step===0&&!form.mobileNumber.trim()){toast.error('Mobile number is required');return false;}
+    if(step===0&&!form.contactPerson.trim()){toast.error('Contact person name is required');return false;}
     if(step===0&&!form.scopeOfCertification.trim()){toast.error('Scope of certification required');return false;}
     if(step===1&&form.standards.length===0){toast.error('Select at least one standard');return false;}
     return true;
@@ -235,7 +262,7 @@ export default function AdminNewApplication() {
         <input className="form-control" placeholder="e.g. ABC Manufacturing Ltd" value={form.organizationName} onChange={e=>set('organizationName',e.target.value)}/>
       </FG>
 
-      <FG label="Address">
+      <FG label="Address" required>
         <textarea className="form-control" rows={3} placeholder="Full address" value={form.address} onChange={e=>set('address',e.target.value)}/>
       </FG>
 
@@ -244,9 +271,19 @@ export default function AdminNewApplication() {
       </FG>
 
       <Row mb={0}>
-        <FG label="Contact Numbers"><input className="form-control" placeholder="+91 9000000000" value={form.contactNumbers} onChange={e=>set('contactNumbers',e.target.value)}/></FG>
+        <FG label="Mobile Number" required>
+          <div className="mobile-input-row">
+            <select className="form-control" value={form.countryCode} onChange={e=>set('countryCode',e.target.value)}>
+              {COUNTRY_CODES.map(c=>(
+                <option key={c.code+c.country} value={c.code}>{c.code} {c.country}</option>
+              ))}
+            </select>
+            <input className="form-control" placeholder="9000000000" value={form.mobileNumber}
+              onChange={e=>set('mobileNumber',e.target.value.replace(/\D/g,'').slice(0,15))}/>
+          </div>
+        </FG>
         <FG label="Email Id"><input type="email" className="form-control" placeholder="info@company.com" value={form.emailId} onChange={e=>set('emailId',e.target.value)}/></FG>
-        <FG label="Contact Person"><input className="form-control" placeholder="Full name" value={form.contactPerson} onChange={e=>set('contactPerson',e.target.value)}/></FG>
+        <FG label="Contact Person" required><input className="form-control" placeholder="Full name" value={form.contactPerson} onChange={e=>set('contactPerson',e.target.value)}/></FG>
         <FG label="Designation"><input className="form-control" placeholder="e.g. Quality Manager" value={form.designation} onChange={e=>set('designation',e.target.value)}/></FG>
       </Row>
 

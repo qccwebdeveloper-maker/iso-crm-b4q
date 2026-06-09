@@ -140,7 +140,7 @@ export default function Layout({ children, title }) {
   const [notifOpen,    setNotifOpen]    = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [profileImg,   setProfileImg]   = useState(null);
-  const [collapsed,    setCollapsed]    = useState({});
+  const [collapsed,    setCollapsed]    = useState({ master: true });
   const nRef   = useRef(null);
   const imgRef = useRef(null);
 
