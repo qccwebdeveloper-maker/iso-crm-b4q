@@ -137,11 +137,12 @@ export default function Layout({ children, title }) {
   const { user, logout } = useAuth();
   const loc = useLocation();
   const navigate = useNavigate();
-  const [open,         setOpen]         = useState(false);
-  const [notifOpen,    setNotifOpen]    = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [profileImg,   setProfileImg]   = useState(null);
-  const [collapsed,    setCollapsed]    = useState({ master: true });
+  const [open,            setOpen]            = useState(false);   // mobile drawer
+  const [sidebarCollapsed,setSidebarCollapsed] = useState(false);  // desktop collapse
+  const [notifOpen,       setNotifOpen]       = useState(false);
+  const [notifications,   setNotifications]   = useState([]);
+  const [profileImg,      setProfileImg]      = useState(null);
+  const [collapsed,       setCollapsed]       = useState({ master: true });
   const nRef        = useRef(null);
   const imgRef      = useRef(null);
   const sidebarNavRef = useRef(null);
@@ -231,6 +232,14 @@ export default function Layout({ children, title }) {
 
   const toggleCollapse = (key) => setCollapsed(p => ({ ...p, [key]: !p[key] }));
 
+  const handleMenuToggle = () => {
+    if (window.innerWidth > 768) {
+      setSidebarCollapsed(v => !v);
+    } else {
+      setOpen(v => !v);
+    }
+  };
+
   return (
     <div className="layout">
       {/* Mobile overlay */}
@@ -243,7 +252,7 @@ export default function Layout({ children, title }) {
       )}
 
       {/* Sidebar */}
-      <aside className={`sidebar ${open ? 'open' : ''}`}>
+      <aside className={`sidebar ${open ? 'open' : ''} ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         {/* Logo */}
         <div className="sidebar-top">
           <div className="logo-mark">
@@ -339,12 +348,12 @@ export default function Layout({ children, title }) {
       </aside>
 
       {/* Main */}
-      <div className="main-content">
+      <div className={`main-content${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
         {/* Header */}
         <header className="top-bar">
           <div className="top-bar-left">
-            <button className="hdr-btn mob-menu-btn" onClick={() => setOpen(v => !v)}>
-              {open ? <FiX size={17} /> : <FiMenu size={17} />}
+            <button className="hdr-btn mob-menu-btn" onClick={handleMenuToggle}>
+              <FiMenu size={17} />
             </button>
             <h1 className="page-heading">{title || 'Dashboard'}</h1>
           </div>
