@@ -1,5 +1,5 @@
 import React,{useState,useEffect}from 'react';
-import{useParams,useNavigate}from 'react-router-dom';
+import{useParams,useNavigate,useSearchParams}from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
@@ -62,13 +62,14 @@ const YNRow = ({label,field,form,onChange}) => (
 
 export default function AdminApplicationDetail(){
   const{id}=useParams(); const navigate=useNavigate();
+  const[searchParams]=useSearchParams();
   const[app,setApp]             = useState(null);
   const[loading,setLoading]     = useState(true);
   const[auditorsList,setAuditorsList] = useState([]);
   const[assigning,setAssigning] = useState(false);
   const[selectedAuditor,setSelectedAuditor] = useState('');
   const[selectedReviewer,setSelectedReviewer] = useState('');
-  const[tab,setTab]             = useState('overview');
+  const[tab,setTab]             = useState(searchParams.get('tab')||'overview');
   const[ns,setNs]               = useState('');
   const[note,setNote]           = useState('');
   const[uploading,setUploading] = useState(false);

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
-import { Search, UserCheck, Eye, Edit, Plus, X } from 'lucide-react';
+import { Search, UserCheck, Eye, Edit, Plus } from 'lucide-react';
 
 export default function AdminApplications() {
   const navigate = useNavigate();
@@ -14,9 +14,7 @@ export default function AdminApplications() {
   const [search,  setSearch]  = useState('');
   const [statusF, setStatusF] = useState('');
   const [assignModal, setAssignModal] = useState(null);
-  const [editModal,   setEditModal]   = useState(null);
   const [assign, setAssign] = useState({ auditorId:'', reviewerId:'' });
-  const [editForm, setEditForm] = useState({});
   const [saving, setSaving] = useState(false);
 
   const load = () => {
@@ -44,25 +42,7 @@ export default function AdminApplications() {
   };
 
   const openEdit = (app) => {
-    setEditForm({
-      organizationName: app.organizationName || '',
-      organizationAbbr: app.organizationAbbr || '',
-      isoStandard: app.isoStandard || '',
-      scope: app.scope || '',
-      accreditationBody: app.accreditationBody || '',
-      city: app.city || '',
-      state: app.state || '',
-      country: app.country || '',
-      website: app.website || '',
-      adminNotes: app.adminNotes || '',
-    });
-    setEditModal(app);
-  };
-
-  const doEdit = async () => {
-    setSaving(true);
-    try { await axios.put(`/api/applications/${editModal._id}`, editForm); toast.success('Application updated!'); setEditModal(null); load(); }
-    catch { toast.error('Update failed'); } finally { setSaving(false); }
+    navigate(`/admin/applications/${app._id}?tab=edit`);
   };
 
   const ST = ['draft','submitted','under_review','audit_stage1','audit_stage2','approved','certified','rejected'];
@@ -119,50 +99,6 @@ export default function AdminApplications() {
           </div>
         }
       </div>
-
-      {/* Edit Modal */}
-      {editModal && (
-        <div className="modal-bg" onClick={()=>setEditModal(null)}>
-          <div className="modal-box" style={{maxWidth:620}} onClick={e=>e.stopPropagation()}>
-            <div className="modal-head">
-              <div className="modal-title"><Edit size={16} style={{color:'var(--primary)',marginRight:8,verticalAlign:'middle'}}/>Edit Application — {editModal.applicationId}</div>
-              <button className="modal-close" onClick={()=>setEditModal(null)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">Organization Name</label><input className="form-control" value={editForm.organizationName} onChange={e=>setEditForm(p=>({...p,organizationName:e.target.value}))}/></div>
-                <div className="form-group"><label className="form-label">Abbreviation</label><input className="form-control" value={editForm.organizationAbbr} onChange={e=>setEditForm(p=>({...p,organizationAbbr:e.target.value}))}/></div>
-              </div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">ISO Standard</label>
-                  <select className="form-control" value={editForm.isoStandard} onChange={e=>setEditForm(p=>({...p,isoStandard:e.target.value}))}>
-                    {['ISO 9001:2015','ISO 14001:2015','ISO 45001:2018','ISO 27001:2022','ISO 22000:2018','ISO 13485:2016'].map(s=><option key={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div className="form-group"><label className="form-label">Accreditation Body</label>
-                  <select className="form-control" value={editForm.accreditationBody} onChange={e=>setEditForm(p=>({...p,accreditationBody:e.target.value}))}>
-                    {['NABCB','UKAS','DAkkS','NAB','ANAB'].map(b=><option key={b}>{b}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="form-group"><label className="form-label">Scope</label><textarea className="form-control" rows={2} value={editForm.scope} onChange={e=>setEditForm(p=>({...p,scope:e.target.value}))}/></div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">City</label><input className="form-control" value={editForm.city} onChange={e=>setEditForm(p=>({...p,city:e.target.value}))}/></div>
-                <div className="form-group"><label className="form-label">State</label><input className="form-control" value={editForm.state} onChange={e=>setEditForm(p=>({...p,state:e.target.value}))}/></div>
-              </div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">Country</label><input className="form-control" value={editForm.country} onChange={e=>setEditForm(p=>({...p,country:e.target.value}))}/></div>
-                <div className="form-group"><label className="form-label">Website</label><input className="form-control" value={editForm.website} onChange={e=>setEditForm(p=>({...p,website:e.target.value}))}/></div>
-              </div>
-              <div className="form-group"><label className="form-label">Admin Notes</label><textarea className="form-control" rows={2} value={editForm.adminNotes} onChange={e=>setEditForm(p=>({...p,adminNotes:e.target.value}))} placeholder="Internal notes…"/></div>
-            </div>
-            <div className="modal-foot">
-              <button className="btn btn-ghost" onClick={()=>setEditModal(null)}>Cancel</button>
-              <button className="btn btn-primary" onClick={doEdit} disabled={saving}>{saving?'Saving…':<><Edit size={14}/> Save Changes</>}</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Assign Modal */}
       {assignModal && (
