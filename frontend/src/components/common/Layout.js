@@ -142,8 +142,9 @@ export default function Layout({ children, title }) {
   const [notifications, setNotifications] = useState([]);
   const [profileImg,   setProfileImg]   = useState(null);
   const [collapsed,    setCollapsed]    = useState({ master: true });
-  const nRef   = useRef(null);
-  const imgRef = useRef(null);
+  const nRef        = useRef(null);
+  const imgRef      = useRef(null);
+  const sidebarNavRef = useRef(null);
 
   const secs   = NAV[user?.role] || [];
   const unread = notifications.filter(n => !n.read).length;
@@ -178,6 +179,21 @@ export default function Layout({ children, title }) {
     if (to.endsWith('/new')) return loc.pathname === to;
     return loc.pathname.startsWith(to) && !loc.pathname.startsWith(to + '/new');
   };
+
+  // Scroll active nav item into view whenever sidebar opens or route changes
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const nav = sidebarNavRef.current;
+      if (!nav) return;
+      const active = nav.querySelector('.nav-link.active, .nav-sub-item.active');
+      if (!active) { nav.scrollTop = 0; return; }
+      const navRect    = nav.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+      const offset     = activeRect.top - navRect.top - navRect.height / 3;
+      nav.scrollBy({ top: offset, behavior: 'smooth' });
+    }, open ? 160 : 60);
+    return () => clearTimeout(t);
+  }, [open, loc.pathname]);
 
   useEffect(() => {
     fetchNotifs();
@@ -240,7 +256,7 @@ export default function Layout({ children, title }) {
         </div>
 
         {/* Nav */}
-        <nav className="sidebar-nav">
+        <nav className="sidebar-nav" ref={sidebarNavRef}>
           {secs.map((s, i) => (
             <div key={i}>
               {s.collapsible ? (
