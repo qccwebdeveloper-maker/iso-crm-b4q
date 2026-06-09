@@ -3,7 +3,7 @@ import{useParams,useNavigate}from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
-import{ArrowLeft,Download,Upload,FileText,CheckCircle,Star,User,Building,Globe,Send,Edit2,Save,X}from 'lucide-react';
+import{ArrowLeft,Download,Upload,FileText,CheckCircle,Star,User,Building,Globe,Send,Edit2,Save}from 'lucide-react';
 
 /* ── constants (mirror NewApplication) ── */
 const FL          = ['draft','submitted','under_review','audit_stage1','audit_stage2','approved','certified'];
@@ -68,7 +68,7 @@ export default function AdminApplicationDetail(){
   const[assigning,setAssigning] = useState(false);
   const[selectedAuditor,setSelectedAuditor] = useState('');
   const[selectedReviewer,setSelectedReviewer] = useState('');
-  const[tab,setTab]             = useState('overview');
+  const[tab,setTab]             = useState('form');
   const[ns,setNs]               = useState('');
   const[note,setNote]           = useState('');
   const[uploading,setUploading] = useState(false);
@@ -198,7 +198,7 @@ export default function AdminApplicationDetail(){
         employeeCount:{headOffice:grandTotal(),branches:0,temporary:0,total:grandTotal()}};
       await axios.put(`/api/applications/${id}`,payload);
       toast.success('Application saved');
-      load(); setTab('overview');
+      load();
     }catch{ toast.error('Save failed'); }
     finally{ setSaving(false); }
   };
@@ -223,10 +223,9 @@ export default function AdminApplicationDetail(){
   const showEnv  = has14001||has45001;
   const tbl      = ef.empTable||emptyEmpTable();
 
-  /* ── save / cancel bar ── */
+  /* ── save bar ── */
   const ActionBar = ({top}) => (
     <div style={{display:'flex',justifyContent:'flex-end',gap:8,padding:top?'0 0 16px':'16px 0 0',borderBottom:top?'1px solid var(--primary-100)':undefined,borderTop:top?undefined:'1px solid var(--primary-100)'}}>
-      <button className="btn btn-ghost" onClick={()=>setTab('overview')}><X size={13}/>Cancel</button>
       <button className="btn btn-primary" onClick={saveEdit} disabled={saving}><Save size={13}/>{saving?'Saving…':'Save Changes'}</button>
     </div>
   );
@@ -245,9 +244,7 @@ export default function AdminApplicationDetail(){
             <p className="page-subtitle">{app.organizationName} · {app.isoStandard}</p>
           </div>
         </div>
-        {tab!=='edit'&&(
-          <button className="btn btn-primary btn-sm" onClick={()=>setTab('edit')}><Edit2 size={13}/>Edit Application</button>
-        )}
+        <button className="btn btn-primary btn-sm" onClick={saveEdit} disabled={saving}><Save size={13}/>{saving?'Saving…':'Save Changes'}</button>
       </div>
 
       {/* Status stepper */}
@@ -264,23 +261,26 @@ export default function AdminApplicationDetail(){
 
       {/* Tabs */}
       <div className="tabs-bar">
-        {['overview','edit','documents','status','feedback'].map(t=>(
-          <button key={t} className={`tab-item ${tab===t?'on':''}`} onClick={()=>setTab(t)} style={{display:'flex',alignItems:'center',gap:5}}>
-            {t==='edit'&&<Edit2 size={11}/>}
-            {t.charAt(0).toUpperCase()+t.slice(1)}
+        {[
+          {key:'form',     label:'Application Form', icon:<Edit2 size={11}/>},
+          {key:'overview', label:'Team & Info',       icon:<User size={11}/>},
+          {key:'documents',label:'Documents',         icon:<FileText size={11}/>},
+          {key:'status',   label:'Update Status',     icon:<CheckCircle size={11}/>},
+          {key:'feedback', label:'Feedback',          icon:<Star size={11}/>},
+        ].map(t=>(
+          <button key={t.key} className={`tab-item ${tab===t.key?'on':''}`} onClick={()=>setTab(t.key)}
+            style={{display:'flex',alignItems:'center',gap:5}}>
+            {t.icon}{t.label}
           </button>
         ))}
       </div>
 
-      {/* ═══════════ EDIT TAB ═══════════ */}
-      {tab==='edit'&&(
+      {/* ═══════════ APPLICATION FORM TAB ═══════════ */}
+      {tab==='form'&&(
         <div className="card">
           <div className="card-hdr" style={{justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
-            <div className="card-title"><Edit2 size={14} style={{color:'var(--primary)'}}/>Edit Full Application — {app.applicationId}</div>
-            <div style={{display:'flex',gap:8}}>
-              <button className="btn btn-ghost btn-sm" onClick={()=>setTab('overview')}><X size={13}/>Cancel</button>
-              <button className="btn btn-primary btn-sm" onClick={saveEdit} disabled={saving}><Save size={13}/>{saving?'Saving…':'Save'}</button>
-            </div>
+            <div className="card-title"><Edit2 size={14} style={{color:'var(--primary)'}}/>Application Form — {app.applicationId}</div>
+            <button className="btn btn-primary btn-sm" onClick={saveEdit} disabled={saving}><Save size={13}/>{saving?'Saving…':'Save Changes'}</button>
           </div>
           <div className="card-body">
             <ActionBar top/>
