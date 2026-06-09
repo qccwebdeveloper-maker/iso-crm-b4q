@@ -96,8 +96,9 @@ function AppRoutes() {
       <Route path="/admin/audit-stage2"      element={<ProtectedRoute roles={['admin']}><AuditStages stage={2} /></ProtectedRoute>} />
       <Route path="/admin/observation"       element={<ProtectedRoute roles={['admin']}><Observation /></ProtectedRoute>} />
       <Route path="/admin/certificates"      element={<ProtectedRoute roles={['admin']}><CertificateManagement /></ProtectedRoute>} />
-      <Route path="/admin/send-client"       element={<ProtectedRoute roles={['admin']}><SendDocument role="client" /></ProtectedRoute>} />
-      <Route path="/admin/send-auditor"      element={<ProtectedRoute roles={['admin']}><SendDocument role="auditor" /></ProtectedRoute>} />
+      <Route path="/admin/send-client"        element={<ProtectedRoute roles={['admin']}><SendDocument role="client" /></ProtectedRoute>} />
+      <Route path="/admin/send-auditor"       element={<ProtectedRoute roles={['admin']}><SendDocument role="auditor" /></ProtectedRoute>} />
+      <Route path="/admin/send-reviewer"      element={<ProtectedRoute roles={['admin']}><SendDocument role="reviewer" /></ProtectedRoute>} />
       <Route path="/admin/audit-forms"        element={<ProtectedRoute roles={['admin']}><AdminAuditForms /></ProtectedRoute>} />
       <Route path="/admin/audit-report/new"  element={<ProtectedRoute roles={['admin']}><AdminAuditReportForm /></ProtectedRoute>} />
       <Route path="/admin/audit-details"     element={<ProtectedRoute roles={['admin']}><SalesApplicationsList /></ProtectedRoute>} />
