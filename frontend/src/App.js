@@ -27,6 +27,11 @@ import SendDocument          from './pages/admin/SendDocument';
 import AdminAnalysisReports  from './pages/admin/Reports';
 import AdminAuditForms       from './pages/admin/AuditForms';
 import AdminAuditReportForm  from './pages/admin/AuditReportForm';
+import AdminAuditReportList  from './pages/admin/AuditReportList';
+import ClientAuditReportList from './pages/client/AuditReportList';
+import ClientAuditReportDetail from './pages/client/AuditReportDetail';
+import AuditorAuditReportList  from './pages/auditor/AuditReportList';
+import AuditorAuditReportDetail from './pages/auditor/AuditReportDetail';
 
 // ── Client ──
 import ClientDashboard       from './pages/client/Dashboard';
@@ -101,6 +106,8 @@ function AppRoutes() {
       <Route path="/admin/send-reviewer"      element={<ProtectedRoute roles={['admin']}><SendDocument role="reviewer" /></ProtectedRoute>} />
       <Route path="/admin/audit-forms"        element={<ProtectedRoute roles={['admin']}><AdminAuditForms /></ProtectedRoute>} />
       <Route path="/admin/audit-report/new"  element={<ProtectedRoute roles={['admin']}><AdminAuditReportForm /></ProtectedRoute>} />
+      <Route path="/admin/audit-reports"     element={<ProtectedRoute roles={['admin']}><AdminAuditReportList /></ProtectedRoute>} />
+      <Route path="/admin/audit-reports/:id" element={<ProtectedRoute roles={['admin']}><AdminAuditReportForm /></ProtectedRoute>} />
       <Route path="/admin/audit-details"     element={<ProtectedRoute roles={['admin']}><SalesApplicationsList /></ProtectedRoute>} />
 
       {/* ── Client ── */}
@@ -110,14 +117,18 @@ function AppRoutes() {
       <Route path="/client/applications/:id" element={<ProtectedRoute roles={['client']}><ClientApplicationDetail /></ProtectedRoute>} />
       <Route path="/client/documents"        element={<ProtectedRoute roles={['client']}><ClientDocuments /></ProtectedRoute>} />
       <Route path="/client/certificates"     element={<ProtectedRoute roles={['client']}><ClientCertificates /></ProtectedRoute>} />
-      <Route path="/client/feedback"         element={<ProtectedRoute roles={['client']}><ClientFeedback /></ProtectedRoute>} />
+      <Route path="/client/feedback"           element={<ProtectedRoute roles={['client']}><ClientFeedback /></ProtectedRoute>} />
       <Route path="/client/team-reports"     element={<ProtectedRoute roles={['client']}><ClientTeamReports /></ProtectedRoute>} />
+      <Route path="/client/audit-reports"    element={<ProtectedRoute roles={['client']}><ClientAuditReportList /></ProtectedRoute>} />
+      <Route path="/client/audit-reports/:id" element={<ProtectedRoute roles={['client']}><ClientAuditReportDetail /></ProtectedRoute>} />
 
       {/* ── Auditor (+ reviewer redirected here) ── */}
       <Route path="/auditor"                  element={<ProtectedRoute roles={['auditor','reviewer']}><AuditorDashboard /></ProtectedRoute>} />
       <Route path="/auditor/applications"     element={<ProtectedRoute roles={['auditor','reviewer']}><AuditorApplications /></ProtectedRoute>} />
       <Route path="/auditor/applications/:id" element={<ProtectedRoute roles={['auditor','reviewer']}><AuditorApplicationDetail /></ProtectedRoute>} />
-      <Route path="/auditor/review-queue"     element={<ProtectedRoute roles={['auditor','reviewer']}><AuditorApplications /></ProtectedRoute>} />
+      <Route path="/auditor/audit-reports"     element={<ProtectedRoute roles={['auditor','reviewer']}><AuditorAuditReportList /></ProtectedRoute>} />
+      <Route path="/auditor/audit-reports/:id" element={<ProtectedRoute roles={['auditor','reviewer']}><AuditorAuditReportDetail /></ProtectedRoute>} />
+      <Route path="/auditor/review-queue"      element={<ProtectedRoute roles={['auditor','reviewer']}><AuditorApplications /></ProtectedRoute>} />
       <Route path="/auditor/reports"          element={<ProtectedRoute roles={['auditor','reviewer']}><AuditorApplications /></ProtectedRoute>} />
       <Route path="/auditor/documents"        element={<ProtectedRoute roles={['auditor','reviewer']}><AuditorApplications /></ProtectedRoute>} />
       <Route path="/auditor/settings"         element={<ProtectedRoute roles={['auditor','reviewer']}><AuditorDashboard /></ProtectedRoute>} />

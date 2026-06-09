@@ -50,8 +50,9 @@ const NAV = {
       { to: '/admin/leads', icon: FiTarget, label: 'Lead Management', badge: 'NEW' },
     ]},
     { sec: 'QMS Forms', items: [
-      { to: '/admin/audit-details',    icon: FiClipboard, label: 'View Audit Details', badge: 'QMS' },
+      { to: '/admin/audit-reports',    icon: FiFileText,  label: 'Audit Report List' },
       { to: '/admin/audit-report/new', icon: FiFileText,  label: 'New Audit Report', badge: 'NEW' },
+      { to: '/admin/audit-details',    icon: FiClipboard, label: 'View Audit Details', badge: 'QMS' },
       { to: '/admin/audit-forms',      icon: FiClipboard, label: 'QMS Audit Forms Index' },
     ]},
   ],
@@ -61,7 +62,8 @@ const NAV = {
       { to: '/client/applications', icon: FiFileText,   label: 'My Applications' },
     ]},
     { sec: 'Reports', items: [
-      { to: '/client/team-reports', icon: FiClipboard, label: 'Team & Reports' },
+      { to: '/client/team-reports',   icon: FiClipboard, label: 'Team & Reports' },
+      { to: '/client/audit-reports',  icon: FiFileText,  label: 'Audit Reports' },
     ]},
     { sec: 'Documents', items: [
       { to: '/client/documents',    icon: FiFolder, label: 'Documents & Forms' },
@@ -81,7 +83,8 @@ const NAV = {
       { to: '/auditor/reports',      icon: FiBarChart2, label: 'Reports' },
     ]},
     { sec: 'Audit Forms', items: [
-      { to: '/auditor/applications', icon: FiClipboard, label: 'View Audit Forms', badge: 'QMS' },
+      { to: '/auditor/audit-reports', icon: FiFileText,  label: 'Audit Reports' },
+      { to: '/auditor/applications',  icon: FiClipboard, label: 'View Audit Forms', badge: 'QMS' },
     ]},
     { sec: 'Documents', items: [
       { to: '/auditor/documents', icon: FiFolder, label: 'Documents' },
