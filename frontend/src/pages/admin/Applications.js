@@ -4,6 +4,7 @@ import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
 import { Search, UserCheck, Eye, Edit, Plus } from 'lucide-react';
+import Pagination from '../../components/common/Pagination';
 
 export default function AdminApplications() {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ export default function AdminApplications() {
   const [assignModal, setAssignModal] = useState(null);
   const [assign, setAssign] = useState({ auditorId:'', reviewerId:'' });
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const PER_PAGE = 10;
 
   const load = () => {
     setLoading(true);
@@ -34,6 +37,9 @@ export default function AdminApplications() {
       && (!statusF||a.status===statusF);
   });
 
+  React.useEffect(() => setPage(1), [search, statusF]);
+  const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
   const doAssign = async () => {
     if (!assign.auditorId && !assign.reviewerId) return toast.error('Select at least one');
     setSaving(true);
@@ -47,10 +53,47 @@ export default function AdminApplications() {
 
   const ST = ['draft','submitted','under_review','audit_stage1','audit_stage2','approved','certified','rejected'];
 
+  const renderTable = () => {
+    if (loading) return <div className="loading-box"><div className="spinner"/></div>;
+    if (filtered.length === 0) return <div className="empty-box"><Eye size={40}/><h3>No applications</h3><p>Try adjusting your filters</p></div>;
+    return (
+      <>
+        <div className="tbl-wrap">
+          <table className="tbl">
+            <thead><tr><th>App ID</th><th>Organization</th><th>Client</th><th>Standard</th><th>Status</th><th>Auditor</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody>
+              {paged.map(app=>(
+                <tr key={app._id}>
+                  <td><span className="mono">{app.applicationId}</span></td>
+                  <td style={{fontWeight:600,maxWidth:160}}>{app.organizationName}</td>
+                  <td><div style={{display:'flex',alignItems:'center',gap:7}}><div className="avatar" style={{width:24,height:24,fontSize:10}}>{app.client?.name?.[0]}</div><span style={{fontSize:12.5}}>{app.client?.name}</span></div></td>
+                  <td><span className="badge bdg-info" style={{fontSize:10}}>{app.isoStandard}</span></td>
+                  <td><span className={`badge bdg-${app.status}`} style={{fontSize:10}}>{app.status?.replace(/_/g,' ')}</span></td>
+                  <td style={{fontSize:12,color:'var(--gray-500)'}}>{app.assignedAuditor?.name||'—'}</td>
+                  <td style={{fontSize:12,color:'var(--gray-400)'}}>{new Date(app.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <div className="tbl-actions">
+                      <button className="btn btn-ghost btn-sm" onClick={()=>navigate(`/admin/applications/${app._id}`)}><Eye size={13}/> View</button>
+                      <button className="btn btn-secondary btn-sm" onClick={()=>openEdit(app)}><Edit size={13}/> Edit</button>
+                      <button className="btn btn-primary btn-sm" onClick={()=>{setAssignModal(app);setAssign({auditorId:app.assignedAuditor?._id||'',reviewerId:app.assignedReviewer?._id||''});}}>
+                        <UserCheck size={13}/> Assign
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Pagination total={filtered.length} page={page} perPage={PER_PAGE} onChange={setPage} />
+      </>
+    );
+  };
+
   return (
     <Layout title="Applications">
       <div className="page-hdr">
-        <div><h1 className="page-title">All Applications</h1><p className="page-subtitle">{filtered.length} applications found</p></div>
+        <div><h1 className="page-title">All Applications</h1><p className="page-subtitle">{filtered.length} application{filtered.length!==1?'s':''} found</p></div>
         <button className="btn btn-primary" onClick={() => navigate('/admin/applications/new')}><Plus size={14}/> New Application</button>
       </div>
 
@@ -68,36 +111,7 @@ export default function AdminApplications() {
       </div>
 
       <div className="card">
-        {loading ? <div className="loading-box"><div className="spinner"/></div> :
-          filtered.length===0 ? <div className="empty-box"><Eye size={40}/><h3>No applications</h3><p>Try adjusting your filters</p></div> :
-          <div className="tbl-wrap">
-            <table className="tbl">
-              <thead><tr><th>App ID</th><th>Organization</th><th>Client</th><th>Standard</th><th>Status</th><th>Auditor</th><th>Date</th><th>Actions</th></tr></thead>
-              <tbody>
-                {filtered.map(app=>(
-                  <tr key={app._id}>
-                    <td><span className="mono">{app.applicationId}</span></td>
-                    <td style={{fontWeight:600,maxWidth:160}}>{app.organizationName}</td>
-                    <td><div style={{display:'flex',alignItems:'center',gap:7}}><div className="avatar" style={{width:24,height:24,fontSize:10}}>{app.client?.name?.[0]}</div><span style={{fontSize:12.5}}>{app.client?.name}</span></div></td>
-                    <td><span className="badge bdg-info" style={{fontSize:10}}>{app.isoStandard}</span></td>
-                    <td><span className={`badge bdg-${app.status}`} style={{fontSize:10}}>{app.status?.replace(/_/g,' ')}</span></td>
-                    <td style={{fontSize:12,color:'var(--gray-500)'}}>{app.assignedAuditor?.name||'—'}</td>
-                    <td style={{fontSize:12,color:'var(--gray-400)'}}>{new Date(app.createdAt).toLocaleDateString()}</td>
-                    <td>
-                      <div className="tbl-actions">
-                        <button className="btn btn-ghost btn-sm" onClick={()=>navigate(`/admin/applications/${app._id}`)}><Eye size={13}/> View</button>
-                        <button className="btn btn-secondary btn-sm" onClick={()=>openEdit(app)}><Edit size={13}/> Edit</button>
-                        <button className="btn btn-primary btn-sm" onClick={()=>{setAssignModal(app);setAssign({auditorId:app.assignedAuditor?._id||'',reviewerId:app.assignedReviewer?._id||''});}}>
-                          <UserCheck size={13}/> Assign
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        }
+        {renderTable()}
       </div>
 
       {/* Assign Modal */}

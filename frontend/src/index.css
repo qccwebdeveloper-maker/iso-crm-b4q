@@ -396,6 +396,69 @@ body {
 .form-control::placeholder { color: var(--gray-400); }
 textarea.form-control { resize: vertical; min-height: 76px; }
 select.form-control { cursor: pointer; }
+.input-error { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239,68,68,.12) !important; }
+.field-error  { font-size: 11px; color: #ef4444; margin-top: 2px; }
+
+/* ── Audit Report Form — one-page layout ── */
+.audit-wrap        { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+.audit-layout      { display: grid; grid-template-columns: 230px 1fr; gap: 20px; align-items: start; }
+.audit-sidebar     { position: sticky; top: 76px; }
+.audit-meta-row    { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.audit-section-hdr { display: flex; align-items: center; gap: 10px; padding: 13px 20px; background: #fafafa; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background .15s; }
+.audit-section-hdr:hover   { background: #fff7ed; }
+.audit-section-hdr.active  { background: #fff7ed; border-left: 3px solid var(--primary); }
+.audit-bottom-bar  { display: flex; gap: 10px; justify-content: flex-end; padding: 8px 0 16px; }
+
+/* Step component grids (CSS class so media queries can override inline styles) */
+.aud-g2    { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.aud-g3    { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.aud-stds  { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.aud-integ { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.aud-team  { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr 36px; gap: 10px; margin-bottom: 10px; align-items: end; }
+.aud-nc5   { display: grid; grid-template-columns: 1.5fr 1fr 1fr 2fr 36px; gap: 8px; margin-bottom: 8px; align-items: end; }
+.aud-nc6   { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.5fr 1fr 36px; gap: 8px; margin-bottom: 8px; align-items: end; }
+.aud-obs   { display: grid; grid-template-columns: 1.5fr 1fr 2fr 36px; gap: 8px; margin-bottom: 8px; align-items: end; }
+
+/* ≤900px — sidebar collapses to horizontal scroll strip */
+@media (max-width: 900px) {
+  .audit-layout  { grid-template-columns: 1fr; }
+  .audit-sidebar { position: relative; top: 0; }
+  .audit-sidebar-inner { flex-direction: row !important; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+  .audit-sidebar-inner::-webkit-scrollbar { display: none; }
+  .audit-nav-btn { flex-direction: row !important; flex-shrink: 0; min-width: 130px; }
+}
+
+/* ≤768px — 2-col grids become 1-col; NC/team rows go 2-col */
+@media (max-width: 768px) {
+  .aud-g3    { grid-template-columns: 1fr 1fr; }
+  .aud-stds  { grid-template-columns: 1fr; }
+  .aud-integ { grid-template-columns: 1fr; }
+  .aud-team  { grid-template-columns: 1fr 1fr; }
+  .aud-nc5   { grid-template-columns: 1fr 1fr; }
+  .aud-nc6   { grid-template-columns: 1fr 1fr; }
+  .aud-obs   { grid-template-columns: 1fr 1fr; }
+}
+
+/* ≤640px — meta row stacks, section padding tightens, section body tightens */
+@media (max-width: 640px) {
+  .audit-wrap        { padding: 12px; }
+  .audit-meta-row    { grid-template-columns: 1fr; }
+  .audit-section-hdr { padding: 10px 12px; }
+  .audit-section-hdr .aud-sec-num { display: none; }
+  div[id^="audit-sec-"] > div:last-child { padding: 14px 12px !important; }
+  .aud-g2    { grid-template-columns: 1fr; }
+}
+
+/* ≤480px — phone: single column everything, full-width buttons */
+@media (max-width: 480px) {
+  .aud-g3    { grid-template-columns: 1fr; }
+  .aud-team  { grid-template-columns: 1fr; }
+  .aud-nc5   { grid-template-columns: 1fr; }
+  .aud-nc6   { grid-template-columns: 1fr; }
+  .aud-obs   { grid-template-columns: 1fr; }
+  .audit-bottom-bar { flex-direction: column; }
+  .audit-bottom-bar button { width: 100% !important; justify-content: center; }
+}
 
 /* Search */
 .search-wrap { position: relative; display: flex; align-items: center; }

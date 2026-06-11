@@ -531,6 +531,7 @@ async function seed() {
       originalCertDate: new Date('2024-08-20'),
       notes: 'Transition to ISO 27001:2022 from 2013 version.',
     },
+    
     {
       orgName: 'TechBridge Solutions Pvt Ltd', standard: 'ISO 9001:2015',
       scope: 'Software Development and IT Consulting Services',

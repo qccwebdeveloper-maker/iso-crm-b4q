@@ -8,6 +8,7 @@ import {
   Phone, Mail, MapPin, Tag, TrendingUp, Users, Star,
   CheckCircle, Clock, XCircle, Filter, Download
 } from 'lucide-react';
+import Pagination from '../../components/common/Pagination';
 
 const STATUS_CONFIG = {
   new:       { label:'New',       color:'bdg-submitted',    icon:'🆕', bg:'#eff6ff' },
@@ -54,6 +55,9 @@ export default function AdminLeads() {
   const [assign, setAssign] = useState({ auditorId:'', reviewerId:'' });
   const [convertForm, setConvertForm] = useState({ scope:'', accreditationBody:'NABCB' });
   const [saving, setSaving] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+  const [page,   setPage]   = useState(1);
+  const PER_PAGE = 10;
 
   const load = useCallback(() => {
     setLoading(true);
@@ -78,6 +82,9 @@ export default function AdminLeads() {
     return matchQ && matchS && matchP;
   });
 
+  React.useEffect(() => setPage(1), [search, statusF, priorityF]);
+  const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
   const stats = {
     total: leads.length,
     new: leads.filter(l=>l.status==='new').length,
@@ -86,9 +93,18 @@ export default function AdminLeads() {
     converted: leads.filter(l=>l.status==='converted').length,
   };
 
+  const validateLead = () => {
+    const e = {};
+    if (!form.companyName.trim()) e.companyName = 'Company name is required';
+    if (!form.contactPerson.trim()) e.contactPerson = 'Contact person is required';
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Enter a valid email';
+    return e;
+  };
+
   const handleAdd = async () => {
-    if (!form.companyName) return toast.error('Company name required');
-    if (!form.contactPerson) return toast.error('Contact person required');
+    const errs = validateLead();
+    if (Object.keys(errs).length) { setFormErrors(errs); return; }
+    setFormErrors({});
     setSaving(true);
     try {
       await axios.post('/api/leads', form);
@@ -167,7 +183,7 @@ export default function AdminLeads() {
         </div>
         <div style={{display:'flex',gap:10}}>
           <button className="btn btn-secondary btn-sm" onClick={exportCSV}><Download size={14}/> Export</button>
-          <button className="btn btn-primary" onClick={()=>setAddModal(true)}><Plus size={15}/> Add Lead</button>
+          <button className="btn btn-primary" onClick={()=>{ setForm(EMPTY_FORM); setFormErrors({}); setAddModal(true); }}><Plus size={15}/> Add Lead</button>
         </div>
       </div>
 
@@ -226,11 +242,11 @@ export default function AdminLeads() {
           <Users size={52} style={{color:'var(--primary-200)'}}/>
           <h3>No leads found</h3>
           <p>Try adjusting your filters or add a new lead</p>
-          <button className="btn btn-primary" style={{marginTop:16}} onClick={()=>setAddModal(true)}><Plus size={15}/> Add First Lead</button>
+          <button className="btn btn-primary" style={{marginTop:16}} onClick={()=>{ setForm(EMPTY_FORM); setFormErrors({}); setAddModal(true); }}><Plus size={15}/> Add First Lead</button>
         </div></div>
       ) : view === 'grid' ? (
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:16}}>
-          {filtered.map(lead => (
+          {paged.map(lead => (
             <LeadCard key={lead._id} lead={lead}
               onView={()=>setDetailModal(lead)}
               onAssign={()=>{setAssignModal(lead);setAssign({auditorId:lead.assignedAuditor?._id||'',reviewerId:lead.assignedReviewer?._id||'',});}}
@@ -246,7 +262,7 @@ export default function AdminLeads() {
             <table className="tbl">
               <thead><tr><th>Lead ID</th><th>Company</th><th>Contact</th><th>Standard</th><th>Status</th><th>Priority</th><th>Auditor</th><th>Reviewer</th><th>Date</th><th>Actions</th></tr></thead>
               <tbody>
-                {filtered.map(lead=>(
+                {paged.map(lead=>(
                   <tr key={lead._id}>
                     <td><span className="mono">{lead.leadId}</span></td>
                     <td>
@@ -289,29 +305,34 @@ export default function AdminLeads() {
         </div>
       )}
 
+      {!loading && filtered.length > 0 && <Pagination total={filtered.length} page={page} perPage={PER_PAGE} onChange={setPage} />}
+
       {/* ── ADD LEAD MODAL ── */}
       {addModal && (
-        <div className="modal-bg" onClick={()=>setAddModal(false)}>
+        <div className="modal-bg" onClick={()=>{ setAddModal(false); setFormErrors({}); }}>
           <div className="modal-box" style={{maxWidth:680}} onClick={e=>e.stopPropagation()}>
             <div className="modal-head">
               <span className="modal-title">➕ Add New Lead</span>
-              <button className="modal-close" onClick={()=>setAddModal(false)}>✕</button>
+              <button className="modal-close" onClick={()=>{ setAddModal(false); setFormErrors({}); }}>✕</button>
             </div>
             <div className="modal-body">
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">Company Name *</label>
-                  <input className="form-control" placeholder="e.g. ABC Enterprises" value={form.companyName} onChange={e=>F('companyName',e.target.value)}/>
+                  <input className={`form-control${formErrors.companyName ? ' input-error' : ''}`} placeholder="e.g. ABC Enterprises" value={form.companyName} onChange={e=>{F('companyName',e.target.value); if(formErrors.companyName) setFormErrors(p=>({...p,companyName:''}));}}/>
+                  {formErrors.companyName && <span className="field-error">{formErrors.companyName}</span>}
                 </div>
                 <div className="form-group">
                   <label className="form-label">Contact Person *</label>
-                  <input className="form-control" placeholder="Full name" value={form.contactPerson} onChange={e=>F('contactPerson',e.target.value)}/>
+                  <input className={`form-control${formErrors.contactPerson ? ' input-error' : ''}`} placeholder="Full name" value={form.contactPerson} onChange={e=>{F('contactPerson',e.target.value); if(formErrors.contactPerson) setFormErrors(p=>({...p,contactPerson:''}));}}/>
+                  {formErrors.contactPerson && <span className="field-error">{formErrors.contactPerson}</span>}
                 </div>
               </div>
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">Email</label>
-                  <input className="form-control" type="email" placeholder="contact@company.com" value={form.email} onChange={e=>F('email',e.target.value)}/>
+                  <input className={`form-control${formErrors.email ? ' input-error' : ''}`} type="email" placeholder="contact@company.com" value={form.email} onChange={e=>{F('email',e.target.value); if(formErrors.email) setFormErrors(p=>({...p,email:''}));}}/>
+                  {formErrors.email && <span className="field-error">{formErrors.email}</span>}
                 </div>
                 <div className="form-group">
                   <label className="form-label">Mobile</label>
@@ -370,7 +391,7 @@ export default function AdminLeads() {
               </div>
             </div>
             <div className="modal-foot">
-              <button className="btn btn-secondary" onClick={()=>setAddModal(false)}>Cancel</button>
+              <button className="btn btn-secondary" onClick={()=>{ setAddModal(false); setFormErrors({}); }}>Cancel</button>
               <button className="btn btn-primary" onClick={handleAdd} disabled={saving}>{saving?'Saving…':'Add Lead'}</button>
             </div>
           </div>

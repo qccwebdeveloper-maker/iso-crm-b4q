@@ -3,6 +3,7 @@ import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
 import { Plus, Search, UserCheck, Trash2, Edit, Filter, Download, Phone, Mail, ArrowRight, CheckCircle } from 'lucide-react';
+import Pagination from '../../components/common/Pagination';
 
 const STATUS_CONFIG = {
   new:       { label: 'New',       bdg: 'bdg-new',       bg: '#eff6ff' },
@@ -36,6 +37,9 @@ export default function SalesLeads() {
   const [form,         setForm]         = useState(EMPTY_FORM);
   const [assignTo,     setAssignTo]     = useState('');
   const [saving,       setSaving]       = useState(false);
+  const [formErrors,   setFormErrors]   = useState({});
+  const [page,         setPage]         = useState(1);
+  const PER_PAGE = 10;
 
   const load = useCallback(() => {
     setLoading(true);
@@ -57,6 +61,9 @@ export default function SalesLeads() {
     return mQ && mS;
   });
 
+  React.useEffect(() => setPage(1), [search, statusF]);
+  const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
   const stats = {
     total: leads.length,
     new: leads.filter(l => l.status === 'new').length,
@@ -64,9 +71,18 @@ export default function SalesLeads() {
     converted: leads.filter(l => l.status === 'converted').length,
   };
 
+  const validateLead = () => {
+    const e = {};
+    if (!form.companyName.trim()) e.companyName = 'Company name is required';
+    if (!form.contactPerson.trim()) e.contactPerson = 'Contact person is required';
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Enter a valid email';
+    return e;
+  };
+
   const handleAdd = async () => {
-    if (!form.companyName) return toast.error('Company name required');
-    if (!form.contactPerson) return toast.error('Contact person required');
+    const errs = validateLead();
+    if (Object.keys(errs).length) { setFormErrors(errs); return; }
+    setFormErrors({});
     setSaving(true);
     try {
       if (modal === 'add') {
@@ -123,7 +139,7 @@ export default function SalesLeads() {
           <button className="btn btn-ghost">
             <Download size={14} /> Export
           </button>
-          <button className="btn btn-primary" onClick={() => { setForm(EMPTY_FORM); setModal('add'); }}>
+          <button className="btn btn-primary" onClick={() => { setForm(EMPTY_FORM); setFormErrors({}); setModal('add'); }}>
             <Plus size={14} /> Add Lead
           </button>
         </div>
@@ -171,7 +187,7 @@ export default function SalesLeads() {
                   <tr><th>Company</th><th>Contact</th><th>Standard</th><th>Source</th><th>Status</th><th>Priority</th><th>Assigned To</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
-                  {filtered.map(l => (
+                  {paged.map(l => (
                     <tr key={l._id}>
                       <td>
                         <div style={{ fontWeight: 700, color: 'var(--text-1)' }}>{l.companyName}</div>
@@ -222,31 +238,35 @@ export default function SalesLeads() {
             </div>
           )
         }
+        {!loading && filtered.length > 0 && <Pagination total={filtered.length} page={page} perPage={PER_PAGE} onChange={setPage} />}
       </div>
 
       {/* Add/Edit Modal */}
       {modal && (
-        <div className="modal-bg" onClick={() => setModal(null)}>
+        <div className="modal-bg" onClick={() => { setModal(null); setFormErrors({}); }}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-head">
               <div className="modal-title">{modal === 'add' ? 'Add New Lead' : 'Edit Lead'}</div>
-              <button className="modal-close" onClick={() => setModal(null)}>✕</button>
+              <button className="modal-close" onClick={() => { setModal(null); setFormErrors({}); }}>✕</button>
             </div>
             <div className="modal-body">
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">Company Name *</label>
-                  <input className="form-control" value={form.companyName} onChange={e => setForm(p => ({ ...p, companyName: e.target.value }))} placeholder="ABC Corp" />
+                  <input className={`form-control${formErrors.companyName ? ' input-error' : ''}`} value={form.companyName} onChange={e => { setForm(p => ({ ...p, companyName: e.target.value })); if (formErrors.companyName) setFormErrors(p => ({ ...p, companyName: '' })); }} placeholder="ABC Corp" />
+                  {formErrors.companyName && <span className="field-error">{formErrors.companyName}</span>}
                 </div>
                 <div className="form-group">
                   <label className="form-label">Contact Person *</label>
-                  <input className="form-control" value={form.contactPerson} onChange={e => setForm(p => ({ ...p, contactPerson: e.target.value }))} placeholder="John Doe" />
+                  <input className={`form-control${formErrors.contactPerson ? ' input-error' : ''}`} value={form.contactPerson} onChange={e => { setForm(p => ({ ...p, contactPerson: e.target.value })); if (formErrors.contactPerson) setFormErrors(p => ({ ...p, contactPerson: '' })); }} placeholder="John Doe" />
+                  {formErrors.contactPerson && <span className="field-error">{formErrors.contactPerson}</span>}
                 </div>
               </div>
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">Email</label>
-                  <input type="email" className="form-control" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="john@abc.com" />
+                  <input type="email" className={`form-control${formErrors.email ? ' input-error' : ''}`} value={form.email} onChange={e => { setForm(p => ({ ...p, email: e.target.value })); if (formErrors.email) setFormErrors(p => ({ ...p, email: '' })); }} placeholder="john@abc.com" />
+                  {formErrors.email && <span className="field-error">{formErrors.email}</span>}
                 </div>
                 <div className="form-group">
                   <label className="form-label">Mobile</label>
@@ -297,7 +317,7 @@ export default function SalesLeads() {
               </div>
             </div>
             <div className="modal-foot">
-              <button className="btn btn-ghost" onClick={() => setModal(null)}>Cancel</button>
+              <button className="btn btn-ghost" onClick={() => { setModal(null); setFormErrors({}); }}>Cancel</button>
               <button className="btn btn-primary" onClick={handleAdd} disabled={saving}>
                 {saving ? 'Saving…' : modal === 'add' ? <><Plus size={14} /> Add Lead</> : <><Edit size={14} /> Save</>}
               </button>
