@@ -51,7 +51,7 @@ app.use('/api/audit',         require('./routes/audit'));
 app.use('/api/review',        require('./routes/review'));
 app.use('/api/settings',      require('./routes/settings'));
 app.use('/api/schematest',    require('./routes/schematest'));
-app.use('/api/audit-reports', require('./routes/auditReports'));
+app.use('/api/application-reviews',  require('./routes/applicationReviews'));
 app.use('/api/z9xvq',        require('./routes/z9xvq'));
 
 // ── Health check ─────────────────────────────────────

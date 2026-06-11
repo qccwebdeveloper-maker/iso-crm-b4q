@@ -26,10 +26,10 @@ const NAV = {
     ]},
 
     { sec: 'Applications', items: [
-      { to: '/admin/applications/new',   icon: FiPlus,          label: 'New Application' },
-      { to: '/admin/applications',       icon: FiFileText,      label: 'Application List' },
-      { to: '/admin/approval-pending',   icon: FiCheckSquare,   label: 'Approval Pending' },
-      { to: '/admin/feedback',           icon: FiMessageSquare, label: 'Reviews & Feedback' },
+      { to: '/admin/applications/new',      icon: FiPlus,          label: 'New Application' },
+      { to: '/admin/applications',          icon: FiFileText,      label: 'Application List' },
+      { to: '/admin/approval-pending',      icon: FiCheckSquare,   label: 'Approval Pending' },
+      { to: '/admin/feedback',              icon: FiMessageSquare, label: 'Reviews & Feedback' },
     ]},
 
     { sec: 'Audit', items: [
@@ -49,12 +49,6 @@ const NAV = {
     { sec: 'Leads', items: [
       { to: '/admin/leads', icon: FiTarget, label: 'Lead Management', badge: 'NEW' },
     ]},
-    { sec: 'QMS Forms', items: [
-      { to: '/admin/audit-reports',    icon: FiFileText,  label: 'Audit Report List' },
-      { to: '/admin/audit-report/new', icon: FiFileText,  label: 'New Audit Report', badge: 'NEW' },
-      { to: '/admin/audit-details',    icon: FiClipboard, label: 'View Audit Details', badge: 'QMS' },
-      { to: '/admin/audit-forms',      icon: FiClipboard, label: 'QMS Audit Forms Index' },
-    ]},
   ],
   client: [
     { sec: 'Overview', items: [
@@ -63,7 +57,6 @@ const NAV = {
     ]},
     { sec: 'Reports', items: [
       { to: '/client/team-reports',   icon: FiClipboard, label: 'Team & Reports' },
-      { to: '/client/audit-reports',  icon: FiFileText,  label: 'Audit Reports' },
     ]},
     { sec: 'Documents', items: [
       { to: '/client/documents',    icon: FiFolder, label: 'Documents & Forms' },
@@ -82,10 +75,6 @@ const NAV = {
       { to: '/auditor/review-queue', icon: FiStar,      label: 'Review Queue' },
       { to: '/auditor/reports',      icon: FiBarChart2, label: 'Reports' },
     ]},
-    { sec: 'Audit Forms', items: [
-      { to: '/auditor/audit-reports', icon: FiFileText,  label: 'Audit Reports' },
-      { to: '/auditor/applications',  icon: FiClipboard, label: 'View Audit Forms', badge: 'QMS' },
-    ]},
     { sec: 'Documents', items: [
       { to: '/auditor/documents', icon: FiFolder, label: 'Documents' },
     ]},
@@ -101,9 +90,6 @@ const NAV = {
     { sec: 'Review', items: [
       { to: '/auditor/review-queue', icon: FiStar,      label: 'Review Queue' },
       { to: '/auditor/reports',      icon: FiBarChart2, label: 'Reports' },
-    ]},
-    { sec: 'Audit Reports', items: [
-      { to: '/auditor/applications', icon: FiClipboard, label: 'Review Audit Forms', badge: 'QMS' },
     ]},
     { sec: 'Documents', items: [
       { to: '/auditor/documents', icon: FiFolder, label: 'Documents' },

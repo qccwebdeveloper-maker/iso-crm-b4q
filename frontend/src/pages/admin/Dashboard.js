@@ -183,47 +183,6 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* QMS Audit Forms Quick Access */}
-      <div style={{ marginBottom: 18 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <FiClipboard size={16} style={{ color: 'var(--primary)' }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--gray-800)' }}>QMS Audit Report Forms</span>
-            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: '#e3f2fd', color: 'var(--primary-dark)', border: '1px solid #90caf9', fontWeight: 700 }}>PDF</span>
-          </div>
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/admin/audit-forms')}>View All Forms <FiChevronRight size={11}/></button>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-          {[
-            { code: 'AUD-F-02', name: 'Application Form', desc: 'Request for Proposal cum Application', icon: FiFileText,     color: '#3b82f6', bg: '#dbeafe', link: '/admin/audit-report/new' },
-            { code: 'AUD-F-03', name: 'Audit Planning', desc: 'Application Review & Audit Planning', icon: FiBookOpen,      color: '#8b5cf6', bg: '#ede9fe', link: '/admin/audit-report/new' },
-            { code: 'AUD-F-09', name: 'Stage 1 Report', desc: 'Stage 1 QMS Audit Report', icon: FiClipboard,              color: '#10b981', bg: '#d1fae5', link: '/admin/audit-report/new' },
-            { code: 'AUD-F-15', name: 'Stage 2 Report', desc: 'Stage 2 QMS Audit Report', icon: FiClipboard,              color: '#06b6d4', bg: '#cffafe', link: '/admin/audit-report/new' },
-            { code: 'AUD-F-16', name: 'Corrective Action', desc: 'Request for Corrective Action', icon: FiAlertTriangle,   color: '#ef4444', bg: '#fee2e2', link: '/admin/observation' },
-            { code: 'AUD-F-21', name: 'Certificate Approval', desc: 'Draft for Certificate Approval', icon: FiAward,       color: '#f59e0b', bg: '#fef3c7', link: '/admin/certificates' },
-            { code: 'AUD-F-22', name: 'Review Report', desc: 'Final Review & HOD Decision', icon: FiSettings,             color: '#6366f1', bg: '#eef2ff', link: '/admin/audit-report/new' },
-            { code: 'ALL FORMS', name: 'Forms Index', desc: 'View all 26 audit format documents', icon: FiClipboard,       color: '#0f172a', bg: '#f1f5f9', link: '/admin/audit-forms' },
-            { code: 'AUDIT',     name: 'Audit Details', desc: 'View audit details per application (QMS)', icon: FiEye,     color: '#1565c0', bg: '#e3f2fd', link: '/admin/audit-details' },
-          ].map(f => (
-            <div
-              key={f.code}
-              onClick={() => navigate(f.link)}
-              style={{ background: 'white', borderRadius: 10, border: '1.5px solid #f1f5f9', padding: '14px 16px', cursor: 'pointer', transition: 'all .15s', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 14px rgba(0,0,0,0.10)'; e.currentTarget.style.borderColor = f.color + '60'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)'; e.currentTarget.style.borderColor = '#f1f5f9'; }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <f.icon size={15} color={f.color} />
-                </div>
-                <span style={{ fontSize: 9, fontWeight: 700, color: f.color, fontFamily: 'monospace', background: f.bg, padding: '2px 7px', borderRadius: 5 }}>{f.code}</span>
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--gray-800)', marginBottom: 3 }}>{f.name}</div>
-              <div style={{ fontSize: 11, color: 'var(--gray-400)', lineHeight: 1.4 }}>{f.desc}</div>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Monthly Chart + Recent Apps */}
       <div style={{ display:'grid', gridTemplateColumns:'1.6fr 1fr', gap:18, marginBottom:18 }}>
