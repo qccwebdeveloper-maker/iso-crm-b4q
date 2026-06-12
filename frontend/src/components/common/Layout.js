@@ -49,6 +49,23 @@ const NAV = {
     { sec: 'Leads', items: [
       { to: '/admin/leads', icon: FiTarget, label: 'Lead Management', badge: 'NEW' },
     ]},
+    { sec: 'QMS Forms', collapsible: true, key: 'qmsForms', items: [
+      { to: '/admin/qms/form-01', icon: FiFileText, label: 'F01 · Application Form' },
+      { to: '/admin/qms/form-02', icon: FiFileText, label: 'F02 · Application Review' },
+      { to: '/admin/qms/form-03', icon: FiFileText, label: 'F03 · Audit Planning 3yr' },
+      { to: '/admin/qms/form-04', icon: FiFileText, label: 'F04 · Auditor Declaration' },
+      { to: '/admin/qms/form-05', icon: FiFileText, label: 'F05 · Stage-1 Audit Plan' },
+      { to: '/admin/qms/form-06', icon: FiFileText, label: 'F06 · Stage-1 Meetings' },
+      { to: '/admin/qms/form-07', icon: FiFileText, label: 'F07 · Stage-1 Audit Report' },
+      { to: '/admin/qms/form-08', icon: FiFileText, label: 'F08 · Stage-1 Review Report' },
+      { to: '/admin/qms/form-09', icon: FiFileText, label: 'F09 · Stage-2 Audit Plan' },
+      { to: '/admin/qms/form-10', icon: FiFileText, label: 'F10 · Stage-2 Meetings' },
+      { to: '/admin/qms/form-11', icon: FiFileText, label: 'F11 · Stage-2 Audit Report' },
+      { to: '/admin/qms/form-12', icon: FiFileText, label: 'F12 · CAR Request' },
+      { to: '/admin/qms/form-13', icon: FiFileText, label: 'F13 · CAR Report' },
+      { to: '/admin/qms/form-14', icon: FiFileText, label: 'F14 · Draft Certificate' },
+      { to: '/admin/qms/form-15', icon: FiFileText, label: 'F15 · Final Review Report' },
+    ]},
   ],
   client: [
     { sec: 'Overview', items: [
@@ -131,7 +148,7 @@ export default function Layout({ children, title }) {
   const [notifOpen,       setNotifOpen]       = useState(false);
   const [notifications,   setNotifications]   = useState([]);
   const [profileImg,      setProfileImg]      = useState(null);
-  const [collapsed,       setCollapsed]       = useState({ master: true });
+  const [collapsed,       setCollapsed]       = useState({ master: true, qmsForms: true });
   const nRef        = useRef(null);
   const imgRef      = useRef(null);
   const sidebarNavRef = useRef(null);

@@ -1,0 +1,15 @@
+const mongoose = require('mongoose');
+
+const qmsFormSchema = new mongoose.Schema({
+  clientId:  { type: String, required: true },
+  clientRef: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  formType:  { type: Number, required: true, min: 1, max: 15 },
+  formCode:  { type: String },
+  formName:  { type: String },
+  status:    { type: String, enum: ['draft', 'saved', 'completed'], default: 'draft' },
+  formData:  { type: mongoose.Schema.Types.Mixed, default: {} },
+}, { timestamps: true });
+
+qmsFormSchema.index({ clientId: 1, formType: 1 }, { unique: true });
+
+module.exports = mongoose.model('QMSForm', qmsFormSchema);
