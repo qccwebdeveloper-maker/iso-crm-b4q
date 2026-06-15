@@ -13,6 +13,7 @@ import AdminApplications     from './pages/admin/Applications';
 import AdminApplicationDetail from './pages/admin/ApplicationDetail';
 import AdminNewApplication   from './pages/admin/NewApplication';
 import AdminUsers            from './pages/admin/Users';
+import AdminUserDetail       from './pages/admin/UserDetail';
 import AdminAuditors         from './pages/admin/Auditors';
 import AdminReports          from './pages/admin/AdminReports';
 import AdminFeedback         from './pages/admin/Feedback';
@@ -105,6 +106,7 @@ function AppRoutes() {
       <Route path="/admin/applications/:id"  element={<ProtectedRoute roles={['admin']}><AdminApplicationDetail /></ProtectedRoute>} />
       <Route path="/admin/payments"          element={<ProtectedRoute roles={['admin']}><AdminPayments /></ProtectedRoute>} />
       <Route path="/admin/users"             element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />
+      <Route path="/admin/users/:id"         element={<ProtectedRoute roles={['admin']}><AdminUserDetail /></ProtectedRoute>} />
       <Route path="/admin/auditors"          element={<ProtectedRoute roles={['admin']}><AdminAuditors /></ProtectedRoute>} />
       <Route path="/admin/reports"           element={<ProtectedRoute roles={['admin']}><AdminAnalysisReports /></ProtectedRoute>} />
       <Route path="/admin/admin-reports"     element={<ProtectedRoute roles={['admin']}><AdminReports /></ProtectedRoute>} />

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
-import { Plus, Search, Edit, Trash2, CheckCircle, XCircle, Copy, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, CheckCircle, Copy, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import Pagination from '../../components/common/Pagination';
 
 function genPassword() {
@@ -26,6 +27,7 @@ function CopyBtn({ text }) {
 }
 
 export default function AdminUsers() {
+  const navigate = useNavigate();
   const [users, setUsers]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [search, setSearch]       = useState('');
@@ -108,20 +110,6 @@ export default function AdminUsers() {
     catch { toast.error('Failed'); }
   };
 
-  const approve = async (user) => {
-    try {
-      await axios.put(`/api/users/${user._id}`, { isActive: true, pendingApproval: false });
-      toast.success(`${user.name} activated`);
-      load();
-    } catch { toast.error('Failed to activate'); }
-  };
-
-  const reject = async (user) => {
-    if (!window.confirm(`Reject and delete ${user.name}'s registration?`)) return;
-    try { await axios.delete(`/api/users/${user._id}`); toast.success('Registration rejected'); load(); }
-    catch { toast.error('Failed'); }
-  };
-
   const roleColor = { admin: 'var(--primary)', client: '#3b82f6', auditor: '#8b5cf6', reviewer: '#8b5cf6', sales: '#16a34a' };
 
   const openAdd = () => {
@@ -158,12 +146,13 @@ export default function AdminUsers() {
               {paged.map(u => (
                 <tr key={u._id} style={u.pendingApproval && !u.isActive ? { background: '#fffbeb' } : {}}>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div onClick={() => navigate(`/admin/users/${u._id}`)} title="View details"
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                       <div className="avatar" style={{ background: roleColor[u.role] + '22', color: roleColor[u.role] }}>
                         {u.name?.[0]?.toUpperCase()}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, color: 'var(--text-1)' }}>{u.name}</div>
+                        <div style={{ fontWeight: 600, color: 'var(--primary)' }}>{u.name}</div>
                         <div style={{ fontSize: 11, color: 'var(--gray-400)' }}>{u.email}</div>
                         {u.clientId && (
                           <div style={{ fontSize: 10, color: '#1565c0', fontWeight: 700, fontFamily: 'monospace', marginTop: 2 }}>
@@ -189,10 +178,7 @@ export default function AdminUsers() {
                   <td>
                     <div className="tbl-actions">
                       {u.pendingApproval && !u.isActive ? (
-                        <>
-                          <button className="btn btn-primary btn-sm" onClick={() => approve(u)} style={{ background: '#16a34a', borderColor: '#16a34a' }}><CheckCircle size={13} /> Approve</button>
-                          <button className="btn btn-danger btn-sm" onClick={() => reject(u)}><XCircle size={13} /> Reject</button>
-                        </>
+                        <button className="btn btn-primary btn-sm" onClick={() => navigate(`/admin/users/${u._id}`)}><Eye size={13} /> Review</button>
                       ) : (
                         <>
                           <button className="btn btn-ghost btn-sm" onClick={() => { setForm({ name: u.name, email: u.email, password: '', role: u.role, phone: u.phone || '', company: u.company || '' }); setShowPw(false); setModal(u); }}>
