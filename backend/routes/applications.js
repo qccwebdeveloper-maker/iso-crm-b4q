@@ -70,7 +70,7 @@ router.post('/', protect, authorize('client', 'admin', 'sales'), async (req, res
       await User.findByIdAndUpdate(clientId, { $addToSet: { assignedApplications: app._id } });
     }
 
-    // Notify admins
+    // Notify admins    
     const admins = await User.find({ role: 'admin' }).select('_id');
     for (const a of admins) {
       await pushNotif(a._id, `New application created: ${app.applicationId}`, 'info');
@@ -201,7 +201,7 @@ router.post('/:id/upload', protect, upload.single('document'), async (req, res) 
       publicId = safeName;
     }
 
-    const namedTypes = ['applicationForm', 'agreement', 'signedForm', 'auditReport', 'reviewReport'];
+    const namedTypes = ['applicationForm', 'agreement', 'signedForm', 'auditReport', 'reviewReport', 'proofId'];
     if (namedTypes.includes(docType)) {
       app[docType] = cloudUrl;
     } else if (docType === 'certificate') {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/common/Layout';
 import axios from 'axios';
 import { FileText, Search, Eye, Calendar, Building2, CheckCircle, Clock, AlertTriangle, XCircle } from 'lucide-react';
+import Pagination from '../../components/common/Pagination';
 
 const STATUS_CONFIG = {
   submitted:      { label: 'Submitted',      color: '#3b82f6', bg: '#dbeafe' },
@@ -26,10 +27,12 @@ const AUDIT_FORMS_VISIBLE = [
 
 export default function SalesApplicationsList() {
   const navigate   = useNavigate();
-  const [apps, setApps]     = useState([]);
-  const [search, setSearch] = useState('');
+  const [apps, setApps]       = useState([]);
+  const [search, setSearch]   = useState('');
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
+  const [page, setPage]       = useState(1);
+  const PER_PAGE = 10;
 
   useEffect(() => {
     axios.get('/api/applications')
@@ -45,6 +48,9 @@ export default function SalesApplicationsList() {
            (a.refNo || '').toLowerCase().includes(q) ||
            (a.scope || '').toLowerCase().includes(q);
   });
+
+  React.useEffect(() => setPage(1), [search]);
+  const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const statusOf = (app) => STATUS_CONFIG[app.status] || STATUS_CONFIG.submitted;
 
@@ -96,7 +102,7 @@ export default function SalesApplicationsList() {
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
-            {filtered.map(app => {
+            {paged.map(app => {
               const st = statusOf(app);
               return (
                 <div
@@ -179,6 +185,7 @@ export default function SalesApplicationsList() {
             })}
           </div>
         )}
+        {!loading && filtered.length > 0 && <Pagination total={filtered.length} page={page} perPage={PER_PAGE} onChange={setPage} />}
 
         {/* Detail Modal */}
         {selected && (

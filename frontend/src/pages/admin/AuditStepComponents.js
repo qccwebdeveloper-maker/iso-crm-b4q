@@ -45,8 +45,8 @@ export const INTEGRATION_OPTS = [
 ];
 
 export const STAGE1_CLAUSES = [
-  '4.1 Understanding the Organization and its Context',
-  '4.2 Needs and Expectations of Interested Parties',
+  '4.1 Understanding the Organization and its Context The organization shall determine whether climate change is a relevant issue',
+  '4.2 Needs and Expectations of Interested Parties Note Relevant interested partiees can have requirements related to climate change',
   '4.3 Scope of Management System',
   '4.4 Management System and its Processes',
   '5.1 Leadership and Commitment',
@@ -70,9 +70,9 @@ export const STAGE1_CLAUSES = [
   '9.1 Monitoring, Measurement, Analysis and Evaluation',
   '9.2 Internal Audit',
   '9.3 Management Review',
-  '10.1 Improvement / Continual Improvement',
-  '10.2 Nonconformity and Corrective Action',
-  '10.3 Continual Improvement',
+  '9.4 Improvement / Continual Improvement',
+  '9.5 Nonconformity and Corrective Action',
+  '9.6 Continual Improvement',
 ];
 
 // ── Initial form state ────────────────────────────────────────────────────────
@@ -117,8 +117,8 @@ export const inp = {
   fontSize: 13, outline: 'none', boxSizing: 'border-box', color: 'var(--gray-800)',
 };
 export const sel = { ...inp, background: 'white', cursor: 'pointer' };
-export const grid2 = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 };
-export const grid3 = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
+export const grid2 = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 };
+export const grid3 = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 };
 
 // ── Helper UI components ──────────────────────────────────────────────────────
 export function Field({ label, required, children, col }) {
@@ -181,7 +181,7 @@ export function Step1({ d, set }) {
   return (
     <div>
       <SectionHdr code="AUD-F-02 §2.1" title="Organization Information" />
-      <div style={grid2}>
+      <div className="aud-g2">
         <Field label="REF NO."><Inp value={d.refNo} onChange={v => set('refNo', v)} placeholder="QCC-2024-001" /></Field>
         <Field label="Name of Organization" required><Inp value={d.orgName} onChange={v => set('orgName', v)} placeholder="Company Pvt. Ltd." /></Field>
         <Field label="Address" col="1/-1"><Txt value={d.address} onChange={v => set('address', v)} rows={2} placeholder="Full address..." /></Field>
@@ -204,7 +204,7 @@ export function Step1({ d, set }) {
       </div>
 
       <SectionHdr code="AUD-F-02 §2.3" title="Application & Audit Type" />
-      <div style={grid3}>
+      <div className="aud-g3">
         <Field label="Application Type"><Sel value={d.applicationType} onChange={v => set('applicationType', v)} options={AUDIT_TYPES} /></Field>
         <Field label="No. of Employees (Total)"><Inp value={d.totalEmployees} onChange={v => set('totalEmployees', v)} type="number" placeholder="0" /></Field>
         <Field label="Contractual"><Inp value={d.contractual} onChange={v => set('contractual', v)} type="number" placeholder="0" /></Field>
@@ -227,7 +227,7 @@ export function Step2({ d, set }) {
   return (
     <div>
       <SectionHdr code="AUD-F-02 §2.2" title="Standards Applied For" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 24 }}>
+      <div className="aud-stds">
         {ISO_STANDARDS.map(std => (
           <label key={std} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1.5px solid ${d.standards?.includes(std) ? 'var(--primary)' : '#e2e8f0'}`, background: d.standards?.includes(std) ? '#fff7ed' : 'white', cursor: 'pointer', fontSize: 13, fontWeight: d.standards?.includes(std) ? 600 : 400, color: d.standards?.includes(std) ? 'var(--primary-dark)' : 'var(--gray-700)' }}>
             <input type="checkbox" checked={d.standards?.includes(std) || false} onChange={() => toggleStd(std)} style={{ accentColor: 'var(--primary)', width: 15, height: 15 }} />
@@ -274,7 +274,7 @@ export function Step3({ d, set }) {
   return (
     <div>
       <SectionHdr code="AUD-F-02 §2.5" title="Management System Information" />
-      <div style={grid2}>
+      <div className="aud-g2">
         <Field label="1. Applicable Legal, Statutory & Regulatory Act" col="1/-1"><Txt value={d.legalActs} onChange={v => set('legalActs', v)} placeholder="e.g. Companies Act, IT Act, GDPR..." /></Field>
         <Field label="2. Organization Key Process Area" col="1/-1"><Txt value={d.keyProcessArea} onChange={v => set('keyProcessArea', v)} /></Field>
         <Field label="3. Organization Products/Services" col="1/-1"><Txt value={d.products} onChange={v => set('products', v)} /></Field>
@@ -292,7 +292,7 @@ export function Step3({ d, set }) {
         </label>
       </div>
       {d.alreadyCertified && (
-        <div style={{ ...grid2, marginBottom: 16, padding: '14px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+        <div className="aud-g2" style={{ marginBottom: 16, padding: 14, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
           <Field label="Standards"><Inp value={d.certStandards} onChange={v => set('certStandards', v)} placeholder="ISO 9001:2015" /></Field>
           <Field label="Certification Body"><Inp value={d.certBody} onChange={v => set('certBody', v)} /></Field>
           <Field label="Issue Date"><Inp value={d.certIssue} onChange={v => set('certIssue', v)} type="date" /></Field>
@@ -300,7 +300,7 @@ export function Step3({ d, set }) {
         </div>
       )}
       <SectionHdr code="AUD-F-02 §2.6" title="Audit Integration Options" />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      <div className="aud-integ">
         {INTEGRATION_OPTS.map(opt => (
           <div key={opt} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0', gap: 10 }}>
             <span style={{ fontSize: 12, color: 'var(--gray-700)', flex: 1 }}>{opt}</span>
@@ -325,7 +325,7 @@ export function Step4({ d, set }) {
       <SectionHdr code="AUD-F-03 §3.1" title="Audit Team Details" />
       <div style={{ marginBottom: 16 }}>
         {(d.auditTeam || []).map((m, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr auto', gap: 10, marginBottom: 10, alignItems: 'end' }}>
+          <div key={i} className="aud-team">
             <Field label={i === 0 ? 'Name' : ''}><Inp value={m.name} onChange={v => updMember(i, 'name', v)} placeholder="Full Name" /></Field>
             <Field label={i === 0 ? 'Role' : ''}>
               <Sel value={m.role} onChange={v => updMember(i, 'role', v)} options={['Lead Auditor', 'Auditor', 'Technical Expert', 'Observer', 'Auditor In Training', 'Application reviewer & report reviewer', 'Final Certification Decision by HOD']} />
@@ -341,7 +341,7 @@ export function Step4({ d, set }) {
       </div>
 
       <SectionHdr code="AUD-F-03 §3.2" title="Audit Dates & Mode" />
-      <div style={grid2}>
+      <div className="aud-g2">
         <Field label="Mode of Audit"><Sel value={d.modeOfAudit} onChange={v => set('modeOfAudit', v)} options={['Online/Virtual Audit', 'Onsite Audit', 'Combine Audit (Onsite & Online)']} /></Field>
         <Field label="Online Meeting Link"><Inp value={d.meetingLink} onChange={v => set('meetingLink', v)} placeholder="https://meet.google.com/..." /></Field>
         <Field label="Stage 1 — From"><Inp value={d.stage1From} onChange={v => set('stage1From', v)} type="date" /></Field>
@@ -367,7 +367,7 @@ export function Step5({ d, set }) {
   return (
     <div>
       <SectionHdr code="AUD-F-09 §8.1" title="Stage 1 Audit Report" />
-      <div style={grid2}>
+      <div className="aud-g2">
         <Field label="Stage 1 Audit Duration"><Inp value={d.s1Duration} onChange={v => set('s1Duration', v)} placeholder="e.g. 0.5 days" /></Field>
         <Field label="Any Change in Employee Details?">
           <Sel value={d.s1EmployeeChanged ? 'Yes' : 'No'} onChange={v => set('s1EmployeeChanged', v === 'Yes')} options={['Yes', 'No']} />
@@ -380,7 +380,7 @@ export function Step5({ d, set }) {
       </div>
 
       <SectionHdr code="AUD-F-09 §8.6" title="Non-Conformity / Observation Summary" />
-      <div style={{ ...grid2, marginBottom: 16 }}>
+      <div className="aud-g2" style={{ marginBottom: 16 }}>
         {[['Minor Non-conformance', 's1MinorNC'], ['Major Non-conformance', 's1MajorNC'], ['Observations', 's1Obs'], ['OFI identified', 's1OFI']].map(([l, k]) => (
           <Field key={k} label={l}><Inp value={d[k]} onChange={v => set(k, v)} type="number" placeholder="0" /></Field>
         ))}
@@ -389,7 +389,7 @@ export function Step5({ d, set }) {
       <SectionHdr code="AUD-F-09 §8.9" title="Non-Conformities Raised" />
       <div style={{ marginBottom: 16 }}>
         {(d.s1NCs || []).map((nc, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 2fr auto', gap: 8, marginBottom: 8, alignItems: 'end' }}>
+          <div key={i} className="aud-nc5">
             <Field label={i === 0 ? 'MS Standard' : ''}><Inp value={nc.standard} onChange={v => updNC(i, 'standard', v)} placeholder="ISO 9001:2015" /></Field>
             <Field label={i === 0 ? 'Type' : ''}><Sel value={nc.type} onChange={v => updNC(i, 'type', v)} options={NC_TYPES} /></Field>
             <Field label={i === 0 ? 'Clause No.' : ''}><Inp value={nc.clause} onChange={v => updNC(i, 'clause', v)} placeholder="e.g. 7.2" /></Field>
@@ -455,7 +455,7 @@ export function Step6({ d, set }) {
   return (
     <div>
       <SectionHdr code="AUD-F-15 §12.4" title="Stage 2 Audit Deviations & Changes" />
-      <div style={grid2}>
+      <div className="aud-g2">
         <Field label="Stage 2 Duration"><Inp value={d.s2Duration} onChange={v => set('s2Duration', v)} placeholder="e.g. 1.5 days" /></Field>
         <Field label="" />
         <Field label="Any Deviation from Audit Plan" col="1/-1"><Txt value={d.s2Deviations} onChange={v => set('s2Deviations', v)} /></Field>
@@ -464,7 +464,7 @@ export function Step6({ d, set }) {
       </div>
 
       <SectionHdr code="AUD-F-15 §12.6" title="Non-Conformities Summary" />
-      <div style={{ ...grid2, marginBottom: 16 }}>
+      <div className="aud-g2" style={{ marginBottom: 16 }}>
         {[['Minor NC', 's2MinorNC'], ['Major NC', 's2MajorNC'], ['Observations', 's2Obs'], ['OFI', 's2OFI']].map(([l, k]) => (
           <Field key={k} label={l}><Inp value={d[k]} onChange={v => set(k, v)} type="number" placeholder="0" /></Field>
         ))}
@@ -473,7 +473,7 @@ export function Step6({ d, set }) {
       <SectionHdr code="AUD-F-15 §12.8" title="NC Details" />
       <div style={{ marginBottom: 16 }}>
         {(d.s2NCs || []).map((nc, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1.5fr 1fr auto', gap: 8, marginBottom: 8, alignItems: 'end' }}>
+          <div key={i} className="aud-nc6">
             <Field label={i === 0 ? 'MS Standard' : ''}><Inp value={nc.standard} onChange={v => updNC(i, 'standard', v)} placeholder="ISO 9001" /></Field>
             <Field label={i === 0 ? 'Type' : ''}><Sel value={nc.type} onChange={v => updNC(i, 'type', v)} options={NC_TYPES} /></Field>
             <Field label={i === 0 ? 'Clause' : ''}><Inp value={nc.clause} onChange={v => updNC(i, 'clause', v)} /></Field>
@@ -488,7 +488,7 @@ export function Step6({ d, set }) {
       <SectionHdr code="AUD-F-15 §12.9" title="Stage 2 Observations" />
       <div style={{ marginBottom: 16 }}>
         {(d.s2Observations || []).map((obs, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 2fr auto', gap: 8, marginBottom: 8, alignItems: 'end' }}>
+          <div key={i} className="aud-obs">
             <Field label={i === 0 ? 'MS Standard' : ''}><Inp value={obs.standard} onChange={v => updObs(i, 'standard', v)} placeholder="ISO 9001:2015" /></Field>
             <Field label={i === 0 ? 'Clause' : ''}><Inp value={obs.clause} onChange={v => updObs(i, 'clause', v)} placeholder="e.g. 8.1" /></Field>
             <Field label={i === 0 ? 'Observation Detail' : ''}><Inp value={obs.detail} onChange={v => updObs(i, 'detail', v)} /></Field>
@@ -509,7 +509,7 @@ export function Step6({ d, set }) {
       </Field>
 
       <SectionHdr code="AUD-F-16" title="Corrective Action Details" />
-      <div style={grid2}>
+      <div className="aud-g2">
         <Field label="Root Cause" col="1/-1"><Txt value={d.s2RootCause} onChange={v => set('s2RootCause', v)} rows={2} /></Field>
         <Field label="Correction"><Inp value={d.s2Correction} onChange={v => set('s2Correction', v)} /></Field>
         <Field label="Completion Date of Corrective Action"><Inp value={d.s2CompletionDate} onChange={v => set('s2CompletionDate', v)} type="date" /></Field>
@@ -523,7 +523,7 @@ export function Step7({ d, set }) {
   return (
     <div>
       <SectionHdr code="AUD-F-21" title="Draft for Certificate Approval" />
-      <div style={grid2}>
+      <div className="aud-g2">
         <Field label="QCC Hereby Certifies That the" col="1/-1">
           <Sel value={d.certSystem} onChange={v => set('certSystem', v)} options={['Quality Management System', 'Environmental Management System', 'Occupational Health & Safety MS', 'Information Security MS', 'Food Safety MS', 'AI Management System', 'Anti-Bribery MS', 'Educational Organization MS']} />
         </Field>
@@ -536,7 +536,7 @@ export function Step7({ d, set }) {
       </div>
 
       <SectionHdr code="AUD-F-22 §16.4" title="Final Review Decision" />
-      <div style={grid2}>
+      <div className="aud-g2">
         <Field label="Reviewer Decision" col="1/-1">
           <Sel value={d.reviewDecision} onChange={v => set('reviewDecision', v)} options={[
             'Certificate Issue',

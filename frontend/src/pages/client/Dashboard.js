@@ -5,7 +5,7 @@ import axios from 'axios';
 import Layout from '../../components/common/Layout';
 import toast from 'react-hot-toast';
 import {
-  FileText, Clock, Award, XCircle, Plus, ChevronRight, ArrowRight,
+  FileText, Clock, Award, XCircle, ChevronRight, ArrowRight,
   Star, CheckCircle, AlertCircle, Send, ClipboardCheck, Phone, Edit, Eye,
   FileEdit, Upload, Search, ClipboardList, Building2, FolderOpen,
   MessageSquare, FileUp, UserCheck, Check, AlertTriangle, X,
@@ -54,7 +54,7 @@ export default function ClientDashboard() {
   ];
 
   const quickActions = [
-    { l:'New Application', d:'Start ISO certification', Icon: ClipboardList,  to:'/client/applications/new', c:'var(--primary)' },
+    { l:'My Applications', d:'View your applications',  Icon: ClipboardList,  to:'/client/applications',     c:'var(--primary)' },
     { l:'My Documents',    d:'Upload required forms',   Icon: FolderOpen,     to:'/client/documents',        c:'var(--blue)'    },
     { l:'Certificates',    d:'Download certificates',   Icon: Award,          to:'/client/certificates',     c:'var(--amber)'   },
     { l:'Send Feedback',   d:'Rate your experience',    Icon: MessageSquare,  onClick:()=>setFbModal(true),  c:'var(--teal)'    },
@@ -105,9 +105,6 @@ export default function ClientDashboard() {
           <h1 className="page-title">Welcome, {user?.name?.split(' ')[0]}</h1>
           <p className="page-subtitle">Track your ISO certification journey</p>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate('/client/applications/new')}>
-          <Plus size={14}/> New Application
-        </button>
       </div>
 
       {/* ── KPI Cards ── */}
@@ -205,11 +202,8 @@ export default function ClientDashboard() {
             <CheckCircle size={36} style={{color:'var(--primary-200)', flexShrink:0}}/>
             <div>
               <div style={{fontSize:14, fontWeight:700, color:'var(--gray-400)'}}>No active application</div>
-              <div style={{fontSize:12, color:'var(--gray-300)', marginTop:3}}>Submit an application to start tracking your certification progress</div>
+              <div style={{fontSize:12, color:'var(--gray-300)', marginTop:3}}>Your certification progress will appear here once an application is in progress</div>
             </div>
-            <button className="btn btn-primary btn-sm" style={{marginLeft:'auto'}} onClick={() => navigate('/client/applications/new')}>
-              <Plus size={12}/> Apply Now
-            </button>
           </div>
         )}
       </div>
@@ -227,10 +221,7 @@ export default function ClientDashboard() {
           <div className="empty-box" style={{padding:'44px 20px'}}>
             <FileText size={40} style={{color:'var(--primary-200)'}}/>
             <h3>No applications yet</h3>
-            <p>Start your ISO certification journey today</p>
-            <button className="btn btn-primary" style={{marginTop:16}} onClick={() => navigate('/client/applications/new')}>
-              <Plus size={13}/> Start Now
-            </button>
+            <p>Your applications will appear here</p>
           </div>
         ) : (
           <div className="tbl-wrap">

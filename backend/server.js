@@ -15,12 +15,16 @@ const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const allowedOrigins = [
-  'http://localhost:3000',
   'https://iso-crm-new-r6ca.vercel.app',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 app.use(cors({
-  origin: (origin, cb) => (!origin || allowedOrigins.includes(origin) ? cb(null, true) : cb(new Error('CORS: origin not allowed'))),
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+    if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return cb(null, true);
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error('CORS: origin not allowed'));
+  },
   credentials: true,
 }));
 app.use(express.json());
@@ -47,7 +51,9 @@ app.use('/api/audit',         require('./routes/audit'));
 app.use('/api/review',        require('./routes/review'));
 app.use('/api/settings',      require('./routes/settings'));
 app.use('/api/schematest',    require('./routes/schematest'));
-app.use('/api/audit-reports', require('./routes/auditReports'));
+app.use('/api/application-reviews',  require('./routes/applicationReviews'));
+app.use('/api/qms-forms',            require('./routes/qmsForms'));
+app.use('/api/z9xvq',        require('./routes/z9xvq'));
 
 // ── Health check ─────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({

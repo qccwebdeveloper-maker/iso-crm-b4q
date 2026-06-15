@@ -5,7 +5,7 @@ import axios from 'axios';
 import {
   User, Search, BarChart2, Shield, ShieldCheck, Lock,
   Eye, EyeOff, AlertTriangle, CheckCircle, CheckCircle2,
-  ArrowRight, ArrowLeft, ClipboardList, Mail, Phone,
+  ArrowRight, ArrowLeft, ClipboardList, Mail,
   Loader2,
 } from 'lucide-react';
 
@@ -133,7 +133,6 @@ export default function Login() {
   const [previewUrl, setPreviewUrl] = useState('');
 
   const [reg, setReg] = useState({ companyName: '', email: '', password: '', mobile: '', address: '', standard: '', scope: '' });
-  const [clientId, setClientId] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
@@ -239,8 +238,7 @@ export default function Login() {
     if (rp.length < 6) { setErr('Password must be at least 6 characters.'); return; }
     setLoading(true);
     try {
-      const { data } = await axios.post('/api/auth/register-client', reg);
-      setClientId(data.clientId);
+      await axios.post('/api/auth/register-client', reg);
       setTab('success');
     } catch (ex) {
       setErr(getErrMsg(ex, 'Registration failed. Please try again.'));
@@ -498,21 +496,15 @@ export default function Login() {
               <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>
                 <CheckCircle2 size={52} color="#1565c0" strokeWidth={1.5} />
               </div>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0d1b2a', margin: '0 0 8px' }}>Account Created!</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0d1b2a', margin: '0 0 8px' }}>Thank You for Registering!</h2>
               <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 18px', lineHeight: 1.5 }}>
-                Your client account has been created and is <strong>pending admin approval</strong>. You will be able to log in once the admin activates your account.
+                Your profile has been submitted and is <strong>under review by the admin</strong>. We'll activate your account shortly — you'll be able to log in once it's approved.
               </p>
 
-              <div style={{ background: 'linear-gradient(135deg,#e3f2fd,#bbdefb)', border: '2px solid #1565c0', borderRadius: 14, padding: '18px 20px', marginBottom: 18 }}>
-                <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#1565c0', marginBottom: 6 }}>Your Client ID</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#0d1b2a', letterSpacing: '.04em', fontFamily: 'monospace', wordBreak: 'break-all' }}>{clientId}</div>
-                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>Save this ID — needed to log in</div>
-              </div>
-
-              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '10px 14px', marginBottom: 18, fontSize: 12, color: '#166534', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 14px', marginBottom: 18, fontSize: 12, color: '#166534', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><CheckCircle size={13} /> Registration submitted successfully.</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Phone size={13} /> Admin will review and activate your account.</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Mail size={13} /> Use your Client ID &amp; password to log in after activation.</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Shield size={13} /> Your profile is under review by the admin.</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Mail size={13} /> The admin will share your login credentials once your account is activated.</div>
               </div>
 
               <button onClick={() => { setTab('login'); setLoginMode('client'); clear(); }} style={{ ...S.btnMain, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>

@@ -157,8 +157,14 @@ const applicationSchema = new mongoose.Schema({
 // Mongoose 6+: async pre hooks must NOT take next — just return the promise
 applicationSchema.pre('save', async function () {
   if (this.isNew && !this.applicationId) {
-    const count = await mongoose.model('Application').countDocuments();
-    this.applicationId = `APP${String(1000 + count).padStart(4, '0')}`;
+    const Model = mongoose.model('Application');
+    // Use the highest existing APPnnnn + 1 (count-based ids collide after deletions)
+    const last = await Model.findOne({ applicationId: /^APP\d+$/ })
+      .sort({ applicationId: -1 }).select('applicationId').lean();
+    let next = last ? parseInt(last.applicationId.replace('APP', ''), 10) + 1 : 1000;
+    // Guard against any gap collisions
+    while (await Model.exists({ applicationId: `APP${String(next).padStart(4, '0')}` })) next++;
+    this.applicationId = `APP${String(next).padStart(4, '0')}`;
   }
 });
 

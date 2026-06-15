@@ -16,7 +16,7 @@ export default function ClientAuditReportList() {
   const [reports, setReports]  = useState([]);
   const [loading, setLoading]  = useState(true);
 
-  useEffect(() => {
+  useEffect(() => { 
     axios.get('/api/audit-reports')
       .then(res => setReports(res.data || []))
       .catch(() => toast.error('Failed to load audit reports'))

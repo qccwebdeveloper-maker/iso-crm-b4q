@@ -4,5 +4,8 @@
   "scripts": {
     "start": "cd backend && node server.js",
     "build": "cd backend && npm install"
+  },
+  "devDependencies": {
+    "xlsx": "^0.18.5"
   }
 }

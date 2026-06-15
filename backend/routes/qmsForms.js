@@ -1,0 +1,171 @@
+const express  = require('express');
+const router   = express.Router();
+const QMSForm     = require('../models/QMSForm');
+const User        = require('../models/User');
+const Application = require('../models/Application');
+const { protect, authorize } = require('../middleware/auth');
+
+// GET /api/qms-forms?formType=1&status=draft
+router.get('/', protect, authorize('admin'), async (req, res) => {
+  try {
+    const filter = {};
+    if (req.query.formType) filter.formType = Number(req.query.formType);
+    if (req.query.clientId) filter.clientId = req.query.clientId;
+    if (req.query.status)   filter.status   = req.query.status;
+
+    const forms = await QMSForm.find(filter)
+      .populate('clientRef', 'name company clientId email phone')
+      .sort({ updatedAt: -1 });
+    res.json(forms);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// GET /api/qms-forms/client/:clientId — fetch client info for pre-fill
+router.get('/client/:clientId', protect, authorize('admin'), async (req, res) => {
+  try {
+    const user = await User.findOne({ clientId: req.params.clientId })
+      .select('name company email phone address isoStandard scope clientId');
+    if (!user) return res.status(404).json({ message: 'No client found with this ID' });
+    res.json(user);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// GET /api/qms-forms/by-client/:clientId/:formType — get saved form data
+router.get('/by-client/:clientId/:formType', protect, authorize('admin'), async (req, res) => {
+  try {
+    const form = await QMSForm.findOne({
+      clientId: req.params.clientId,
+      formType: Number(req.params.formType),
+    }).populate('clientRef', 'name company clientId email phone');
+    if (!form) return res.status(404).json({ message: 'No form found' });
+    res.json(form);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// POST /api/qms-forms — create or update (upsert by clientId + formType)
+router.post('/', protect, authorize('admin'), async (req, res) => {
+  try {
+    const { clientId, formType, formCode, formName, status, formData } = req.body;
+    if (!clientId || !formType) {
+      return res.status(400).json({ message: 'clientId and formType are required' });
+    }
+
+    const client = await User.findOne({ clientId });
+    if (!client) return res.status(404).json({ message: 'No client found with this ID' });
+
+    const form = await QMSForm.findOneAndUpdate(
+      { clientId, formType: Number(formType) },
+      {
+        clientId,
+        clientRef: client._id,
+        formType: Number(formType),
+        formCode,
+        formName,
+        status: status || 'draft',
+        formData: formData || {},
+      },
+      { upsert: true, new: true, runValidators: false, setDefaultsOnInsert: true }
+    );
+    res.json(form);
+  } catch (err) {
+    console.error('[POST /api/qms-forms]', err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ─── Client self-service: a client can only read/write their OWN form ───
+
+// GET /api/qms-forms/my/:formType — logged-in client's own form (null if none yet)
+router.get('/my/:formType', protect, authorize('client'), async (req, res) => {
+  try {
+    if (!req.user.clientId) return res.status(400).json({ message: 'No client ID linked to your account' });
+    const form = await QMSForm.findOne({
+      clientId: req.user.clientId,
+      formType: Number(req.params.formType),
+    });
+    res.json(form || null);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// POST /api/qms-forms/my — create/update logged-in client's own form
+router.post('/my', protect, authorize('client'), async (req, res) => {
+  try {
+    if (!req.user.clientId) return res.status(400).json({ message: 'No client ID linked to your account' });
+    const { formType, formCode, formName, status, formData } = req.body;
+    if (!formType) return res.status(400).json({ message: 'formType is required' });
+
+    const newStatus = status || 'draft';
+    const form = await QMSForm.findOneAndUpdate(
+      { clientId: req.user.clientId, formType: Number(formType) },
+      {
+        clientId:  req.user.clientId,
+        clientRef: req.user._id,
+        formType:  Number(formType),
+        formCode,
+        formName,
+        status:    newStatus,
+        formData:  formData || {},
+      },
+      { upsert: true, new: true, runValidators: false, setDefaultsOnInsert: true }
+    );
+
+    // On submit (not draft), for the Application Form (F01), mirror the data into
+    // an Application record so it appears in the admin's main Applications list.
+    if (newStatus !== 'draft' && Number(formType) === 1) {
+      const fd = formData || {};
+      const appFields = {
+        ...fd,
+        isoStandard: (Array.isArray(fd.standards) && fd.standards[0]) || fd.isoStandard || '',
+        scope:       fd.scopeOfCertification || fd.scope || '',
+        client:      req.user._id,
+        status:      'submitted',
+        submittedAt: new Date(),
+      };
+      delete appFields._id; delete appFields.__v;
+      delete appFields.createdAt; delete appFields.updatedAt;
+      delete appFields.applicationId; // never overwrite an existing app id
+
+      let app = form.application ? await Application.findById(form.application) : null;
+      if (app) {
+        Object.assign(app, appFields);
+        await app.save();
+      } else {
+        app = await Application.create(appFields);
+        form.application = app._id;
+        await form.save();
+      }
+
+      // Keep the client's assignedApplications list in sync
+      await User.findByIdAndUpdate(req.user._id, { $addToSet: { assignedApplications: app._id } });
+    }
+
+    // Notify admins when the client submits (not on plain draft saves)
+    if (newStatus !== 'draft') {
+      const link   = Number(formType) === 1 ? '/admin/applications' : '/admin/qms/form-' + String(formType).padStart(2, '0');
+      const admins = await User.find({ role: 'admin' }).select('_id');
+      for (const a of admins) {
+        await User.findByIdAndUpdate(a._id, {
+          $push: { notifications: { $each: [{
+            message: `${req.user.name || 'A client'} submitted ${formName || 'a form'} (${req.user.clientId})`,
+            type: 'info', read: false, link, createdAt: new Date(),
+          }], $position: 0, $slice: 50 } }
+        });
+      }
+    }
+
+    res.json(form);
+  } catch (err) {
+    console.error('[POST /api/qms-forms/my]', err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// DELETE /api/qms-forms/:id
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
+  try {
+    await QMSForm.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Form deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+module.exports = router;
