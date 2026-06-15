@@ -27,7 +27,7 @@ const CLAUSES = [
 ];
 const CONFORMITY = ['C','NC','O','OFI','N/A'];
 
-const buildChecklist = () => CLAUSES.map(([no, desc]) => ({ clause: no, description: desc, done: false, conformity: 'C', finding: '' }));
+const buildChecklist = () => CLAUSES.map(([no, desc]) => ({ clause: no, description: desc, conformity: 'C', finding: '' }));
 
 const DEFAULT = {
   idNo: '', isoStandards: '', orgName: '', auditLanguage: 'English', address: '',
@@ -37,7 +37,8 @@ const DEFAULT = {
   auditStandards: '',
   auditTeam: [{ name: '', role: '', standard: '', stage1MD: '' }],
   briefAboutOrg: '',
-  auditDurationChange: '', employeeDetailChange: '', scopeChange: '', additionalInfo: '',
+  auditDurationChange: '', employeeDetailChange: '', employeeDetailChangeDetails: '',
+  scopeChange: '', scopeChangeDetails: '', additionalInfo: '',
   nonConformitiesRaised: '',
   minorNC: '0', majorNC: '0', observations: '0', ofi: '0', overallReadiness: '',
   recommendation: '',
@@ -115,12 +116,32 @@ export default function Form07Stage1AuditReport() {
             <SectionTitle>Changes & Summary</SectionTitle>
             <FormRow cols={2}>
               <FormField label="Audit Duration for Stage 1"><FInput value={data.auditDurationChange} onChange={v=>set('auditDurationChange',v)} /></FormField>
-              <FormField label="Any change in employee details?"><FInput value={data.employeeDetailChange} onChange={v=>set('employeeDetailChange',v)} placeholder="Yes / No / Details" /></FormField>
-            </FormRow>
-            <FormRow cols={2}>
-              <FormField label="Any change in Scope?"><FInput value={data.scopeChange} onChange={v=>set('scopeChange',v)} placeholder="Yes / No" /></FormField>
               <FormField label="Non-Conformities Raised"><FInput value={data.nonConformitiesRaised} onChange={v=>set('nonConformitiesRaised',v)} /></FormField>
             </FormRow>
+            <FormRow cols={1}>
+              <FormField label="Any change in employee details?">
+                <FRadioGroup value={data.employeeDetailChange} onChange={v=>set('employeeDetailChange',v)} options={[{value:'Yes',label:'Yes'},{value:'No',label:'No'}]} />
+              </FormField>
+            </FormRow>
+            {data.employeeDetailChange==='Yes' && (
+              <FormRow cols={1}>
+                <FormField label="Employee Change Details" required>
+                  <FTextarea value={data.employeeDetailChangeDetails} onChange={v=>set('employeeDetailChangeDetails',v)} rows={2} placeholder="Describe the change in employee details" />
+                </FormField>
+              </FormRow>
+            )}
+            <FormRow cols={1}>
+              <FormField label="Any change in Scope?">
+                <FRadioGroup value={data.scopeChange} onChange={v=>set('scopeChange',v)} options={[{value:'Yes',label:'Yes'},{value:'No',label:'No'}]} />
+              </FormField>
+            </FormRow>
+            {data.scopeChange==='Yes' && (
+              <FormRow cols={1}>
+                <FormField label="Scope Change Details" required>
+                  <FTextarea value={data.scopeChangeDetails} onChange={v=>set('scopeChangeDetails',v)} rows={2} placeholder="Describe the change in scope" />
+                </FormField>
+              </FormRow>
+            )}
             <FormRow cols={1}>
               <FormField label="Additional Information"><FTextarea value={data.additionalInfo} onChange={v=>set('additionalInfo',v)} rows={2} /></FormField>
             </FormRow>
@@ -173,7 +194,7 @@ export default function Form07Stage1AuditReport() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <thead>
                   <tr style={{ background: '#f8fafc' }}>
-                    {['Clause','Description','Done?','Conformity','Finding'].map(h => (
+                    {['Clause','Description','Conformity','Finding'].map(h => (
                       <th key={h} style={{ padding: '8px 10px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', borderBottom: '1.5px solid #e2e8f0' }}>{h}</th>
                     ))}
                   </tr>
@@ -182,19 +203,16 @@ export default function Form07Stage1AuditReport() {
                   {(data.checklist || buildChecklist()).map((row, ri) => (
                     <tr key={ri} style={{ borderBottom: '1px solid #f1f5f9', background: ri%2===0?'white':'#fafafa' }}>
                       <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--primary-dark)', whiteSpace: 'nowrap' }}>{row.clause}</td>
-                      <td style={{ padding: '6px 10px', fontSize: 12, whiteSpace: 'pre-line', lineHeight: 1.55 }}>{row.description}</td>
-                      <td style={{ padding: '6px 8px', textAlign: 'center' }}>
-                        <input type="checkbox" checked={row.done||false} onChange={e=>setCL(ri,'done',e.target.checked)} />
-                      </td>
-                      <td style={{ padding: '6px 8px' }}>
+                      <td style={{ padding: '6px 10px', fontSize: 12, whiteSpace: 'pre-line', lineHeight: 1.55, minWidth: 220 }}>{row.description}</td>
+                      <td style={{ padding: '6px 8px', verticalAlign: 'top' }}>
                         <select value={row.conformity||'C'} onChange={e=>setCL(ri,'conformity',e.target.value)}
                           style={{ padding: '4px 6px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', background: 'white' }}>
                           {CONFORMITY.map(c=><option key={c} value={c}>{c}</option>)}
                         </select>
                       </td>
-                      <td style={{ padding: '6px 8px' }}>
-                        <input type="text" value={row.finding||''} onChange={e=>setCL(ri,'finding',e.target.value)}
-                          placeholder="Finding..." style={{ padding: '4px 8px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', width: '100%', minWidth: 160 }} />
+                      <td style={{ padding: '6px 8px', width: '45%' }}>
+                        <textarea value={row.finding||''} onChange={e=>setCL(ri,'finding',e.target.value)} rows={2}
+                          placeholder="Finding / evidence / notes..." style={{ padding: '6px 8px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', width: '100%', minWidth: 280, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }} />
                       </td>
                     </tr>
                   ))}

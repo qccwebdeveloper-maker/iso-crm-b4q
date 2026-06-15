@@ -24,14 +24,6 @@ const LA_RECOMMENDATIONS = [
   'Retain Certification',
 ];
 
-/* ── Final decision options ── */
-const FINAL_DECISIONS = [
-  'Certificate Issue',
-  'Maintenance / Surveillance Audit Successful',
-  'Renewal',
-  'Retain Certification',
-];
-
 const DEFAULT = {
   /* Organization */
   orgName: '', standard: '', auditType: '', modeOfAudit: '', onlineMeetingLink: '',
@@ -49,7 +41,7 @@ const DEFAULT = {
   reviewerStatement: '',
   reviewDecision: '',
   supplementEvidences: '',
-  finalDecision: '',
+  readyForStage2: '',
   /* Reviewer */
   reviewerName: '', reviewDate: '',
   reviewer2Name: '', reviewer2Date: '',
@@ -317,30 +309,34 @@ export default function Form08Stage1ReviewReport() {
             </FormRow>
           )}
 
-          {/* Final Decision checkboxes */}
+          {/* Ready for Stage 2 — Yes / No */}
           <div style={{ marginBottom: 20 }}>
             <label style={{ fontSize: 10.5, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 8,
               textTransform: 'uppercase', letterSpacing: '.06em' }}>
-              Final Decision
+              Ready for Stage 2?
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-              {FINAL_DECISIONS.map(d => (
-                <label key={d} style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '9px 18px', borderRadius: 8, cursor: 'pointer',
-                  border: `1.5px solid ${data.finalDecision === d ? 'var(--primary)' : '#e2e8f0'}`,
-                  background: data.finalDecision === d ? 'var(--primary-50)' : 'white',
-                  fontSize: 12.5, fontWeight: data.finalDecision === d ? 700 : 500,
-                  color: data.finalDecision === d ? 'var(--primary-dark)' : '#374151',
-                  transition: 'all .14s',
-                }}>
-                  <input type="radio" name="finalDecision" value={d}
-                    checked={data.finalDecision === d}
-                    onChange={() => set('finalDecision', d)}
-                    style={{ accentColor: 'var(--primary)', width: 14, height: 14 }} />
-                  {d}
-                </label>
-              ))}
+              {['Yes', 'No'].map(d => {
+                const active = data.readyForStage2 === d;
+                const accent = d === 'Yes' ? '#16a34a' : '#dc2626';
+                return (
+                  <label key={d} style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '9px 22px', borderRadius: 8, cursor: 'pointer',
+                    border: `1.5px solid ${active ? accent : '#e2e8f0'}`,
+                    background: active ? (d === 'Yes' ? '#f0fdf4' : '#fef2f2') : 'white',
+                    fontSize: 12.5, fontWeight: active ? 700 : 500,
+                    color: active ? accent : '#374151',
+                    transition: 'all .14s',
+                  }}>
+                    <input type="radio" name="readyForStage2" value={d}
+                      checked={active}
+                      onChange={() => set('readyForStage2', d)}
+                      style={{ accentColor: accent, width: 14, height: 14 }} />
+                    {d}
+                  </label>
+                );
+              })}
             </div>
           </div>
 
