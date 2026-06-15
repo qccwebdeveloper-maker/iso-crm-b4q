@@ -30,7 +30,7 @@ const DEFAULT = {
   auditTeam: [{ ...EMPTY_AUDITOR }, { ...EMPTY_AUDITOR }],
   hodName: '', hodDecision: '',
   // Audit man-days
-  totalMandays: '', totalMandaysS1S2: '', totalMandaysIAF: '',
+  totalMandays: '', totalMandaysS1: '', totalMandaysS2: '', totalMandaysIAF: '',
   // Audit dates
   stage1DateFrom: '', stage1DateTo: '', stage2DateFrom: '', stage2DateTo: '',
   // Reviewer declaration
@@ -235,15 +235,17 @@ export default function Form02ApplicationReview() {
 
             {/* ── 4. Audit Man-days ── */}
             <SectionTitle>Audit Man-days Summary</SectionTitle>
-            <FormRow cols={3}>
+            <FormRow cols={2}>
+              <FormField label="Total Audit Mandays (Stage 1)">
+                <FInput value={data.totalMandaysS1} onChange={v => set('totalMandaysS1', v)} type="number" placeholder="0" />
+              </FormField>
+              <FormField label="Total Audit Mandays (Stage 2)">
+                <FInput value={data.totalMandaysS2} onChange={v => set('totalMandaysS2', v)} type="number" placeholder="0" />
+              </FormField>
+            </FormRow>
+            <FormRow cols={1}>
               <FormField label="Total Audit Mandays">
                 <FInput value={data.totalMandays} onChange={v => set('totalMandays', v)} type="number" placeholder="0" />
-              </FormField>
-              <FormField label="Total Audit Mandays (Stage 1 + Stage 2)">
-                <FInput value={data.totalMandaysS1S2} onChange={v => set('totalMandaysS1S2', v)} type="number" placeholder="0" />
-              </FormField>
-              <FormField label="Total Audit Mandays (as per IAF MD 5)">
-                <FInput value={data.totalMandaysIAF} onChange={v => set('totalMandaysIAF', v)} type="number" placeholder="0" />
               </FormField>
             </FormRow>
 
@@ -284,15 +286,17 @@ export default function Form02ApplicationReview() {
                   ]} />
               </FormField>
             </FormRow>
-            <FormRow cols={3}>
+            <FormRow cols={2}>
               <FormField label="Reviewer Name">
                 <FInput value={data.reviewerName} onChange={v => set('reviewerName', v)} placeholder="Reviewer name" />
               </FormField>
-              <FormField label="Verification Officer (if applicable)">
-                <FInput value={data.verificationName} onChange={v => set('verificationName', v)} placeholder="Brijesh Kumar" />
-              </FormField>
               <FormField label="Review Date">
                 <FInput value={data.reviewDate} onChange={v => set('reviewDate', v)} type="date" />
+              </FormField>
+            </FormRow>
+            <FormRow cols={1}>
+              <FormField label="Verification Officer (if applicable)">
+                <FInput value={data.verificationName} onChange={v => set('verificationName', v)} placeholder="Brijesh Kumar" />
               </FormField>
             </FormRow>
             <FormRow cols={1}>
