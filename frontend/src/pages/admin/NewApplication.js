@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
@@ -161,10 +161,13 @@ const SecCard = ({id, title, children}) => (
 export default function AdminNewApplication() {
   const { user } = useAuth();
   const navigate  = useNavigate();
-  const [clients,  setClients]  = useState([]);
-  const [saving,   setSaving]   = useState(false);
-  const [form,     setForm]     = useState(INIT);
-  const [openSecs, setOpenSecs] = useState({ iso50001:false, isoEnv:false, iso22000:false, iso27001:false });
+  const { id }    = useParams();
+  const isEdit    = !!id;
+  const [clients,    setClients]    = useState([]);
+  const [saving,     setSaving]     = useState(false);
+  const [loadingApp, setLoadingApp] = useState(!!id);
+  const [form,       setForm]       = useState(INIT);
+  const [openSecs,   setOpenSecs]   = useState({ iso50001:false, isoEnv:false, iso22000:false, iso27001:false });
 
   const isClient = user?.role === 'client';
   const backTo = isClient ? '/client/applications'
@@ -174,6 +177,23 @@ export default function AdminNewApplication() {
   useEffect(()=>{
     if (!isClient) axios.get('/api/users?role=client').then(r=>setClients(r.data||[])).catch(()=>{});
   },[isClient]);
+
+  // Edit mode — load the existing application and pre-fill the full form
+  useEffect(()=>{
+    if (!id) return;
+    axios.get(`/api/applications/${id}`).then(({data})=>{
+      setForm(f=>({
+        ...f,
+        ...data,
+        client:               data.client?._id || data.client || '',
+        standards:            Array.isArray(data.standards) ? data.standards : [],
+        locationConditions:   Array.isArray(data.locationConditions) ? data.locationConditions : [],
+        empTable:             (Array.isArray(data.empTable) && data.empTable.length) ? data.empTable : f.empTable,
+        scopeOfCertification: data.scopeOfCertification || data.scope || '',
+      }));
+    }).catch(()=>toast.error('Failed to load application'))
+      .finally(()=>setLoadingApp(false));
+  },[id]);
 
   const set       = (k,v) => setForm(f=>({...f,[k]:v}));
   const toggleSec = (k)   => setOpenSecs(s=>({...s,[k]:!s[k]}));
@@ -204,12 +224,19 @@ export default function AdminNewApplication() {
       };
       if(isClient) delete payload.client;
       else if(!payload.client) delete payload.client;
-      const {data} = await axios.post('/api/applications', payload);
-      if(!asDraft) await axios.post(`/api/applications/${data._id}/submit`).catch(()=>{});
-      toast.success(asDraft?'Saved as draft':'Application submitted!');
+      let appId = id;
+      if(isEdit){
+        await axios.put(`/api/applications/${id}`, payload);
+      } else {
+        const {data} = await axios.post('/api/applications', payload);
+        appId = data._id;
+      }
+      if(!asDraft) await axios.post(`/api/applications/${appId}/submit`).catch(()=>{});
+      toast.success(isEdit ? (asDraft?'Changes saved':'Application updated!')
+                           : (asDraft?'Saved as draft':'Application submitted!'));
       navigate(backTo);
     }catch(e){
-      toast.error(e?.response?.data?.message||'Failed to create application');
+      toast.error(e?.response?.data?.message||'Failed to save application');
     }finally{ setSaving(false); }
   };
 
@@ -232,8 +259,11 @@ export default function AdminNewApplication() {
   ];
 
   /* ─── render ─── */
+  if (loadingApp) {
+    return <Layout title="Edit Application"><div className="loading-box"><div className="spinner"/></div></Layout>;
+  }
   return (
-    <Layout title="New Application">
+    <Layout title={isEdit ? 'Edit Application' : 'New Application'}>
       <div className="audit-wrap">
 
         {/* Header */}
@@ -243,7 +273,7 @@ export default function AdminNewApplication() {
               <ArrowLeft size={14}/> Back
             </button>
             <div>
-              <h1 className="page-title">{isClient?'Apply for ISO Certification':'New Application'}</h1>
+              <h1 className="page-title">{isEdit?'Edit Application':isClient?'Apply for ISO Certification':'New Application'}</h1>
               <p className="page-subtitle">Request for Proposal cum Application Form — QC Certification</p>
             </div>
           </div>

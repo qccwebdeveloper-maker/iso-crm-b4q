@@ -51,6 +51,7 @@ import QMSForm15 from './pages/admin/qms/Form15FinalReviewReport';
 import ClientDashboard       from './pages/client/Dashboard';
 import ClientApplications    from './pages/client/Applications';
 import ClientApplicationDetail from './pages/client/ApplicationDetail';
+import ClientApplicationForm  from './pages/client/ApplicationForm';
 import ClientDocuments       from './pages/client/Documents';
 import ClientCertificates    from './pages/client/Certificates';
 import ClientFeedback        from './pages/client/Feedback';
@@ -100,6 +101,7 @@ function AppRoutes() {
       <Route path="/admin/leads"             element={<ProtectedRoute roles={['admin']}><AdminLeads /></ProtectedRoute>} />
       <Route path="/admin/applications"      element={<ProtectedRoute roles={['admin']}><AdminApplications /></ProtectedRoute>} />
       <Route path="/admin/applications/new"  element={<ProtectedRoute roles={['admin']}><AdminNewApplication /></ProtectedRoute>} />
+      <Route path="/admin/applications/:id/edit" element={<ProtectedRoute roles={['admin']}><AdminNewApplication /></ProtectedRoute>} />
       <Route path="/admin/applications/:id"  element={<ProtectedRoute roles={['admin']}><AdminApplicationDetail /></ProtectedRoute>} />
       <Route path="/admin/payments"          element={<ProtectedRoute roles={['admin']}><AdminPayments /></ProtectedRoute>} />
       <Route path="/admin/users"             element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />
@@ -143,6 +145,8 @@ function AppRoutes() {
       <Route path="/client"                  element={<ProtectedRoute roles={['client']}><ClientDashboard /></ProtectedRoute>} />
       <Route path="/client/applications"     element={<ProtectedRoute roles={['client']}><ClientApplications /></ProtectedRoute>} />
       <Route path="/client/applications/new" element={<ProtectedRoute roles={['client']}><AdminNewApplication /></ProtectedRoute>} />
+      <Route path="/client/qms/form-01"      element={<ProtectedRoute roles={['client']}><ClientApplicationForm /></ProtectedRoute>} />
+      <Route path="/client/applications/:id/edit" element={<ProtectedRoute roles={['client']}><AdminNewApplication /></ProtectedRoute>} />
       <Route path="/client/applications/:id" element={<ProtectedRoute roles={['client']}><ClientApplicationDetail /></ProtectedRoute>} />
       <Route path="/client/documents"        element={<ProtectedRoute roles={['client']}><ClientDocuments /></ProtectedRoute>} />
       <Route path="/client/certificates"     element={<ProtectedRoute roles={['client']}><ClientCertificates /></ProtectedRoute>} />

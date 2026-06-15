@@ -5,34 +5,21 @@ const ROLES = ['Lead Auditor','Auditor','Technical Expert'];
 const NC_TYPES = ['Minor NC','Major NC'];
 const CONFORMITY = ['C','NC','O','OFI','N/A'];
 const CLAUSES_S2 = [
-  ['4.1','4.1 Understanding the Organization and its Context\nThe organization shall determine whether climate change is a relevant issue'],
-  ['4.2','4.2 Needs and Expectations of Interested Parties\nNOTE: Relevant interested parties can have requirements related to climate change'],
-  ['4.3','4.3 Scope of Management System'],
-  ['4.4','4.4 Management System and its Processes'],
-  ['5.1','5.1 Leadership and commitment\n5.1.1 General\n5.1.2 Customer focus'],
-  ['5.2','5.2 Policy\n5.2.1 Establishing the quality policy\n5.2.2 Communicating the quality policy'],
-  ['5.3','5.3 Organizational roles, responsibilities and authorities'],
-  ['6.1','6.1 Actions to address risks and opportunities'],
-  ['6.2','6.2 Quality objectives and planning to achieve them'],
-  ['6.3','6.3 Planning of changes'],
-  ['7.1','7.1 Resources\n7.1.1 General  7.1.2 People  7.1.3 Infrastructure\n7.1.4 Environment for the operation of processes\n7.1.5 Monitoring and measuring resources  7.1.6 Organizational knowledge'],
-  ['7.2','7.2 Competence'],
-  ['7.3','7.3 Awareness'],
-  ['7.4','7.4 Communication'],
-  ['7.5','7.5 Documented information\n7.5.1 General  7.5.2 Creating and updating  7.5.3 Control of documented information'],
-  ['8.1','8.1 Operational planning and control'],
-  ['8.2','8.2 Requirements for products and services\n8.2.1 Customer communication  8.2.2 Determining the requirements\n8.2.3 Review of the requirements  8.2.4 Changes to requirements'],
-  ['8.3','8.3 Design and development of products and services\n8.3.1–8.3.6 General through Design and development changes'],
-  ['8.4','8.4 Control of externally provided processes, products and services\n8.4.1 General  8.4.2 Type and extent of control  8.4.3 Information for external providers'],
-  ['8.5','8.5 Production and service provision\n8.5.1–8.5.6 Control through Control of changes'],
-  ['8.6','8.6 Release of products and services'],
-  ['8.7','8.7 Control of nonconforming outputs'],
-  ['9.1','9.1 Monitoring, measurement, analysis and evaluation\n9.1.1 General  9.1.2 Customer satisfaction  9.1.3 Analysis and evaluation'],
-  ['9.2','9.2 Internal audit\n9.2.1 General  9.2.2 Internal audit programme'],
-  ['9.3','9.3 Management review\n9.3.1 General  9.3.2 Management review inputs  9.3.3 Management review outputs'],
-  ['10.1','10.1 General'],
-  ['10.2','10.2 Nonconformity and corrective action'],
-  ['10.3','10.3 Continual improvement'],
+  ['4.1','4.1 Understanding the Organization and its Context The organization shall determine whether climate change is a relevant issue'],['4.2','4.2 Needs and Expectations of Interested Parties Note Relevant interested partiees can have requirements related to climate change'],
+  ['4.3','4.3 Scope of Management System'],['4.4','4.4 Management System and its Processes'],
+  ['5.1','5.1 Leadership and Commitment'],['5.2','5.2 Policy'],['5.3','5.3 Roles, Responsibilities and Authorities'],
+  ['6.1','6.1 Actions to Address Risks and Opportunities'],['6.2','6.2 Objectives and Planning to Achieve Them'],
+  ['6.3','6.3 Planning of Changes'],['7.1','7.1 Resources'],['7.2','7.2 Competence'],
+  ['7.3','7.3 Awareness'],['7.4','7.4 Communication'],['7.5','7.5 Documented Information'],
+  ['8.1','8.1 Operational Planning and Control'],['8.2','8.2 Requirements for Products and Services'],
+  ['8.3','8.3 Design and Development'],['8.4','8.4 Control of Externally Provided Processes'],
+  ['8.5','8.5 Production and Service Provision'],['8.6','8.6 Release of Products and Services'],
+  ['8.7','8.7 Control of Nonconforming Outputs'],
+  ['9.1','9.1 Monitoring, Measurement, Analysis and Evaluation'],
+   ['9.2','9.2 Internal Audit'],['9.3','9.3 Management Review'],
+  ['10.1','10.1 Improvement / Continual Improvement'],
+  ['10.2','10.2 Nonconformity and Corrective Action'],
+  ['10.3','10.3 Continual Improvement '],
 ];
 const buildChecklist = () => CLAUSES_S2.map(([no,desc]) => ({ clause: no, description: desc, done: false, conformity: 'N/A', finding: '' }));
 const SURV_CHECKS = [
@@ -61,6 +48,7 @@ const DEFAULT = {
   proposedNextAuditDate: '',
   resultsEvaluation: '',
   ncList: [],
+  observationList: [],
   ofiList: [],
   checklist: buildChecklist(),
 };
@@ -83,6 +71,7 @@ export default function Form11Stage2AuditReport() {
       {({ data, set }) => {
         const setTeam = (ri,k,v)=>{ const t=[...(data.auditTeam||[])]; t[ri]={...t[ri],[k]:v}; set('auditTeam',t); };
         const setNC   = (ri,k,v)=>{ const t=[...(data.ncList||[])]; t[ri]={...t[ri],[k]:v}; set('ncList',t); };
+        const setObs  = (ri,k,v)=>{ const t=[...(data.observationList||[])]; t[ri]={...t[ri],[k]:v}; set('observationList',t); };
         const setOFI  = (ri,k,v)=>{ const t=[...(data.ofiList||[])]; t[ri]={...t[ri],[k]:v}; set('ofiList',t); };
         const setCL   = (ri,k,v)=>{ const t=[...(data.checklist||buildChecklist())]; t[ri]={...t[ri],[k]:v}; set('checklist',t); };
         const survChecks = data.survChecks || {};
@@ -124,6 +113,10 @@ export default function Form11Stage2AuditReport() {
               columns={[{key:'name',label:'Name',minWidth:140},{key:'role',label:'Role',type:'select',options:ROLES},{key:'competency',label:'Competency Standard(s)',minWidth:160},{key:'stage2MD',label:'Stage-2 MD',minWidth:80}]}
               rows={data.auditTeam||[]} onAdd={()=>set('auditTeam',[...(data.auditTeam||[]),{name:'',role:'',competency:'',stage2MD:''}])}
               onRemove={ri=>set('auditTeam',(data.auditTeam||[]).filter((_,i)=>i!==ri))} onCellChange={setTeam} addLabel="Add Member" />
+
+            <div style={{ margin: '16px 0', padding: '12px 16px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 8, fontSize: 12, color: '#78350f', lineHeight: 1.6 }}>
+              <strong>Disclaimer:</strong> This audit has been conducted on a sampling basis of the available information, documents, records, processes and activities reviewed during the audit. The audit findings are based only on the evidence verified at the time of audit and do not guarantee detection of all possible nonconformities or system weaknesses.
+            </div>
 
             <SectionTitle>Audit Context</SectionTitle>
             <FormRow cols={1}><FormField label="Audit Objectives"><FTextarea value={data.auditObjectives} onChange={v=>set('auditObjectives',v)} rows={3} placeholder="Describe audit objectives..." /></FormField></FormRow>
@@ -185,6 +178,12 @@ export default function Form11Stage2AuditReport() {
               columns={[{key:'sNo',label:'S.No.',minWidth:50},{key:'standard',label:'MS Standard',minWidth:120},{key:'type',label:'Type of NC',type:'select',options:NC_TYPES},{key:'clause',label:'Clause No.',minWidth:80},{key:'details',label:'Details of NC',type:'textarea',minWidth:200}]}
               rows={data.ncList||[]} onAdd={()=>set('ncList',[...(data.ncList||[]),{sNo:String((data.ncList||[]).length+1),standard:'ISO 9001:2015',type:'Minor NC',clause:'',details:''}])}
               onRemove={ri=>set('ncList',(data.ncList||[]).filter((_,i)=>i!==ri))} onCellChange={setNC} addLabel="Add NC" />
+
+            <SectionTitle>Observations Overview</SectionTitle>
+            <DynamicTable
+              columns={[{key:'sNo',label:'S.No.',minWidth:50},{key:'standard',label:'MS Standard',minWidth:120},{key:'clause',label:'Clause No.',minWidth:80},{key:'details',label:'Details',type:'textarea',minWidth:200}]}
+              rows={data.observationList||[]} onAdd={()=>set('observationList',[...(data.observationList||[]),{sNo:String((data.observationList||[]).length+1),standard:'ISO 9001:2015',clause:'',details:''}])}
+              onRemove={ri=>set('observationList',(data.observationList||[]).filter((_,i)=>i!==ri))} onCellChange={setObs} addLabel="Add Observation" />
 
             <SectionTitle>4. Opportunities for Improvement (OFI)</SectionTitle>
             <DynamicTable

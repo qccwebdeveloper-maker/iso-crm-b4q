@@ -7,6 +7,7 @@ const Otp         = require('../models/Otp');
 const AppSetting  = require('../models/AppSetting');
 const { protect } = require('../middleware/auth');
 const { sendOtpEmail, sendWelcomeEmail } = require('../utils/email');
+const { generateClientId } = require('../utils/clientId');
 
 const SECRET   = process.env.JWT_SECRET || 'crm_secret_key_2024';
 const genToken = (id) => jwt.sign({ id }, SECRET, { expiresIn: '7d' });
@@ -203,7 +204,7 @@ router.post('/register-client', async (req, res) => {
     const exists = await User.findOne({ email: email.toLowerCase() });
     if (exists) return res.status(409).json({ message: 'An account with this email already exists' });
 
-    const clientId = 'CLT-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 5).toUpperCase();
+    const clientId = await generateClientId();
     const hashed   = await hashPw(password);
 
     const user = await User.create({

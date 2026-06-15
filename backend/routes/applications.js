@@ -201,7 +201,7 @@ router.post('/:id/upload', protect, upload.single('document'), async (req, res) 
       publicId = safeName;
     }
 
-    const namedTypes = ['applicationForm', 'agreement', 'signedForm', 'auditReport', 'reviewReport'];
+    const namedTypes = ['applicationForm', 'agreement', 'signedForm', 'auditReport', 'reviewReport', 'proofId'];
     if (namedTypes.includes(docType)) {
       app[docType] = cloudUrl;
     } else if (docType === 'certificate') {

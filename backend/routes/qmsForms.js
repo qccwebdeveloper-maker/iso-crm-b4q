@@ -1,7 +1,8 @@
 const express  = require('express');
 const router   = express.Router();
-const QMSForm  = require('../models/QMSForm');
-const User     = require('../models/User');
+const QMSForm     = require('../models/QMSForm');
+const User        = require('../models/User');
+const Application = require('../models/Application');
 const { protect, authorize } = require('../middleware/auth');
 
 // GET /api/qms-forms?formType=1&status=draft
@@ -68,6 +69,93 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
     res.json(form);
   } catch (err) {
     console.error('[POST /api/qms-forms]', err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ─── Client self-service: a client can only read/write their OWN form ───
+
+// GET /api/qms-forms/my/:formType — logged-in client's own form (null if none yet)
+router.get('/my/:formType', protect, authorize('client'), async (req, res) => {
+  try {
+    if (!req.user.clientId) return res.status(400).json({ message: 'No client ID linked to your account' });
+    const form = await QMSForm.findOne({
+      clientId: req.user.clientId,
+      formType: Number(req.params.formType),
+    });
+    res.json(form || null);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// POST /api/qms-forms/my — create/update logged-in client's own form
+router.post('/my', protect, authorize('client'), async (req, res) => {
+  try {
+    if (!req.user.clientId) return res.status(400).json({ message: 'No client ID linked to your account' });
+    const { formType, formCode, formName, status, formData } = req.body;
+    if (!formType) return res.status(400).json({ message: 'formType is required' });
+
+    const newStatus = status || 'draft';
+    const form = await QMSForm.findOneAndUpdate(
+      { clientId: req.user.clientId, formType: Number(formType) },
+      {
+        clientId:  req.user.clientId,
+        clientRef: req.user._id,
+        formType:  Number(formType),
+        formCode,
+        formName,
+        status:    newStatus,
+        formData:  formData || {},
+      },
+      { upsert: true, new: true, runValidators: false, setDefaultsOnInsert: true }
+    );
+
+    // On submit (not draft), for the Application Form (F01), mirror the data into
+    // an Application record so it appears in the admin's main Applications list.
+    if (newStatus !== 'draft' && Number(formType) === 1) {
+      const fd = formData || {};
+      const appFields = {
+        ...fd,
+        isoStandard: (Array.isArray(fd.standards) && fd.standards[0]) || fd.isoStandard || '',
+        scope:       fd.scopeOfCertification || fd.scope || '',
+        client:      req.user._id,
+        status:      'submitted',
+        submittedAt: new Date(),
+      };
+      delete appFields._id; delete appFields.__v;
+      delete appFields.createdAt; delete appFields.updatedAt;
+      delete appFields.applicationId; // never overwrite an existing app id
+
+      let app = form.application ? await Application.findById(form.application) : null;
+      if (app) {
+        Object.assign(app, appFields);
+        await app.save();
+      } else {
+        app = await Application.create(appFields);
+        form.application = app._id;
+        await form.save();
+      }
+
+      // Keep the client's assignedApplications list in sync
+      await User.findByIdAndUpdate(req.user._id, { $addToSet: { assignedApplications: app._id } });
+    }
+
+    // Notify admins when the client submits (not on plain draft saves)
+    if (newStatus !== 'draft') {
+      const link   = Number(formType) === 1 ? '/admin/applications' : '/admin/qms/form-' + String(formType).padStart(2, '0');
+      const admins = await User.find({ role: 'admin' }).select('_id');
+      for (const a of admins) {
+        await User.findByIdAndUpdate(a._id, {
+          $push: { notifications: { $each: [{
+            message: `${req.user.name || 'A client'} submitted ${formName || 'a form'} (${req.user.clientId})`,
+            type: 'info', read: false, link, createdAt: new Date(),
+          }], $position: 0, $slice: 50 } }
+        });
+      }
+    }
+
+    res.json(form);
+  } catch (err) {
+    console.error('[POST /api/qms-forms/my]', err.message);
     res.status(500).json({ message: err.message });
   }
 });

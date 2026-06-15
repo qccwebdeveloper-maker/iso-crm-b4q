@@ -132,7 +132,7 @@ export default function Form15FinalReviewReport() {
             <SectionTitle>Multi-site Certification</SectionTitle>
             <ChecksTable checks={MULTISITE_CHECKS} values={data.multiSiteChecks} setVal={(k,v) => setCheck('multiSiteChecks', k, v)} />
 
-            <SectionTitle>1st Surveillance Audit</SectionTitle>
+            <SectionTitle> Surveillance Audit</SectionTitle>
             <ChecksTable checks={SURV1_CHECKS} values={data.surv1Checks} setVal={(k,v) => setCheck('surv1Checks', k, v)} />
 
             <SectionTitle>Recertification Audit</SectionTitle>

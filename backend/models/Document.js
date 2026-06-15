@@ -5,7 +5,7 @@ const documentSchema = new mongoose.Schema({
   originalName:    { type: String },
   path:            { type: String, required: true },
   publicId:        { type: String, required: true },
-  docType:         { type: String, enum: ['applicationForm','agreement','signedForm','auditReport','reviewReport','certificate','document'], default: 'document' },
+  docType:         { type: String, enum: ['applicationForm','agreement','signedForm','auditReport','reviewReport','certificate','proofId','document'], default: 'document' },
   applicationId:   { type: String },
   application:     { type: mongoose.Schema.Types.ObjectId, ref: 'Application' },
   uploadedBy:      { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

@@ -1,15 +1,45 @@
 import React,{useState,useEffect}from 'react';
-import{useNavigate}from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../../components/common/Layout';
+import toast from 'react-hot-toast';
 import{FileText,Download,Eye,Upload,Award}from 'lucide-react';
+
+// Only these two document types are uploadable / shown for clients
+const CLIENT_DOCS=[
+  {label:'Proof ID',key:'proofId',hint:'Identity / address proof (PDF or image)'},
+  {label:'Agreement Form',key:'agreement',hint:'Signed agreement document'},
+];
+
 export function ClientDocuments(){
-  const navigate=useNavigate();const[apps,setApps]=useState([]);const[loading,setLoading]=useState(true);
-  useEffect(()=>{axios.get('/api/applications').then(r=>setApps(r.data||[])).finally(()=>setLoading(false));},[]);
+  const[apps,setApps]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[uploading,setUploading]=useState('');// `${appId}:${key}` currently uploading
+
+  const load=()=>{
+    axios.get('/api/applications').then(r=>setApps(r.data||[])).finally(()=>setLoading(false));
+  };
+  useEffect(load,[]);
+
+  const handleUpload=async(appId,docType,file)=>{
+    if(!file)return;
+    const key=`${appId}:${docType}`;
+    setUploading(key);
+    try{
+      const fd=new FormData();
+      fd.append('document',file);
+      fd.append('docType',docType);
+      await axios.post(`/api/applications/${appId}/upload`,fd);
+      toast.success('Document uploaded');
+      load();
+    }catch(e){
+      toast.error(e?.response?.data?.message||'Upload failed');
+    }finally{ setUploading(''); }
+  };
+
   return(
     <Layout title="Documents & Forms">
-      <div className="page-hdr"><div><h1 className="page-title">Documents & Forms</h1><p className="page-subtitle">All application documents across your certifications</p></div></div>
-      {loading?<div className="loading-box"><div className="spinner"/></div>:apps.length===0?<div className="empty-box"><FileText size={40}/><h3>No documents yet</h3><p>Submit an application to see documents here</p></div>:(
+      <div className="page-hdr"><div><h1 className="page-title">Documents & Forms</h1><p className="page-subtitle">Upload your Proof ID and Agreement Form</p></div></div>
+      {loading?<div className="loading-box"><div className="spinner"/></div>:apps.length===0?<div className="empty-box"><FileText size={40}/><h3>No documents yet</h3><p>Submit an application to upload documents here</p></div>:(
         apps.map(app=>(
           <div key={app._id} className="card" style={{marginBottom:16}}>
             <div className="card-hdr">
@@ -17,15 +47,26 @@ export function ClientDocuments(){
               <span className={`badge bdg-${app.status}`}>{app.status?.replace(/_/g,' ')}</span>
             </div>
             <div className="card-body">
-              {[{label:'Application Form',key:'applicationForm'},{label:'Agreement',key:'agreement'},{label:'Signed Form',key:'signedForm'}].map(doc=>(
-                <div key={doc.key} className="doc-row">
-                  <div className="doc-row-info"><FileText size={18} style={{color:app[doc.key]?'var(--primary)':'var(--gray-300)',flexShrink:0}}/><div><div className="doc-row-name">{doc.label}</div><div className="doc-row-meta">{app[doc.key]?'✓ Uploaded':'Not uploaded'}</div></div></div>
-                  <div className="doc-row-actions">
-                    {app[doc.key]&&<><a href={app[doc.key]} target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm"><Eye size={12}/>Preview</a><a href={app[doc.key]} download className="btn btn-success btn-sm"><Download size={12}/>Download</a></>}
-                    <button className="btn btn-outline btn-sm" onClick={()=>navigate(`/client/applications/${app._id}`)}><Upload size={12}/>Manage</button>
+              {CLIENT_DOCS.map(doc=>{
+                const url=app[doc.key];
+                const busy=uploading===`${app._id}:${doc.key}`;
+                return(
+                  <div key={doc.key} className="doc-row">
+                    <div className="doc-row-info">
+                      <FileText size={18} style={{color:url?'var(--primary)':'var(--gray-300)',flexShrink:0}}/>
+                      <div><div className="doc-row-name">{doc.label}</div><div className="doc-row-meta">{url?'✓ Uploaded':doc.hint}</div></div>
+                    </div>
+                    <div className="doc-row-actions">
+                      {url&&<><a href={url} target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm"><Eye size={12}/>Preview</a><a href={url} download className="btn btn-success btn-sm"><Download size={12}/>Download</a></>}
+                      <label className="btn btn-primary btn-sm" style={{cursor:busy?'not-allowed':'pointer',opacity:busy?0.6:1}}>
+                        <Upload size={12}/>{busy?'Uploading…':url?'Replace':'Upload'}
+                        <input type="file" hidden disabled={busy} accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                          onChange={e=>{handleUpload(app._id,doc.key,e.target.files[0]);e.target.value='';}}/>
+                      </label>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))

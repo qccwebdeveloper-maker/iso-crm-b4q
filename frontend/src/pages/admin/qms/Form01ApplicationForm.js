@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, FileText, ChevronDown, ChevronRight } from 'lucide-react';
 import QMSFormPage from './QMSFormPage';
 
@@ -9,7 +9,7 @@ const ISO_LIST = [
   'ISO 22301:2019','ISO 37001:2016','ISO 21001:2018','ISO 50001:2018',
 ];
 const APP_TYPES = ['Initial','Surveillance','Re-certification','Un-Announced','Follow-up'];
-const ACCRED = ['USF','UASL'];
+const ACCRED = ['UAF','UASL'];
 const COUNTRY_CODES = [
   {code:'+1',country:'US/Canada'},{code:'+7',country:'Russia'},{code:'+20',country:'Egypt'},
   {code:'+27',country:'South Africa'},{code:'+30',country:'Greece'},{code:'+31',country:'Netherlands'},
@@ -39,7 +39,7 @@ const EMP_COLS = ['Full Time','Part Time','Performing Same type of Job','Tempora
 const LOCATION_CONDITIONS = ['Special countermeasure area','Protection area of source water','Industrial complex','City'];
 const emptyRow = () => Array(EMP_COLS.length).fill(0);
 
-const INIT = {
+export const INIT = {
   refno:'', organizationName:'', address:'', additionalSites:'',
   countryCode:'+91', mobileNumber:'', emailId:'', contactPerson:'', designation:'',
   modeOfWorking:'Onsite', hybridCoreActivities:'',
@@ -92,6 +92,10 @@ const INIT = {
   iso37001EffectiveEmployees:0, iso37001Risk:'',
   // ISO 21001 EOMS
   iso21001Staff:0, iso21001Volunteers:0, iso21001ExternalStaff:0, iso21001OtherStaff:0, iso21001Risk:'',
+  // ISO 22301 BCMS
+  iso22301NumSites:'', iso22301CriticalProcesses:'', iso22301RTO:'', iso22301RPO:'',
+  iso22301BIAStatus:'', iso22301BCPStatus:'', iso22301ExerciseFrequency:'', iso22301Risk:'',
+  iso22301OutsourcedBC:'', iso22301CrisisTeam:'',
   // Multi-site
   multiSiteEmpTable:[], multiSiteSameCorporate:'', multiSiteImplementSame:'',
   multiSiteSameCEO:'', multiSiteQualitySystem:'',
@@ -148,21 +152,21 @@ const AccSec = ({title, color, isOpen, onToggle, children}) => (
       <span style={{flex:1,marginRight:10}}>{title}</span>
       {isOpen ? <ChevronDown size={15} style={{flexShrink:0}}/> : <ChevronRight size={15} style={{flexShrink:0}}/>}
     </div>
-    {isOpen && <div style={{padding:'16px 18px'}}>{children}</div>}
+    {isOpen && <div className="accsec-body" style={{padding:'16px 18px'}}>{children}</div>}
   </div>
 );
 const SecCard = ({id, title, children}) => (
-  <div id={id} style={{background:'white',borderRadius:12,overflow:'hidden',border:'1px solid #f1f5f9',boxShadow:'0 1px 3px rgba(0,0,0,.06)',scrollMarginTop:80}}>
+  <div id={id} style={{background:'white',borderRadius:12,overflow:'hidden',border:'1px solid #f1f5f9',boxShadow:'0 1px 3px rgba(0,0,0,.06)',scrollMarginTop:150}}>
     <div style={{background:'var(--primary)',color:'white',padding:'10px 20px',fontWeight:700,fontSize:14}}>
       {title}
     </div>
-    <div style={{padding:'22px 24px'}}>{children}</div>
+    <div className="sec-card-body" style={{padding:'22px 24px'}}>{children}</div>
   </div>
 );
 
 /* ── Inner form component (needs local useState for accordion UI state) ── */
-function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
-  const [openSecs, setOpenSecs] = useState({ iso50001:false, isoEnv:false, iso22000:false, iso27001:false, iso27701:false, iso42001:false, iso37001:false, iso21001:false });
+export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
+  const [openSecs, setOpenSecs] = useState({ iso50001:false, isoEnv:false, iso22000:false, iso22301:false, iso27001:false, iso27701:false, iso42001:false, iso37001:false, iso21001:false });
 
   const toggleSec = (k) => setOpenSecs(s=>({...s,[k]:!s[k]}));
   const toggleStd = (s) => {
@@ -188,13 +192,14 @@ function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
   const has45001 = (data.standards||[]).includes('ISO 45001:2018');
   const has50001 = (data.standards||[]).includes('ISO 50001:2018');
   const has22000 = (data.standards||[]).includes('ISO 22000:2018');
+  const has22301 = (data.standards||[]).includes('ISO 22301:2019');
   const has27001 = (data.standards||[]).includes('ISO 27001:2022');
   const has27701 = (data.standards||[]).includes('ISO/IEC 27701:2025');
   const has42001 = (data.standards||[]).includes('ISO/IEC 42001:2023');
   const has37001 = (data.standards||[]).includes('ISO 37001:2016');
   const has21001 = (data.standards||[]).includes('ISO 21001:2018');
   const showEnv  = has14001 || has45001;
-  const hasISOAdd= has50001 || showEnv || has22000 || has27001 || has27701 || has42001 || has37001 || has21001;
+  const hasISOAdd= has50001 || showEnv || has22000 || has22301 || has27001 || has27701 || has42001 || has37001 || has21001;
 
   const navLinks = [
     {id:'basic-info',    label:'Basic Info',    desc:'Organisation & Contact'},
@@ -205,6 +210,25 @@ function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
     ...(hasISOAdd?[{id:'iso-add-sec',label:'ISO Details',desc:'Additional Details'}]:[]),
     {id:'submit-sec',    label:'Submit',        desc:'Declaration & Review'},
   ];
+
+  // Scroll-spy: highlight the stepper step for the section currently in view
+  const [activeSec, setActiveSec] = useState(navLinks[0].id);
+  useEffect(() => {
+    const ids = navLinks.map(l => l.id);
+    const onScroll = () => {
+      let current = ids[0];
+      for (const id of ids) {
+        const el = document.getElementById('f01-' + id);
+        if (el && el.getBoundingClientRect().top <= 170) current = id;
+      }
+      setActiveSec(current);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [hasISOAdd]);
+
+  const activeIdx = navLinks.findIndex(l => l.id === activeSec);
 
   return (
     <div className="audit-wrap">
@@ -219,40 +243,38 @@ function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
         </div>
       )}
 
-      <div className="audit-layout">
-
-        {/* ── Sidebar nav ── */}
-        <div className="audit-sidebar">
-          <div style={{background:'white',borderRadius:12,border:'1px solid #f1f5f9',padding:'14px 10px',boxShadow:'0 1px 3px rgba(0,0,0,.06)'}}>
-            <div style={{fontSize:9.5,fontWeight:700,color:'var(--gray-400)',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:10,paddingLeft:6}}>
-              Jump to Section
-            </div>
-            <div style={{display:'flex',flexDirection:'column',gap:2}}>
-              {navLinks.map(({id,label,desc})=>(
-                <button key={id} onClick={()=>scrollTo(id)}
-                  style={{display:'flex',alignItems:'flex-start',gap:8,width:'100%',padding:'8px 10px',borderRadius:8,border:'none',background:'transparent',cursor:'pointer',textAlign:'left'}}>
-                  <div style={{minWidth:0}}>
-                    <div style={{fontSize:12,fontWeight:500,color:'var(--gray-700)',lineHeight:1.3}}>{label}</div>
-                    <div style={{fontSize:10,color:'var(--gray-400)',marginTop:1}}>{desc}</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div style={{marginTop:12,paddingTop:12,borderTop:'1px solid #f1f5f9',display:'flex',flexDirection:'column',gap:8}}>
-              <button onClick={onSaveDraft} disabled={saving}
-                style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,width:'100%',padding:'8px',borderRadius:8,border:'1.5px solid #e2e8f0',background:'white',color:'var(--gray-700)',cursor:saving?'not-allowed':'pointer',fontSize:12,fontWeight:600,opacity:saving?0.6:1}}>
-                <Save size={12}/> Save Draft
-              </button>
-              <button onClick={onSave} disabled={saving}
-                style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,width:'100%',padding:'9px',borderRadius:8,border:'none',background:'var(--primary)',color:'white',cursor:saving?'not-allowed':'pointer',fontSize:12,fontWeight:600,opacity:saving?0.6:1}}>
-                <FileText size={13}/> {saving?'Saving…':'Save Form'}
-              </button>
-            </div>
-          </div>
+      {/* ── Top stepper nav (Jump to Section) ── */}
+      <div className="qms-stepper">
+        {navLinks.map(({id,label,desc}, i)=>(
+          <React.Fragment key={id}>
+            {i > 0 && <div className={`qms-step-connector${i <= activeIdx ? ' passed' : ''}`} />}
+            <button
+              type="button"
+              onClick={()=>scrollTo(id)}
+              className={`qms-step-btn${id === activeSec ? ' active' : i < activeIdx ? ' passed' : ''}`}
+            >
+              <span className="qms-step-num">{i + 1}</span>
+              <span className="qms-step-txt">
+                <span className="qms-step-lbl" style={{display:'block'}}>{label}</span>
+                <span className="qms-step-desc" style={{display:'block'}}>{desc}</span>
+              </span>
+            </button>
+          </React.Fragment>
+        ))}
+        <div className="qms-stepper-actions">
+          <button type="button" onClick={onSaveDraft} disabled={saving} className="btn btn-ghost btn-sm"
+            style={{display:'inline-flex',alignItems:'center',gap:5}}>
+            <Save size={12}/> Draft
+          </button>
+          <button type="button" onClick={onSave} disabled={saving} className="btn btn-primary btn-sm"
+            style={{display:'inline-flex',alignItems:'center',gap:5}}>
+            <FileText size={12}/> {saving?'Saving…':'Save'}
+          </button>
         </div>
+      </div>
 
-        {/* ── Main content ── */}
-        <div style={{display:'flex',flexDirection:'column',gap:16}}>
+      {/* ── Main content ── */}
+      <div style={{display:'flex',flexDirection:'column',gap:16}}>
 
           {/* Basic Info */}
           <SecCard id="f01-basic-info" title="Basic Information">
@@ -666,6 +688,69 @@ function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                 </AccSec>
               )}
 
+              {has22301&&(
+                <AccSec title="This Section for ISO 22301:2019 – Business Continuity Management System (BCMS) – Additional Details"
+                  color="#0f766e" isOpen={openSecs.iso22301} onToggle={()=>toggleSec('iso22301')}>
+                  <Row>
+                    <FG label="Number of Sites to be Audited"><input className="form-control" type="number" min="0" value={data.iso22301NumSites||''} onChange={e=>set('iso22301NumSites',e.target.value)}/></FG>
+                    <FG label="Number of Critical Business Processes Identified"><input className="form-control" type="number" min="0" value={data.iso22301CriticalProcesses||''} onChange={e=>set('iso22301CriticalProcesses',e.target.value)}/></FG>
+                  </Row>
+                  <Row>
+                    <FG label="Recovery Time Objective (RTO)"><input className="form-control" placeholder="e.g. 4 hours, 24 hours" value={data.iso22301RTO||''} onChange={e=>set('iso22301RTO',e.target.value)}/></FG>
+                    <FG label="Recovery Point Objective (RPO)"><input className="form-control" placeholder="e.g. 1 hour, 8 hours" value={data.iso22301RPO||''} onChange={e=>set('iso22301RPO',e.target.value)}/></FG>
+                  </Row>
+                  <Row>
+                    <FG label="Business Impact Analysis (BIA) Status">
+                      <select className="form-control" value={data.iso22301BIAStatus||''} onChange={e=>set('iso22301BIAStatus',e.target.value)}>
+                        <option value="">Select</option>
+                        <option>Completed and up-to-date</option>
+                        <option>Completed but needs review</option>
+                        <option>In Progress</option>
+                        <option>Not yet conducted</option>
+                      </select>
+                    </FG>
+                    <FG label="Business Continuity Plan (BCP) Status">
+                      <select className="form-control" value={data.iso22301BCPStatus||''} onChange={e=>set('iso22301BCPStatus',e.target.value)}>
+                        <option value="">Select</option>
+                        <option>Documented, tested and approved</option>
+                        <option>Documented but not yet tested</option>
+                        <option>In Progress</option>
+                        <option>Not yet developed</option>
+                      </select>
+                    </FG>
+                  </Row>
+                  <Row>
+                    <FG label="BC Exercise / Testing Frequency">
+                      <select className="form-control" value={data.iso22301ExerciseFrequency||''} onChange={e=>set('iso22301ExerciseFrequency',e.target.value)}>
+                        <option value="">Select</option>
+                        <option>Quarterly</option>
+                        <option>Bi-Annual</option>
+                        <option>Annual</option>
+                        <option>Not yet conducted</option>
+                      </select>
+                    </FG>
+                    <FG label="Outsourced BC / DR Services?">
+                      <select className="form-control" value={data.iso22301OutsourcedBC||''} onChange={e=>set('iso22301OutsourcedBC',e.target.value)}>
+                        <option value="">Select</option>
+                        <option>Yes</option>
+                        <option>No</option>
+                      </select>
+                    </FG>
+                  </Row>
+                  <FG label="Crisis Management Team Structure" full>
+                    <textarea className="form-control" rows={3} placeholder="Describe the Crisis Management / Incident Response Team composition" value={data.iso22301CrisisTeam||''} onChange={e=>set('iso22301CrisisTeam',e.target.value)}/>
+                  </FG>
+                  <FG label="Business Continuity Risk Level" full>
+                    <select className="form-control" value={data.iso22301Risk||''} onChange={e=>set('iso22301Risk',e.target.value)}>
+                      <option value="">Select</option>
+                      <option>Low – Low dependency on single processes/systems, quick recovery, minimal stakeholder impact</option>
+                      <option>Medium – Moderate dependency, defined RTO/RPO, some critical processes</option>
+                      <option>High – High dependency on critical processes, strict RTO/RPO, large stakeholder and regulatory impact</option>
+                    </select>
+                  </FG>
+                </AccSec>
+              )}
+
               {has27001&&(
                 <AccSec title="This Section for ISO 27001:2022 – Information Security Management System – Additional Details"
                   color="#7c3aed" isOpen={openSecs.iso27001} onToggle={()=>toggleSec('iso27001')}>
@@ -1002,7 +1087,7 @@ function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
               <div style={{background:'#e8f0fe',borderBottom:'1px solid var(--primary-200)',padding:'11px 16px',fontSize:12.5,fontWeight:600,color:'#1e3a5f',textAlign:'center',lineHeight:1.5}}>
                 Application submission: I declare that above information is true as per my best knowledge &amp; QCC can use for ISO Certification purposes
               </div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',borderBottom:'1px solid var(--primary-100)'}}>
+              <div className="decl-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',borderBottom:'1px solid var(--primary-100)'}}>
                 <div style={{padding:'10px 16px',borderRight:'1px solid var(--primary-100)'}}>
                   <div style={{fontSize:11,fontWeight:700,color:'var(--gray-600)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.04em'}}>Date</div>
                   <input type="date" className="form-control" value={data.declarationDate||''} onChange={e=>set('declarationDate',e.target.value)}/>
@@ -1015,7 +1100,7 @@ function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
               <div style={{background:'var(--primary)',color:'white',padding:'9px 16px',fontWeight:700,fontSize:13,textAlign:'center',letterSpacing:'.03em'}}>
                 Review (To be filled by QUALITY CONTROL CERTIFICATION)
               </div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',borderBottom:'1px solid var(--primary-100)'}}>
+              <div className="decl-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',borderBottom:'1px solid var(--primary-100)'}}>
                 <div style={{padding:'10px 16px',borderRight:'1px solid var(--primary-100)'}}>
                   <div style={{fontSize:11,fontWeight:700,color:'var(--gray-600)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.04em'}}>Acceptance, Ref. No</div>
                   <input className="form-control" placeholder="e.g. ACC-2024-001" value={data.acceptanceRefNo||''} onChange={e=>set('acceptanceRefNo',e.target.value)}/>
@@ -1040,8 +1125,7 @@ function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
             </div>
           </SecCard>
 
-        </div>{/* end main col */}
-      </div>{/* end audit-layout */}
+      </div>{/* end main col */}
     </div>
   );
 }

@@ -2,22 +2,22 @@ import React from 'react';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable } from './QMSFormPage';
 
 const ROLES = ['Lead Auditor','Auditor','Technical Expert','Observer','Guide'];
-const CLAUSES_S2 = [
-  '4.1 Understanding the Organization and its Context',
-  '4.2 Needs and Expectations of Interested Parties',
-  '4.3 Scope of Management System',
-  '4.4 Management System and its Processes',
-  '5.1 Leadership and Commitment','5.2 Policy','5.3 Roles, Responsibilities and Authorities',
-  '6.1 Actions to Address Risks and Opportunities','6.1.2 Environmental Aspects',
-  '6.2 Objectives and Planning to Achieve Them','6.3 Planning of Changes',
-  '7.1 Resources','7.2 Competence','7.3 Awareness','7.4 Communication',
-  '7.5 Documented Information','8.1 Operational Planning and Control',
-  '8.1 EMS Operational Control','8.2 Emergency Preparedness and Response',
-  '9.1 Monitoring, Measurement, Analysis and Evaluation',
-  '9.1.2 Evaluation of Compliance','9.2 Internal Audit','9.3 Management Review',
-  '10.1 Improvement / Continual Improvement',
-  '10.2 Nonconformity and Corrective Action',
-  '10.3 Continual Improvement / Update of FSMS',
+const CLAUSES = [
+  ['4.1','4.1 Understanding the Organization and its Context The organization shall determine whether climate change is a relevant issue'],['4.2','4.2 Needs and Expectations of Interested Parties Note Relevant interested partiees can have requirements related to climate change'],
+  ['4.3','4.3 Scope of Management System'],['4.4','4.4 Management System and its Processes'],
+  ['5.1','5.1 Leadership and Commitment'],['5.2','5.2 Policy'],['5.3','5.3 Roles, Responsibilities and Authorities'],
+  ['6.1','6.1 Actions to Address Risks and Opportunities'],['6.2','6.2 Objectives and Planning to Achieve Them'],
+  ['6.3','6.3 Planning of Changes'],['7.1','7.1 Resources'],['7.2','7.2 Competence'],
+  ['7.3','7.3 Awareness'],['7.4','7.4 Communication'],['7.5','7.5 Documented Information'],
+  ['8.1','8.1 Operational Planning and Control'],['8.2','8.2 Requirements for Products and Services'],
+  ['8.3','8.3 Design and Development'],['8.4','8.4 Control of Externally Provided Processes'],
+  ['8.5','8.5 Production and Service Provision'],['8.6','8.6 Release of Products and Services'],
+  ['8.7','8.7 Control of Nonconforming Outputs'],
+  ['9.1','9.1 Monitoring, Measurement, Analysis and Evaluation'],
+   ['9.2','9.2 Internal Audit'],['9.3','9.3 Management Review'],
+  ['10.1','10.1 Improvement / Continual Improvement'],
+  ['10.2','10.2 Nonconformity and Corrective Action'],
+  ['10.3','10.3 Continual Improvement '],
 ];
 
 const EMPTY_TEAM  = { name: '', role: '', stage2Days: '' };
@@ -31,7 +31,7 @@ const DEFAULT = {
   auditObjectives: 'Judging the Management System by checking system conformity and performance status regarding objective evidence as per ISO 9001 Standard\na. To assess conformity of the Client\'s Management system with the audit criteria\nb. To assess capacity of the client\'s criteria to meet its QMS Objectives\nc. To identify areas of improvement in the Clients premises\nd. To make appropriate recommendation to the CB regarding client\'s certification.',
   auditLanguage: 'English',
   auditTeam: [{ ...EMPTY_TEAM }],
-  schedule: CLAUSES_S2.map(c => ({ dayTime: '', clauses: c, auditorName: '' })),
+  schedule: CLAUSES.map(c => ({ dayTime: '', clauses: c[1], auditorName: '' })),
 };
 
 export default function Form09Stage2AuditPlan() {

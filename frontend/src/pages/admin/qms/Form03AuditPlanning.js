@@ -2,35 +2,21 @@ import React from 'react';
 import QMSFormPage, { SectionTitle } from './QMSFormPage';
 
 const CLAUSES = [
-  '4.1 Understanding the Organization and its Context',
-  '4.2 Needs and Expectations of Interested Parties',
-  '4.3 Scope of Management System',
-  '4.4 Management System and its Processes',
-  '5.1 Leadership and Commitment',
-  '5.2 Policy',
-  '5.3 Roles, Responsibilities and Authorities',
-  '6.1 Actions to Address Risks and Opportunities',
-  '6.2 Objectives and Planning to Achieve Them',
-  '6.3 Planning of Changes',
-  '7.1 Resources',
-  '7.2 Competence',
-  '7.3 Awareness',
-  '7.4 Communication',
-  '7.5 Documented Information',
-  '8.1 Operational Planning and Control',
-  '8.2 Requirements for Products and Services',
-  '8.3 Design and Development',
-  '8.4 Control of Externally Provided Processes, Products and Services',
-  '8.5 Production and Service Provision',
-  '8.6 Release of Products and Services',
-  '8.7 Control of Nonconforming Outputs',
-  '9.1 Monitoring, Measurement, Analysis and Evaluation',
-  '9.1.2 Customer Satisfaction / Customer Feedback',
-  '9.2 Internal Audit',
-  '9.3 Management Review',
-  '10.1 Improvement / Continual Improvement',
-  '10.2 Nonconformity and Corrective Action',
-  '10.3 Continual Improvement / Update of FSMS',
+  ['4.1','4.1 Understanding the Organization and its Context The organization shall determine whether climate change is a relevant issue'],['4.2','4.2 Needs and Expectations of Interested Parties Note Relevant interested partiees can have requirements related to climate change'],
+  ['4.3','4.3 Scope of Management System'],['4.4','4.4 Management System and its Processes'],
+  ['5.1','5.1 Leadership and Commitment'],['5.2','5.2 Policy'],['5.3','5.3 Roles, Responsibilities and Authorities'],
+  ['6.1','6.1 Actions to Address Risks and Opportunities'],['6.2','6.2 Objectives and Planning to Achieve Them'],
+  ['6.3','6.3 Planning of Changes'],['7.1','7.1 Resources'],['7.2','7.2 Competence'],
+  ['7.3','7.3 Awareness'],['7.4','7.4 Communication'],['7.5','7.5 Documented Information'],
+  ['8.1','8.1 Operational Planning and Control'],['8.2','8.2 Requirements for Products and Services'],
+  ['8.3','8.3 Design and Development'],['8.4','8.4 Control of Externally Provided Processes'],
+  ['8.5','8.5 Production and Service Provision'],['8.6','8.6 Release of Products and Services'],
+  ['8.7','8.7 Control of Nonconforming Outputs'],
+  ['9.1','9.1 Monitoring, Measurement, Analysis and Evaluation'],
+   ['9.2','9.2 Internal Audit'],['9.3','9.3 Management Review'],
+  ['10.1','10.1 Improvement / Continual Improvement'],
+  ['10.2','10.2 Nonconformity and Corrective Action'],
+  ['10.3','10.3 Continual Improvement '],
 ];
 
 const COLS = [
@@ -86,7 +72,7 @@ export default function Form03AuditPlanning() {
                     const row = clauses[`clause_${i}`] || {};
                     return (
                       <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
-                        <td style={{ padding: '8px 12px', fontSize: 12, color: '#374151' }}>{clause}</td>
+                        <td style={{ padding: '8px 12px', fontSize: 12, color: '#374151' }}>{clause[1]}</td>
                         {COLS.map(c => (
                           <td key={c.key} style={{ padding: '8px 12px', textAlign: 'center' }}>
                             <input

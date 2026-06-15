@@ -2,30 +2,24 @@ import React from 'react';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable } from './QMSFormPage';
 
 const ROLES = ['Lead Auditor','Auditor','Technical Expert','Observer','Guide'];
-const CLAUSES_S1 = [
-  '4.1 Understanding the Organization and its Context',
-  '4.2 Needs and Expectations of Interested Parties',
-  '4.3 Scope of Management System',
-  '4.4 Management System and its Processes',
-  '5.1 Leadership and Commitment',
-  '5.2 Policy',
-  '5.3 Roles, Responsibilities and Authorities',
-  '6.1 Actions to Address Risks and Opportunities',
-  '6.2 Objectives and Planning to Achieve Them',
-  '6.3 Planning of Changes',
-  '7.1 Resources', '7.2 Competence', '7.3 Awareness', '7.4 Communication',
-  '7.5 Documented Information', '8.1 Operational Planning and Control',
-  '8.2 Requirements for Products and Services', '8.3 Design and Development',
-  '8.4 Control of Externally Provided Processes, Products and Services',
-  '8.5 Production and Service Provision', '8.6 Release of Products and Services',
-  '8.7 Control of Nonconforming Outputs',
-  '9.1 Monitoring, Measurement, Analysis and Evaluation',
-  '9.1.2 Customer Satisfaction / Customer Feedback',
-  '9.2 Internal Audit', '9.3 Management Review',
-  '10.1 Improvement / Continual Improvement',
-  '10.2 Nonconformity and Corrective Action',
-  '10.3 Continual Improvement / Update of FSMS',
+const CLAUSES_S1= [
+  ['4.1 Understanding the Organization and its Context The organization shall determine whether climate change is a relevant issue'],[ '4.2 Needs and Expectations of Interested Parties Note Relevant interested partiees can have requirements related to climate change'],
+  ['4.3 Scope of Management System'],[ '4.4 Management System and its Processes'],
+  [ '5.1 Leadership and Commitment'],[ '5.2 Policy'],['5.3 Roles, Responsibilities and Authorities'],
+  [ '6.1 Actions to Address Risks and Opportunities'],[ '6.2 Objectives and Planning to Achieve Them'],
+  [ '6.3 Planning of Changes'],[ '7.1 Resources'],[ '7.2 Competence'],
+  [ '7.3 Awareness'],[ '7.4 Communication'],[ '7.5 Documented Information'],
+  [ '8.1 Operational Planning and Control'],[ '8.2 Requirements for Products and Services'],
+  [ '8.3 Design and Development'],[ '8.4 Control of Externally Provided Processes'],
+  [ '8.5 Production and Service Provision'],[ '8.6 Release of Products and Services'],
+  ['8.7 Control of Nonconforming Outputs'],
+  [ '9.1 Monitoring, Measurement, Analysis and Evaluation'],
+   [ '9.2 Internal Audit'],[ '9.3 Management Review'],
+  [ '10.1 Improvement / Continual Improvement'],
+  [ '10.2 Nonconformity and Corrective Action'],
+  [ '10.3 Continual Improvement '],
 ];
+
 
 const EMPTY_TEAM  = { name: '', role: '', competency: '', manDays: '' };
 const EMPTY_SCHED = { dayTime: '', clauses: '', standard: '', auditorName: '' };

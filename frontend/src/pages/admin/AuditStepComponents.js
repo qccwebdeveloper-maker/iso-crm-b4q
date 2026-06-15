@@ -45,8 +45,8 @@ export const INTEGRATION_OPTS = [
 ];
 
 export const STAGE1_CLAUSES = [
-  '4.1 Understanding the Organization and its Context',
-  '4.2 Needs and Expectations of Interested Parties',
+  '4.1 Understanding the Organization and its Context The organization shall determine whether climate change is a relevant issue',
+  '4.2 Needs and Expectations of Interested Parties Note Relevant interested partiees can have requirements related to climate change',
   '4.3 Scope of Management System',
   '4.4 Management System and its Processes',
   '5.1 Leadership and Commitment',
@@ -70,9 +70,9 @@ export const STAGE1_CLAUSES = [
   '9.1 Monitoring, Measurement, Analysis and Evaluation',
   '9.2 Internal Audit',
   '9.3 Management Review',
-  '10.1 Improvement / Continual Improvement',
-  '10.2 Nonconformity and Corrective Action',
-  '10.3 Continual Improvement',
+  '9.4 Improvement / Continual Improvement',
+  '9.5 Nonconformity and Corrective Action',
+  '9.6 Continual Improvement',
 ];
 
 // ── Initial form state ────────────────────────────────────────────────────────

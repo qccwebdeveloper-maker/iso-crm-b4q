@@ -26,17 +26,8 @@ const NAV = {
     ]},
 
     { sec: 'Applications', items: [
-      { to: '/admin/applications/new',      icon: FiPlus,          label: 'New Application' },
-      { to: '/admin/applications',          icon: FiFileText,      label: 'Application List' },
       { to: '/admin/approval-pending',      icon: FiCheckSquare,   label: 'Approval Pending' },
       { to: '/admin/feedback',              icon: FiMessageSquare, label: 'Reviews & Feedback' },
-    ]},
-
-    { sec: 'Audit', items: [
-      { to: '/admin/audit-stage1',  icon: FiClipboard,    label: 'Audit Stage 1' },
-      { to: '/admin/audit-stage2',  icon: FiClipboard,    label: 'Audit Stage 2' },
-      { to: '/admin/observation',   icon: FiAlertTriangle, label: 'Observations' },
-      { to: '/admin/dms',           icon: FiFolder,       label: 'DMS' },
     ]},
 
     { sec: 'Documents & Comm.', items: [
@@ -71,6 +62,9 @@ const NAV = {
     { sec: 'Overview', items: [
       { to: '/client',              icon: MdDashboard,  label: 'Dashboard' },
       { to: '/client/applications', icon: FiFileText,   label: 'My Applications' },
+    ]},
+    { sec: 'Application', items: [
+      { to: '/client/qms/form-01', icon: FiFileText, label: 'F01 · Application Form' },
     ]},
     { sec: 'Reports', items: [
       { to: '/client/team-reports',   icon: FiClipboard, label: 'Team & Reports' },
@@ -144,11 +138,31 @@ export default function Layout({ children, title }) {
   const loc = useLocation();
   const navigate = useNavigate();
   const [open,            setOpen]            = useState(false);   // mobile drawer
-  const [sidebarCollapsed,setSidebarCollapsed] = useState(false);  // desktop collapse
+  const [sidebarCollapsed,setSidebarCollapsed] = useState(false);  // desktop full hide
+  // Desktop icon-only mode — persisted because each page mounts its own Layout,
+  // so plain state would reset on every navigation
+  const [mini,            setMini]            = useState(() => localStorage.getItem('sidebar_mini') === '1');
+  useEffect(() => { localStorage.setItem('sidebar_mini', mini ? '1' : '0'); }, [mini]);
   const [notifOpen,       setNotifOpen]       = useState(false);
   const [notifications,   setNotifications]   = useState([]);
   const [profileImg,      setProfileImg]      = useState(null);
   const [collapsed,       setCollapsed]       = useState({ master: true, qmsForms: true });
+
+  // Auto-expand the section that contains the active route
+  useEffect(() => {
+    const nav = NAV[user?.role] || [];
+    const updates = {};
+    nav.forEach(s => {
+      if (s.collapsible && s.key) {
+        const hasActive = s.items.some(item => {
+          if (item.to.endsWith('/new')) return loc.pathname === item.to;
+          return loc.pathname.startsWith(item.to);
+        });
+        if (hasActive) updates[s.key] = false; // false = expanded
+      }
+    });
+    if (Object.keys(updates).length) setCollapsed(p => ({ ...p, ...updates }));
+  }, [loc.pathname, user?.role]);
   const nRef        = useRef(null);
   const imgRef      = useRef(null);
   const sidebarNavRef = useRef(null);
@@ -238,9 +252,19 @@ export default function Layout({ children, title }) {
 
   const toggleCollapse = (key) => setCollapsed(p => ({ ...p, [key]: !p[key] }));
 
+  // Nav item click: on desktop, collapse sidebar to icon-only mode.
+  // Hovering the icon strip temporarily expands it (CSS); the hamburger
+  // button restores the full sidebar permanently. Mobile drawer just closes.
+  const handleNavClick = () => {
+    setOpen(false);
+    window.scrollTo(0, 0);
+    if (window.innerWidth > 768) setMini(true);
+  };
+
   const handleMenuToggle = () => {
     if (window.innerWidth > 768) {
-      setSidebarCollapsed(v => !v);
+      // Toggle between icon-only mini mode and the full sidebar
+      setMini(m => !m);
     } else {
       setOpen(v => !v);
     }
@@ -258,16 +282,20 @@ export default function Layout({ children, title }) {
       )}
 
       {/* Sidebar */}
-      <aside className={`sidebar ${open ? 'open' : ''} ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <aside className={`sidebar ${open ? 'open' : ''} ${sidebarCollapsed ? 'sidebar-collapsed' : ''} ${mini ? 'mini' : ''}`}>
         {/* Logo */}
         <div className="sidebar-top">
           <div className="logo-mark">
             <img src="/QC.png" alt="QC Certification" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
           </div>
-          <div>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div className="logo-text-top">QC Certification</div>
             <div className="logo-text-sub">ISO CRM Platform</div>
           </div>
+          {/* Mobile close button */}
+          <button className="sidebar-close-btn" onClick={() => setOpen(false)} aria-label="Close sidebar">
+            <FiX size={16} />
+          </button>
         </div>
 
         {/* Nav */}
@@ -279,6 +307,7 @@ export default function Layout({ children, title }) {
                   <button
                     className="nav-link"
                     style={{ justifyContent: 'space-between' }}
+                    title={s.sec}
                     onClick={() => toggleCollapse(s.key)}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -299,10 +328,11 @@ export default function Layout({ children, title }) {
                           key={item.to + item.label}
                           to={item.to}
                           className={`nav-sub-item ${isOn(item.to) ? 'active' : ''}`}
-                          onClick={() => setOpen(false)}
+                          title={item.label}
+                          onClick={handleNavClick}
                         >
                           <span className="nav-sub-dot" />
-                          <span style={{ flex: 1 }}>{item.label}</span>
+                          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
                         </Link>
                       ))}
                     </div>
@@ -316,10 +346,11 @@ export default function Layout({ children, title }) {
                       key={item.to + item.label}
                       to={item.to}
                       className={`nav-link ${isOn(item.to) ? 'active' : ''}`}
-                      onClick={() => setOpen(false)}
+                      title={item.label}
+                      onClick={handleNavClick}
                     >
                       <item.icon className="nav-icon" size={15} />
-                      <span style={{ flex: 1 }}>{item.label}</span>
+                      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
                       {item.badge && <span className="nav-badge">{item.badge}</span>}
                       {isOn(item.to) && <span className="nav-dot" />}
                     </Link>
@@ -347,14 +378,14 @@ export default function Layout({ children, title }) {
               <div className="u-email">{user?.email}</div>
             </div>
           </div>
-          <button className="u-logout" onClick={() => { logout(); navigate('/login'); }}>
-            <FiLogOut size={13} /> Sign out
+          <button className="u-logout" title="Sign out" onClick={() => { logout(); navigate('/login'); }}>
+            <FiLogOut size={13} /> <span>Sign out</span>
           </button>
         </div>
       </aside>
 
       {/* Main */}
-      <div className={`main-content${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
+      <div className={`main-content${sidebarCollapsed ? ' sidebar-collapsed' : ''}${mini ? ' mini' : ''}`}>
         {/* Header */}
         <header className="top-bar">
           <div className="top-bar-left">

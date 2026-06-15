@@ -3,6 +3,7 @@ const router  = express.Router();
 const bcrypt  = require('bcryptjs');
 const User    = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
+const { generateClientId } = require('../utils/clientId');
 
 const hashPassword = (pw) => bcrypt.hash(pw, 10);
 
@@ -52,17 +53,6 @@ router.get('/:id', protect, async (req, res) => {
     res.json(user);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
-
-// Generate unique clientId: YEAR + 4 digits, e.g. "20261234"
-async function generateClientId() {
-  const year = new Date().getFullYear();
-  for (let i = 0; i < 20; i++) {
-    const id = `${year}${String(Math.floor(1000 + Math.random() * 9000))}`;
-    const exists = await User.findOne({ clientId: id });
-    if (!exists) return id;
-  }
-  throw new Error('Could not generate unique client ID');
-}
 
 // POST /api/users — create user (password hashed here directly)
 router.post('/', protect, authorize('admin', 'sales'), async (req, res) => {

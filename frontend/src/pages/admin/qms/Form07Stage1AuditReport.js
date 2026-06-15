@@ -9,7 +9,7 @@ const REC_OPTS = [
   { value: 'repeat',  label: 'Recommended not proceeding without a further Stage 1 audit due to severity of concerns raised.' },
 ];
 const CLAUSES = [
-  ['4.1','4.1 Understanding the Organization and its Context'],['4.2','4.2 Needs and Expectations of Interested Parties'],
+  ['4.1','4.1 Understanding the Organization and its Context The organization shall determine whether climate change is a relevant issue'],['4.2','4.2 Needs and Expectations of Interested Parties Note Relevant interested partiees can have requirements related to climate change'],
   ['4.3','4.3 Scope of Management System'],['4.4','4.4 Management System and its Processes'],
   ['5.1','5.1 Leadership and Commitment'],['5.2','5.2 Policy'],['5.3','5.3 Roles, Responsibilities and Authorities'],
   ['6.1','6.1 Actions to Address Risks and Opportunities'],['6.2','6.2 Objectives and Planning to Achieve Them'],
@@ -20,11 +20,10 @@ const CLAUSES = [
   ['8.5','8.5 Production and Service Provision'],['8.6','8.6 Release of Products and Services'],
   ['8.7','8.7 Control of Nonconforming Outputs'],
   ['9.1','9.1 Monitoring, Measurement, Analysis and Evaluation'],
-  ['9.1.2','9.1.2 Customer Satisfaction / Customer Feedback'],
-  ['9.2','9.2 Internal Audit'],['9.3','9.3 Management Review'],
+   ['9.2','9.2 Internal Audit'],['9.3','9.3 Management Review'],
   ['10.1','10.1 Improvement / Continual Improvement'],
   ['10.2','10.2 Nonconformity and Corrective Action'],
-  ['10.3','10.3 Continual Improvement / Update of FSMS'],
+  ['10.3','10.3 Continual Improvement '],
 ];
 const CONFORMITY = ['C','NC','O','OFI','N/A'];
 
@@ -147,6 +146,10 @@ export default function Form07Stage1AuditReport() {
               ))}
             </div>
 
+            <div style={{ margin: '16px 0', padding: '12px 16px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 8, fontSize: 12, color: '#78350f', lineHeight: 1.6 }}>
+              <strong>Disclaimer:</strong> This audit has been conducted on a sampling basis of the available information, documents, records, processes and activities reviewed during the audit. The audit findings are based only on the evidence verified at the time of audit and do not guarantee detection of all possible nonconformities or system weaknesses.
+            </div>
+
             <SectionTitle>3. Non-Conformities Overview</SectionTitle>
             <DynamicTable
               columns={[{key:'sNo',label:'S.No.',minWidth:50},{key:'standard',label:'MS Standard',minWidth:120},{key:'type',label:'Type',type:'select',options:NC_TYPES},{key:'clause',label:'Clause No.',minWidth:80},{key:'details',label:'Details of NC',type:'textarea',minWidth:200}]}
@@ -179,9 +182,9 @@ export default function Form07Stage1AuditReport() {
                   {(data.checklist || buildChecklist()).map((row, ri) => (
                     <tr key={ri} style={{ borderBottom: '1px solid #f1f5f9', background: ri%2===0?'white':'#fafafa' }}>
                       <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--primary-dark)', whiteSpace: 'nowrap' }}>{row.clause}</td>
-                      <td style={{ padding: '6px 10px', fontSize: 12 }}>{row.description}</td>
-                      <td style={{ padding: '6px 10px', textAlign: 'center' }}>
-                        <input type="checkbox" checked={!!row.done} onChange={e=>setCL(ri,'done',e.target.checked)} />
+                      <td style={{ padding: '6px 10px', fontSize: 12, whiteSpace: 'pre-line', lineHeight: 1.55 }}>{row.description}</td>
+                      <td style={{ padding: '6px 8px', textAlign: 'center' }}>
+                        <input type="checkbox" checked={row.done||false} onChange={e=>setCL(ri,'done',e.target.checked)} />
                       </td>
                       <td style={{ padding: '6px 8px' }}>
                         <select value={row.conformity||'C'} onChange={e=>setCL(ri,'conformity',e.target.value)}
