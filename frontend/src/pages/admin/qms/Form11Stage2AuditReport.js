@@ -21,6 +21,7 @@ const CLAUSES_S2 = [
   ['10.2','10.2 Nonconformity and Corrective Action'],
   ['10.3','10.3 Continual Improvement '],
 ];
+
 const buildChecklist = () => CLAUSES_S2.map(([no,desc]) => ({ clause: no, description: desc, done: false, conformity: 'N/A', finding: '' }));
 const SURV_CHECKS = [
   'Closure of Previous NC & its effectiveness',

@@ -20,10 +20,10 @@ const CLAUSES = [
 ];
 
 const COLS = [
-  { key: 'initial',     label: 'Initial Audit' },
-  { key: 'surv1',       label: 'Surveillance I' },
-  { key: 'surv2',       label: 'Surveillance II' },
-  { key: 'recert',      label: 'Recertification' },
+  { key: 'initial',     label: 'Initial Audit',     optional: false },
+  { key: 'surv1',       label: 'Surveillance I',    optional: true },
+  { key: 'surv2',       label: 'Surveillance II',   optional: true },
+  { key: 'recert',      label: 'Recertification',   optional: true },
 ];
 
 const buildDefault = () => {
@@ -42,12 +42,20 @@ export default function Form03AuditPlanning() {
       formType={3}
       formCode="AUD-F-03A"
       formTitle="Audit Planning for 3 Years — 3 Year QMS Surveillance & Recertification Audit Programme"
-      defaultData={{ clauses: buildDefault() }}
+      defaultData={{ clauses: buildDefault(), enabledCols: [] }}
     >
       {({ data, set }) => {
         const clauses = data.clauses || buildDefault();
+        const enabledCols = data.enabledCols || [];
+        const isActive = c => !c.optional || enabledCols.includes(c.key);
         const setClause = (i, key, val) => {
           set('clauses', { ...clauses, [`clause_${i}`]: { ...clauses[`clause_${i}`], [key]: val } });
+        };
+        const enableCol = c => {
+          if (isActive(c)) return;
+          if (window.confirm(`Enable the "${c.label}" column?`)) {
+            set('enabledCols', [...enabledCols, c.key]);
+          }
         };
         return (
           <div>
@@ -57,11 +65,26 @@ export default function Form03AuditPlanning() {
                 <thead>
                   <tr style={{ background: '#f8fafc' }}>
                     <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', borderBottom: '1.5px solid #e2e8f0', minWidth: 280 }}>Sub-Clause / Audit Area</th>
-                    {COLS.map(c => (
-                      <th key={c.key} style={{ padding: '10px 12px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#6b7280', borderBottom: '1.5px solid #e2e8f0', whiteSpace: 'nowrap' }}>
-                        {c.label}
-                      </th>
-                    ))}
+                    {COLS.map(c => {
+                      const active = isActive(c);
+                      return (
+                        <th
+                          key={c.key}
+                          onClick={() => enableCol(c)}
+                          title={active ? undefined : `Click to enable "${c.label}"`}
+                          style={{
+                            padding: '10px 12px', textAlign: 'center', fontSize: 11, fontWeight: 700,
+                            color: active ? '#6b7280' : '#cbd5e1',
+                            borderBottom: '1.5px solid #e2e8f0', whiteSpace: 'nowrap',
+                            opacity: active ? 1 : 0.55,
+                            cursor: active ? 'default' : 'pointer',
+                            userSelect: 'none',
+                          }}
+                        >
+                          {c.label}
+                        </th>
+                      );
+                    })}
                     <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', borderBottom: '1.5px solid #e2e8f0', minWidth: 180 }}>
                       Client-Specific Audit Focus
                     </th>
@@ -74,13 +97,19 @@ export default function Form03AuditPlanning() {
                       <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
                         <td style={{ padding: '8px 12px', fontSize: 12, color: '#374151' }}>{clause[1]}</td>
                         {COLS.map(c => (
-                          <td key={c.key} style={{ padding: '8px 12px', textAlign: 'center' }}>
-                            <input
-                              type="checkbox"
-                              checked={!!row[c.key]}
-                              onChange={e => setClause(i, c.key, e.target.checked)}
-                              style={{ width: 15, height: 15, cursor: 'pointer' }}
-                            />
+                          <td
+                            key={c.key}
+                            onClick={() => { if (!isActive(c)) enableCol(c); }}
+                            style={{ padding: '8px 12px', textAlign: 'center', cursor: isActive(c) ? 'default' : 'pointer' }}
+                          >
+                            {isActive(c) && (
+                              <input
+                                type="checkbox"
+                                checked={!!row[c.key]}
+                                onChange={e => setClause(i, c.key, e.target.checked)}
+                                style={{ width: 15, height: 15, cursor: 'pointer' }}
+                              />
+                            )}
                           </td>
                         ))}
                         <td style={{ padding: '6px 8px' }}>
