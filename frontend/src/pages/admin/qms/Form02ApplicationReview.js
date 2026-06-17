@@ -1,9 +1,9 @@
 import React from 'react';
-import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, FRadioGroup, SectionTitle, DynamicTable } from './QMSFormPage';
+import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, FRadioGroup, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 
 const YN = [{ value: 'Yes', label: 'Yes' }, { value: 'No', label: 'No' }];
 const RISK = ['High (H)', 'Medium (M)', 'Low (L)'];
-const ROLES = ['Lead Auditor', 'Auditor', 'Technical Expert', 'Application Reviewer', 'Report Reviewer', 'HOD'];
+const ROLES = ['Lead Auditor', 'Auditor', 'Technical Expert', 'Application Reviewer', 'Report Reviewer', 'HOD', 'Guide', 'Observer'];
 const BIZ_COMPLEXITY = [
   'High Business Complexity (7–9)',
   'Medium Business Complexity (5–6)',
@@ -31,6 +31,7 @@ const DEFAULT = {
   hodName: '', hodDecision: '',
   // Audit man-days
   totalMandays: '', totalMandaysS1: '', totalMandaysS2: '', totalMandaysIAF: '',
+  adjustedMandays: '', mandaysJustification: '',
   // Audit dates
   stage1DateFrom: '', stage1DateTo: '', stage2DateFrom: '', stage2DateTo: '',
   // Reviewer declaration
@@ -156,7 +157,7 @@ export default function Form02ApplicationReview() {
             </FormRow>
             <FormRow cols={2}>
               <FormField label="Audit Standard(s)">
-                <FInput value={data.auditStandards} onChange={v => set('auditStandards', v)} placeholder="ISO 9001:2015, ISO 14001:2015…" />
+                <StandardChips value={data.auditStandards} />
               </FormField>
               <FormField label="IAF Code">
                 <FInput value={data.iafCode} onChange={v => set('iafCode', v)} placeholder="IAF / EA Code" />
@@ -243,9 +244,18 @@ export default function Form02ApplicationReview() {
                 <FInput value={data.totalMandaysS2} onChange={v => set('totalMandaysS2', v)} type="number" placeholder="0" />
               </FormField>
             </FormRow>
-            <FormRow cols={1}>
+            <FormRow cols={2}>
               <FormField label="Total Audit Mandays">
                 <FInput value={data.totalMandays} onChange={v => set('totalMandays', v)} type="number" placeholder="0" />
+              </FormField>
+              <FormField label="Adjusted Mandays">
+                <FInput value={data.adjustedMandays} onChange={v => set('adjustedMandays', v)} type="number" placeholder="0" />
+              </FormField>
+            </FormRow>
+            <FormRow cols={1}>
+              <FormField label="Mandays Justification">
+                <FTextarea value={data.mandaysJustification} onChange={v => set('mandaysJustification', v)} rows={4}
+                  placeholder="Provide justification for the audit mandays / any adjustments..." />
               </FormField>
             </FormRow>
 

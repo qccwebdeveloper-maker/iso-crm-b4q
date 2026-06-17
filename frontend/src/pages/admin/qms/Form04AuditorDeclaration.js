@@ -1,5 +1,5 @@
 import React from 'react';
-import QMSFormPage, { FormRow, FormField, FInput, SectionTitle, DynamicTable } from './QMSFormPage';
+import QMSFormPage, { FormRow, FormField, FInput, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 
 const ROLES = ['Lead Auditor','Auditor','Technical Expert','Application Reviewer','Report Reviewer','Final Certification Decision by HOD'];
 const EMPTY_SIG = { name: '', role: '', date: '', signature: '' };
@@ -36,7 +36,7 @@ export default function Form04AuditorDeclaration() {
                 <FInput value={data.orgName} onChange={v => set('orgName', v)} placeholder="Organization name" />
               </FormField>
               <FormField label="Audit Standard(s)">
-                <FInput value={data.auditStandards} onChange={v => set('auditStandards', v)} placeholder="ISO 9001:2015, ISO 14001:2015..." />
+                <StandardChips value={data.auditStandards} />
               </FormField>
             </FormRow>
 

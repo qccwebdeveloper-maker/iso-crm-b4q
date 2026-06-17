@@ -1,5 +1,5 @@
 import React from 'react';
-import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, FRadioGroup, SectionTitle, DynamicTable } from './QMSFormPage';
+import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, FRadioGroup, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 
 const ROLES = ['Lead Auditor','Auditor','Technical Expert'];
 const NC_TYPES = ['Minor NC','Major NC','Observation','OFI'];
@@ -27,6 +27,36 @@ const CLAUSES = [
 ];
 const CONFORMITY = ['C','NC','O','OFI','N/A'];
 
+const ISMS_REVIEW_QUESTIONS = [
+  'Are complex controls such as cryptography, cloud security, network security, access control, backup and monitoring reviewed for audit planning?',
+  'Has the organization clearly defined the type of activity or process covered under the ISMS?',
+  'Are core, support and outsourced processes within the ISMS scope identified?',
+  'Are information security risks linked with the identified activities or processes?',
+  'Are critical activities or processes involving confidential, sensitive or customer information identified?',
+  'Are IT, operational, administrative and business processes relevant to the ISMS clearly described?',
+  'Is the provided information on manpower and activity/process type sufficient for determining audit planning, scope and duration?',
+  'Has the organization identified the complexity level of the ISMS considering criticality of information and associated risks?',
+  'Has the organization identified critical, confidential, sensitive or customer information handled within the ISMS scope?',
+  'Are major information security risks identified for processes, assets, systems and activities under the ISMS?',
+  'Has the organization clearly defined the type of business activities performed within the ISMS scope?',
+  'Are all business functions, services and processes included in the ISMS scope clearly identified?',
+  'Has the organization provided previous ISMS performance information, where applicable?',
+  'Are previous nonconformities, security incidents, corrective actions and improvement records reviewed?',
+  'Has the organization identified the extent and diversity of technology used in implementing the ISMS?',
+  'Are the number and types of IT platforms, operating systems, databases, applications and cloud platforms identified?',
+  'Has the organization identified the number of segregated networks and network zones used within the ISMS scope?',
+  'Has the organization identified outsourced processes and third-party arrangements used within the ISMS scope?',
+  'Are third parties having access to information assets, systems, networks or customer data identified and controlled?',
+  'Has the organization identified the extent of information system development activities within the ISMS scope?',
+  'Are controls for secure design, development, testing, deployment and change management identified?',
+  'Has the organization provided the number of sites covered under the ISMS scope?',
+  'Has the organization identified Disaster Recovery sites included or relevant to the ISMS scope?',
+  'Are site-wise activities, manpower, technology, processes and security controls identified for audit planning?',
+  'After Stage 1, has the certification body considered the number and complexity of ISMS controls implemented?',
+  'Are complex controls such as cryptography, cloud security, network security, access control, backup and monitoring reviewed for audit planning?',
+  'Is the information sufficient to determine audit duration, audit team competence and Stage 2 planning?',
+];
+
 const buildChecklist = () => CLAUSES.map(([no, desc]) => ({ clause: no, description: desc, conformity: 'C', finding: '' }));
 
 const DEFAULT = {
@@ -36,11 +66,14 @@ const DEFAULT = {
   scopeOfCertification: '', iafCode: '', quotedManDaysAdequate: '',
   auditStandards: '',
   auditTeam: [{ name: '', role: '', standard: '', stage1MD: '' }],
+  auditObjectives: "To review and evaluate the client's documented Quality Management System, including site-specific conditions, applicable legal/statutory/regulatory/contractual requirements, QMS scope, processes, risks, opportunities, and standard-specific requirements, in order to determine the organization's preparedness and readiness for the Stage 2 certification audit.",
+  auditCriteria: 'Client QMS Manual, policies, procedures, SOPs, process flow, risk assessment, legal register, objectives, internal audit records, management review records, operational control records, compliance obligations, customer/contractual requirements, and applicable site-specific requirements.',
   briefAboutOrg: '',
   auditDurationChange: '', employeeDetailChange: '', employeeDetailChangeDetails: '',
   scopeChange: '', scopeChangeDetails: '', additionalInfo: '',
   nonConformitiesRaised: '',
   minorNC: '0', majorNC: '0', observations: '0', ofi: '0', overallReadiness: '',
+  ismsReview: {},
   recommendation: '',
   ncList: [],
   observationList: [],
@@ -53,7 +86,7 @@ export default function Form07Stage1AuditReport() {
     <QMSFormPage
       formType={7}
       formCode="AUD-F-09"
-      formTitle="Stage-1 Audit Report — Quality Management System"
+      formTitle="Stage-1 Audit Report"
       defaultData={DEFAULT}
     >
       {({ data, set }) => {
@@ -66,8 +99,9 @@ export default function Form07Stage1AuditReport() {
           <div>
             <SectionTitle>1. Organization & Audit Details</SectionTitle>
             <FormRow cols={2}>
+              
               <FormField label="1.1 ID No." required><FInput value={data.idNo} onChange={v=>set('idNo',v)} placeholder="Client ID" /></FormField>
-              <FormField label="ISO Standards"><FInput value={data.isoStandards} onChange={v=>set('isoStandards',v)} placeholder="ISO 9001:2015..." /></FormField>
+              <FormField label="ISO Standards"><StandardChips value={data.isoStandards || data.auditStandards} /></FormField>
             </FormRow>
             <FormRow cols={2}>
               <FormField label="1.2 Organization Name" required><FInput value={data.orgName} onChange={v=>set('orgName',v)} /></FormField>
@@ -98,7 +132,7 @@ export default function Form07Stage1AuditReport() {
               <FormField label="Applicable IAF / EA Code"><FInput value={data.iafCode} onChange={v=>set('iafCode',v)} /></FormField>
             </FormRow>
             <FormRow cols={2}>
-              <FormField label="1.8 Audit Standard(s)"><FInput value={data.auditStandards} onChange={v=>set('auditStandards',v)} /></FormField>
+              <FormField label="1.8 Audit Standard(s)"><StandardChips value={data.auditStandards || data.isoStandards} /></FormField>
               <FormField label="Quoted Man-days Adequate?">
                 <FRadioGroup value={data.quotedManDaysAdequate} onChange={v=>set('quotedManDaysAdequate',v)} options={[{value:'Yes',label:'Yes'},{value:'No',label:'No'}]} />
               </FormField>
@@ -109,6 +143,16 @@ export default function Form07Stage1AuditReport() {
               columns={[{key:'name',label:'Name',minWidth:140},{key:'role',label:'Role',type:'select',options:ROLES},{key:'standard',label:'Standard / Competency',minWidth:160},{key:'stage1MD',label:'Stage-1 MD',minWidth:80}]}
               rows={data.auditTeam||[]} onAdd={()=>set('auditTeam',[...(data.auditTeam||[]),{name:'',role:'',standard:'',stage1MD:''}])}
               onRemove={ri=>set('auditTeam',(data.auditTeam||[]).filter((_,i)=>i!==ri))} onCellChange={setTeam} addLabel="Add Member" />
+
+            <SectionTitle>Audit Objectives</SectionTitle>
+            <div style={{ padding: '12px 16px', border: '1.5px solid #e2e8f0', borderRadius: 8, background: '#f8fafc', fontSize: 13, lineHeight: 1.6, color: '#334155', whiteSpace: 'pre-line', marginBottom: 16 }}>
+              {data.auditObjectives}
+            </div>
+
+            <SectionTitle>Audit Criteria</SectionTitle>
+            <div style={{ padding: '12px 16px', border: '1.5px solid #e2e8f0', borderRadius: 8, background: '#f8fafc', fontSize: 13, lineHeight: 1.6, color: '#334155', whiteSpace: 'pre-line', marginBottom: 16 }}>
+              {data.auditCriteria}
+            </div>
 
             <SectionTitle>Brief About the Organization</SectionTitle>
             <FTextarea value={data.briefAboutOrg} onChange={v=>set('briefAboutOrg',v)} rows={4} placeholder="Brief organizational overview..." />
@@ -157,6 +201,47 @@ export default function Form07Stage1AuditReport() {
               <FormField label="Overall Readiness %"><FInput value={data.overallReadiness} onChange={v=>set('overallReadiness',v)} placeholder="e.g. 85%" /></FormField>
             </FormRow>
 
+            <SectionTitle>ISMS Stage-1 Readiness Review</SectionTitle>
+            <div style={{ overflowX: 'auto', marginBottom: 16 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', borderBottom: '1.5px solid #e2e8f0', width: '50%' }}>Review Item</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#6b7280', borderBottom: '1.5px solid #e2e8f0', width: 140 }}>Applicable / Not Applicable</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', borderBottom: '1.5px solid #e2e8f0' }}>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ISMS_REVIEW_QUESTIONS.map((q, i) => {
+                    const key = `q${i+1}`;
+                    const ansKey = `${key}_ans`;
+                    const review = data.ismsReview || {};
+                    return (
+                      <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: i%2===0?'white':'#fafafa' }}>
+                        <td style={{ padding: '8px 10px', fontSize: 12, lineHeight: 1.5, verticalAlign: 'top' }}>{q}</td>
+                        <td style={{ padding: '8px 10px', verticalAlign: 'top', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+                            {['Yes','No'].map(opt => (
+                              <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
+                                <input type="radio" name={ansKey} value={opt} checked={review[ansKey]===opt}
+                                  onChange={()=>set('ismsReview',{...review,[ansKey]:opt})} />
+                                {opt}
+                              </label>
+                            ))}
+                          </div>
+                        </td>
+                        <td style={{ padding: '6px 8px', verticalAlign: 'top' }}>
+                          <textarea value={review[key]||''} onChange={e=>set('ismsReview',{...review,[key]:e.target.value})} rows={2}
+                            placeholder="Remarks / evidence / notes..."
+                            style={{ padding: '6px 8px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', width: '100%', minWidth: 240, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5, boxSizing: 'border-box' }} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
             <SectionTitle>Recommendation</SectionTitle>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {REC_OPTS.map(o => (
@@ -194,27 +279,41 @@ export default function Form07Stage1AuditReport() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <thead>
                   <tr style={{ background: '#f8fafc' }}>
-                    {['Clause','Description','Conformity','Finding'].map(h => (
+                    {['Clause','Description','C/NC/O/OFI'].map(h => (
                       <th key={h} style={{ padding: '8px 10px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', borderBottom: '1.5px solid #e2e8f0' }}>{h}</th>
                     ))}
+                  </tr>
+                  <tr style={{ background: '#f8fafc' }}>
+                    <td colSpan={3} style={{ padding: '4px 10px 8px', fontSize: 11, fontWeight: 600, color: '#94a3b8', borderBottom: '1.5px solid #e2e8f0' }}>
+                      C – Conformity&nbsp;&nbsp; NC – Non Conformity&nbsp;&nbsp; O – Observation&nbsp;&nbsp; OFI – Opportunity&nbsp;&nbsp; N/A – Not Applicable
+                    </td>
                   </tr>
                 </thead>
                 <tbody>
                   {(data.checklist || buildChecklist()).map((row, ri) => (
-                    <tr key={ri} style={{ borderBottom: '1px solid #f1f5f9', background: ri%2===0?'white':'#fafafa' }}>
-                      <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--primary-dark)', whiteSpace: 'nowrap' }}>{row.clause}</td>
-                      <td style={{ padding: '6px 10px', fontSize: 12, whiteSpace: 'pre-line', lineHeight: 1.55, minWidth: 220 }}>{row.description}</td>
-                      <td style={{ padding: '6px 8px', verticalAlign: 'top' }}>
-                        <select value={row.conformity||'C'} onChange={e=>setCL(ri,'conformity',e.target.value)}
-                          style={{ padding: '4px 6px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', background: 'white' }}>
-                          {CONFORMITY.map(c=><option key={c} value={c}>{c}</option>)}
-                        </select>
-                      </td>
-                      <td style={{ padding: '6px 8px', width: '45%' }}>
-                        <textarea value={row.finding||''} onChange={e=>setCL(ri,'finding',e.target.value)} rows={2}
-                          placeholder="Finding / evidence / notes..." style={{ padding: '6px 8px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', width: '100%', minWidth: 280, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }} />
-                      </td>
-                    </tr>
+                    <React.Fragment key={ri}>
+                      <tr style={{ background: ri%2===0?'white':'#fafafa' }}>
+                        <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--primary-dark)', whiteSpace: 'nowrap', verticalAlign: 'top' }}>{row.clause}</td>
+                        <td style={{ padding: '6px 10px', fontSize: 12, whiteSpace: 'pre-line', lineHeight: 1.55, minWidth: 220, verticalAlign: 'top' }}>{row.description}</td>
+                        <td style={{ padding: '6px 8px', verticalAlign: 'top' }}>
+                          <select value={row.conformity||'C'} onChange={e=>setCL(ri,'conformity',e.target.value)}
+                            style={{ padding: '4px 6px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', background: 'white' }}>
+                            {CONFORMITY.map(c=><option key={c} value={c}>{c}</option>)}
+                          </select>
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid #f1f5f9', background: ri%2===0?'white':'#fafafa' }}>
+                        <td colSpan={3} style={{ padding: '0 10px 10px' }}>
+                          <textarea value={row.finding||''}
+                            onChange={e=>setCL(ri,'finding',e.target.value)}
+                            onInput={e=>{ e.target.style.height='auto'; e.target.style.height=e.target.scrollHeight+'px'; }}
+                            ref={el=>{ if(el){ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; } }}
+                            rows={2}
+                            placeholder="Finding / evidence / notes..."
+                            style={{ padding: '8px 10px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', width: '100%', resize: 'none', overflow: 'hidden', fontFamily: 'inherit', lineHeight: 1.5, boxSizing: 'border-box' }} />
+                        </td>
+                      </tr>
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>

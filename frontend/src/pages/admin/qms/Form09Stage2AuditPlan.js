@@ -1,5 +1,5 @@
 import React from 'react';
-import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable } from './QMSFormPage';
+import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 
 const ROLES = ['Lead Auditor','Auditor','Technical Expert','Observer','Guide'];
 const CLAUSES = [
@@ -61,7 +61,7 @@ export default function Form09Stage2AuditPlan() {
               <FormField label="1.5 Type of Audit">
                 <FSelect value={data.auditType} onChange={v=>set('auditType',v)} placeholder="Select type" options={['Initial','Surveillance','Re-certification','Special']} />
               </FormField>
-              <FormField label="1.6 Audit Standard(s)"><FInput value={data.auditStandards} onChange={v=>set('auditStandards',v)} placeholder="ISO 9001:2015..." /></FormField>
+              <FormField label="1.6 Audit Standard(s)"><StandardChips value={data.auditStandards} /></FormField>
             </FormRow>
             <FormRow cols={3}>
               <FormField label="1.7 Audit Plan Date"><FInput value={data.auditPlanDate} onChange={v=>set('auditPlanDate',v)} type="date" /></FormField>

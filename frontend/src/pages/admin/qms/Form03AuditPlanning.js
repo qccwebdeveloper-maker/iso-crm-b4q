@@ -41,7 +41,7 @@ export default function Form03AuditPlanning() {
     <QMSFormPage
       formType={3}
       formCode="AUD-F-03A"
-      formTitle="Audit Planning for 3 Years — 3 Year QMS Surveillance & Recertification Audit Programme"
+      formTitle="Audit Planning for 3 Years — Initial, Surveillance & Recertification Audit Programme"
       defaultData={{ clauses: buildDefault(), enabledCols: [] }}
     >
       {({ data, set }) => {

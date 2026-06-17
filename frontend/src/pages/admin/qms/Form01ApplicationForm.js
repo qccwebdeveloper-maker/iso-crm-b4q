@@ -46,7 +46,7 @@ export const INIT = {
   scopeOfCertification:'',
   mainProcesses:'', outsourcedProcesses:'',
   standards:[], othersStandard:'',
-  applicationType:'Initial', accreditationBody:'USF',
+  applicationType:'Initial', accreditationBody:'UAF',
   totalEmployees:0, contractual:0, workingShifts:1,
   empTable: EMP_ROWS.map(()=>emptyRow()),
   remotePersonnel:0, weekendOperation:'',
@@ -98,7 +98,7 @@ export const INIT = {
   iso22301OutsourcedBC:'', iso22301CrisisTeam:'',
   // Multi-site
   multiSiteEmpTable:[], multiSiteSameCorporate:'', multiSiteImplementSame:'',
-  multiSiteSameCEO:'', multiSiteQualitySystem:'',
+  multiSiteSameCEO:'', multiSiteQualitySystem:'', multiSiteSampling:{},
   // OHSMS additions
   ohsmsProcessRisks:'', envOhsasAccident:'',
   declarationDate:'', representativeName:'',
@@ -388,7 +388,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                 </select>
               </FG>
               <FG label="Accreditation Body">
-                <select className="form-control" value={data.accreditationBody||'USF'} onChange={e=>set('accreditationBody',e.target.value)}>
+                <select className="form-control" value={data.accreditationBody||'UAF'} onChange={e=>set('accreditationBody',e.target.value)}>
                   {ACCRED.map(a=><option key={a}>{a}</option>)}
                 </select>
               </FG>
@@ -1042,6 +1042,54 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                   })}
                 </tbody>
               </table>
+            </div>
+            <div style={{overflowX:'auto',marginBottom:16}}>
+              <table style={{width:'100%',borderCollapse:'collapse',fontSize:12,minWidth:650}}>
+                <thead>
+                  <tr style={{background:'var(--primary-50)'}}>
+                    <th colSpan={2} style={{padding:'10px 12px',textAlign:'left',fontSize:12.5,fontWeight:700,color:'var(--primary-dark)',border:'1px solid var(--primary-100)'}}>
+                      A representative number of sites have been sampled by the QCC, taking into account:
+                    </th>
+                  </tr>
+                  <tr style={{background:'#f8fafc'}}>
+                    <th style={{padding:'8px 12px',textAlign:'left',fontSize:11,fontWeight:700,color:'var(--gray-500)',border:'1px solid var(--gray-100)',width:'55%'}}>Criteria</th>
+                    <th style={{padding:'8px 12px',textAlign:'left',fontSize:11,fontWeight:700,color:'var(--gray-500)',border:'1px solid var(--gray-100)'}}>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    'the results of internal audits of the central office (if appropriate) and the sites;',
+                    'the results of management review;',
+                    'variations in the size of the sites;',
+                    'variations in the business purpose of the sites;',
+                    'complexity of the information systems at the different sites;',
+                    'variations in working practices;',
+                    'variations in activities undertaken;',
+                    'variations of design and operation of controls;',
+                    'potential interaction with critical information systems or information systems processing sensitive information;',
+                    'any differing legal requirements;',
+                    'geographical and cultural aspects;',
+                    'risk situation of the sites;',
+                    'information security incidents at the specific sites.',
+                  ].map((item,i)=>{
+                    const key=`s${i+1}`;
+                    const samp=data.multiSiteSampling||{};
+                    return (
+                      <tr key={i} style={{background:i%2===0?'white':'#fafafa'}}>
+                        <td style={{padding:'8px 12px',fontSize:12.5,border:'1px solid var(--gray-100)',verticalAlign:'top'}}>{i+1}) {item}</td>
+                        <td style={{padding:'5px 7px',border:'1px solid var(--gray-100)'}}>
+                          <input type="text" value={samp[key]||''}
+                            onChange={e=>set('multiSiteSampling',{...samp,[key]:e.target.value})}
+                            style={{width:'100%',padding:'6px 8px',border:'1.5px solid var(--primary-200)',borderRadius:6,fontSize:12,outline:'none',boxSizing:'border-box'}}/>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div style={{fontWeight:700,fontSize:13,color:'var(--primary-dark)',margin:'4px 0 10px'}}>
+              Please write the below answers:
             </div>
             <div style={{border:'1px solid #f1f5f9',borderRadius:10,overflow:'hidden',marginBottom:16}}>
               {[
