@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import QMSFormPage, { SectionTitle } from './QMSFormPage';
+import useStandards from './useStandards';
 import { FiChevronRight, FiPlus, FiMinus, FiX, FiColumns, FiTrash2 } from 'react-icons/fi';
 
 /* ============ Column catalogue (canonical display order) ============ */
@@ -15,69 +16,18 @@ const COLUMNS = [
 const colOrder = id => COLUMNS.findIndex(c => c.id === id);
 const colById  = id => COLUMNS.find(c => c.id === id);
 
-/* ============ Generic Annex-SL (high-level structure) clause set ============ */
-/* ============ Full clause set ============
-   The complete ISO high-level-structure clause checklist (4.1 → 10.3). Applied to
-   EVERY standard so each accordion opens with all clauses; extra clauses can still
-   be added per standard via the "Add clause" button.                                */
-const FULL_CLAUSES = [
-  ['4.1', 'Understanding the Organization and its Context', 'The organization shall determine whether climate change is a relevant issue.'],
-  ['4.2', 'Needs and Expectations of Interested Parties', 'NOTE: Relevant interested parties can have requirements related to climate change.'],
-  ['4.3', 'Scope of Management System', ''],
-  ['4.4', 'Management System and its Processes', ''],
-  ['5.1', 'Leadership and Commitment', ''],
-  ['5.2', 'Policy', ''],
-  ['5.3', 'Roles, Responsibilities and Authorities', ''],
-  ['6.1', 'Actions to Address Risks and Opportunities', ''],
-  ['6.2', 'Objectives and Planning to Achieve Them', ''],
-  ['6.3', 'Planning of Changes', ''],
-  ['7.1', 'Resources', ''],
-  ['7.2', 'Competence', ''],
-  ['7.3', 'Awareness', ''],
-  ['7.4', 'Communication', ''],
-  ['7.5', 'Documented Information', ''],
-  ['8.1', 'Operational Planning and Control', ''],
-  ['8.2', 'Requirements for Products and Services', ''],
-  ['8.3', 'Design and Development', ''],
-  ['8.4', 'Control of Externally Provided Processes, Products and Services', ''],
-  ['8.5', 'Production and Service Provision', ''],
-  ['8.6', 'Release of Products and Services', ''],
-  ['8.7', 'Control of Nonconforming Outputs', ''],
-  ['9.1', 'Monitoring, Measurement, Analysis and Evaluation', ''],
-  ['9.1.2', 'Customer Satisfaction / Customer Feedback', ''],
-  ['9.2', 'Internal Audit', ''],
-  ['9.3', 'Management Review', ''],
-  ['10.1', 'Improvement / Continual Improvement', ''],
-  ['10.2', 'Nonconformity and Corrective Action', ''],
-  ['10.3', 'Continual Improvement', ''],
-];
-
-/* ============ Standards catalogue ============
-   Keys match the ISO standard labels used across the application (NewApplication.js),
-   so the standards selected here line up with what the client applied for. Every
-   standard uses the full clause set above.                                          */
-const STANDARD_META = {
-  'ISO 9001:2015':      { code: '9001',  desc: 'Quality Management System' },
-  'ISO 14001:2015':     { code: '14001', desc: 'Environmental Management System' },
-  'ISO 45001:2018':     { code: '45001', desc: 'Occupational Health & Safety' },
-  'ISO 22000:2018':     { code: '22000', desc: 'Food Safety Management' },
-  'ISO 27001:2022':     { code: '27001', desc: 'Information Security Management' },
-  'ISO/IEC 27701:2025': { code: '27701', desc: 'Privacy Information Management' },
-  'ISO/IEC 42001:2023': { code: '42001', desc: 'AI Management System' },
-  'ISO 22301:2019':     { code: '22301', desc: 'Business Continuity Management' },
-  'ISO 37001:2016':     { code: '37001', desc: 'Anti-Bribery Management' },
-  'ISO 21001:2018':     { code: '21001', desc: 'Educational Organizations' },
-  'ISO 50001:2018':     { code: '50001', desc: 'Energy Management System' },
+/* Short code (e.g. "9001") pulled from a standard name for the accordion mark. */
+const stdCode = (name) => {
+  const m = String(name || '').match(/(\d{4,5})/);
+  return m ? m[1] : String(name || '').slice(0, 6);
 };
-const STANDARDS = Object.fromEntries(
-  Object.entries(STANDARD_META).map(([key, m]) => [key, { ...m, clauses: FULL_CLAUSES }])
-);
-const STANDARD_KEYS = Object.keys(STANDARDS);
 
 /* All the standards the client selected in their Application Form (F01).
    The backend (/api/qms-forms/client/:id) returns `standards` as an array and also
-   joins them into `isoStandard`; prefer the array, fall back to the joined string. */
-function deriveClientStandards(clientInfo) {
+   joins them into `isoStandard`; prefer the array, fall back to the joined string.
+   `names` is the live catalogue fetched from the Standard schema — only standards
+   that exist in the catalogue are kept, in catalogue order. */
+function deriveClientStandards(clientInfo, names) {
   if (!clientInfo) return [];
   let tokens = [];
   if (Array.isArray(clientInfo.standards)) {
@@ -89,8 +39,7 @@ function deriveClientStandards(clientInfo) {
     tokens = raw.split(',');
   }
   tokens = tokens.map(s => String(s).trim()).filter(Boolean);
-  // Keep only standards present in the catalogue, in canonical display order.
-  return STANDARD_KEYS.filter(k => tokens.includes(k));
+  return names.filter(k => tokens.includes(k));
 }
 
 const blankStd = () => ({ open: true, cols: ['initial'], values: {}, notes: {}, extra: [] });
@@ -99,6 +48,7 @@ const uid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(
 /* ───────────────────────── Inner interactive component ───────────────────────── */
 function AuditProgramme({ data, set, clientInfo }) {
   const [openPop, setOpenPop] = useState(null); // `${stdKey}:add` | `${stdKey}:rem`
+  const { byName, names, loading } = useStandards();
 
   const byStd = data.byStd || {};
 
@@ -106,9 +56,9 @@ function AuditProgramme({ data, set, clientInfo }) {
   //  - liveApp:  fetched from the client record loaded into the banner (search / edit).
   //  - savedApp: the same list snapshotted into this form's data the first time it loaded,
   //              so it still works when reopened later from the list view.
-  const liveApp  = deriveClientStandards(clientInfo);
+  const liveApp  = deriveClientStandards(clientInfo, names);
   const savedApp = Array.isArray(data.appStandards) ? data.appStandards : [];
-  const appStandards = STANDARD_KEYS.filter(k => liveApp.includes(k) || savedApp.includes(k));
+  const appStandards = names.filter(k => liveApp.includes(k) || savedApp.includes(k));
 
   // What is actually shown as accordions. An explicit, non-empty selection wins;
   // otherwise default to every standard from the application.
@@ -124,7 +74,7 @@ function AuditProgramme({ data, set, clientInfo }) {
     if (!hasSelection && appStandards.length) {
       set('standards', appStandards);
     }
-  }, [clientInfo]); // eslint-disable-line
+  }, [clientInfo, names.length]); // eslint-disable-line
 
   const getStd  = key => byStd[key] || blankStd();
   const setStd  = (key, patch) => set('byStd', { ...byStd, [key]: { ...getStd(key), ...patch } });
@@ -148,15 +98,19 @@ function AuditProgramme({ data, set, clientInfo }) {
     return () => document.removeEventListener('click', onDoc);
   }, []);
 
-  const orderedSelected = STANDARD_KEYS.filter(k => selected.includes(k));
+  const orderedSelected = names.filter(k => selected.includes(k));
 
   // The picker offers the application's standards plus anything already selected/saved.
-  const pickerKeys = STANDARD_KEYS.filter(k => appStandards.includes(k) || selected.includes(k));
+  const pickerKeys = names.filter(k => appStandards.includes(k) || selected.includes(k));
 
   return (
     <div>
       <SectionTitle>Audit Programme — Standards in Scope</SectionTitle>
 
+      {loading ? (
+        <div className="aud3-picker-empty">Loading standards…</div>
+      ) : (
+      <>
       {/* Standard picker — fetched from the client's application */}
       <div className="aud3-picker">
         <div className="aud3-picker-hd">
@@ -193,6 +147,7 @@ function AuditProgramme({ data, set, clientInfo }) {
             <StandardCard
               key={key}
               stdKey={key}
+              meta={byName[key]}
               st={getStd(key)}
               setStd={patch => setStd(key, patch)}
               openPop={openPop}
@@ -202,14 +157,18 @@ function AuditProgramme({ data, set, clientInfo }) {
           ))}
         </div>
       )}
+      </>
+      )}
     </div>
   );
 }
 
 /* ───────────────────────── One standard accordion ───────────────────────── */
-function StandardCard({ stdKey, st, setStd, openPop, togglePop, closePop }) {
-  const meta = STANDARDS[stdKey];
-  const scope = `ISO ${meta.code}`;
+function StandardCard({ stdKey, meta, st, setStd, openPop, togglePop, closePop }) {
+  const code = stdCode(stdKey);
+  const desc = meta?.category || '';
+  const catalogueClauses = Array.isArray(meta?.clauses) ? meta.clauses : [];
+  const scope = `ISO ${code}`;
   const addable   = COLUMNS.filter(c => c.id !== 'initial' && !st.cols.includes(c.id));
   const removable = st.cols.filter(id => colById(id).removable);
 
@@ -240,9 +199,9 @@ function StandardCard({ stdKey, st, setStd, openPop, togglePop, closePop }) {
     setStd({ extra: extra.filter(e => e.id !== id), values });
   };
 
-  // Combined row list: fixed catalogue clauses + custom ones.
+  // Combined row list: catalogue clauses (from the Standard schema) + custom ones.
   const rows = [
-    ...meta.clauses.map(([num, title, desc]) => ({ key: num, num, title, desc, fixed: true })),
+    ...catalogueClauses.map((c, i) => ({ key: `f${i}`, num: c.no || '', title: c.text || '', desc: '', fixed: true })),
     ...extra.map(e => ({ key: `x_${e.id}`, id: e.id, num: e.num, title: e.title, desc: '', fixed: false })),
   ];
   const N = rows.length;
@@ -252,10 +211,10 @@ function StandardCard({ stdKey, st, setStd, openPop, togglePop, closePop }) {
       {/* header */}
       <button type="button" className="aud3-head" onClick={() => setStd({ open: !st.open })}>
         <span className="aud3-chev"><FiChevronRight size={18} /></span>
-        <span className="aud3-mark">{meta.code}</span>
+        <span className="aud3-mark">{code}</span>
         <span className="aud3-title">
           <span className="name">{stdKey}</span>
-          <span className="desc">{meta.desc}</span>
+          {desc && <span className="desc">{desc}</span>}
         </span>
         <span className="aud3-meta">
           <span className="aud3-pill">{N} clauses</span>

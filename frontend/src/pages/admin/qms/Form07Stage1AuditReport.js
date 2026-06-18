@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, FRadioGroup, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
+import useStandards, { clausesForStandards } from './useStandards';
 
 const ROLES = ['Lead Auditor','Auditor','Technical Expert'];
 const NC_TYPES = ['Minor NC','Major NC','Observation','OFI'];
@@ -7,23 +8,6 @@ const REC_OPTS = [
   { value: 'proceed', label: 'Recommended proceeding with Stage 2 within agreed timeframe after review of Stage-1 audit results.' },
   { value: 'pending', label: 'Recommended not proceeding to Stage 2 until audit evidence has been submitted showing that concerns have been rectified.' },
   { value: 'repeat',  label: 'Recommended not proceeding without a further Stage 1 audit due to severity of concerns raised.' },
-];
-const CLAUSES = [
-  ['4.1','4.1 Understanding the Organization and its Context The organization shall determine whether climate change is a relevant issue'],['4.2','4.2 Needs and Expectations of Interested Parties Note Relevant interested partiees can have requirements related to climate change'],
-  ['4.3','4.3 Scope of Management System'],['4.4','4.4 Management System and its Processes'],
-  ['5.1','5.1 Leadership and Commitment'],['5.2','5.2 Policy'],['5.3','5.3 Roles, Responsibilities and Authorities'],
-  ['6.1','6.1 Actions to Address Risks and Opportunities'],['6.2','6.2 Objectives and Planning to Achieve Them'],
-  ['6.3','6.3 Planning of Changes'],['7.1','7.1 Resources'],['7.2','7.2 Competence'],
-  ['7.3','7.3 Awareness'],['7.4','7.4 Communication'],['7.5','7.5 Documented Information'],
-  ['8.1','8.1 Operational Planning and Control'],['8.2','8.2 Requirements for Products and Services'],
-  ['8.3','8.3 Design and Development'],['8.4','8.4 Control of Externally Provided Processes'],
-  ['8.5','8.5 Production and Service Provision'],['8.6','8.6 Release of Products and Services'],
-  ['8.7','8.7 Control of Nonconforming Outputs'],
-  ['9.1','9.1 Monitoring, Measurement, Analysis and Evaluation'],
-   ['9.2','9.2 Internal Audit'],['9.3','9.3 Management Review'],
-  ['10.1','10.1 Improvement / Continual Improvement'],
-  ['10.2','10.2 Nonconformity and Corrective Action'],
-  ['10.3','10.3 Continual Improvement '],
 ];
 const CONFORMITY = ['C','NC','O','OFI','N/A'];
 
@@ -57,8 +41,6 @@ const ISMS_REVIEW_QUESTIONS = [
   'Is the information sufficient to determine audit duration, audit team competence and Stage 2 planning?',
 ];
 
-const buildChecklist = () => CLAUSES.map(([no, desc]) => ({ clause: no, description: desc, conformity: 'C', finding: '' }));
-
 const DEFAULT = {
   idNo: '', isoStandards: '', orgName: '', auditLanguage: 'English', address: '',
   modeOfAudit: '', contactPerson: '', onlineMeetingLink: '',
@@ -78,7 +60,7 @@ const DEFAULT = {
   ncList: [],
   observationList: [],
   ofiList: [],
-  checklist: buildChecklist(),
+  checklist: [],
 };
 
 export default function Form07Stage1AuditReport() {
@@ -89,13 +71,31 @@ export default function Form07Stage1AuditReport() {
       formTitle="Stage-1 Audit Report"
       defaultData={DEFAULT}
     >
-      {({ data, set }) => {
-        const setTeam = (ri, k, v) => { const t=[...(data.auditTeam||[])]; t[ri]={...t[ri],[k]:v}; set('auditTeam',t); };
-        const setNC   = (ri, k, v) => { const t=[...(data.ncList||[])]; t[ri]={...t[ri],[k]:v}; set('ncList',t); };
-        const setObs  = (ri, k, v) => { const t=[...(data.observationList||[])]; t[ri]={...t[ri],[k]:v}; set('observationList',t); };
-        const setOFI  = (ri, k, v) => { const t=[...(data.ofiList||[])]; t[ri]={...t[ri],[k]:v}; set('ofiList',t); };
-        const setCL   = (ri, k, v) => { const t=[...(data.checklist||[])]; t[ri]={...t[ri],[k]:v}; set('checklist',t); };
-        return (
+      {(props) => <Stage1ReportBody {...props} />}
+    </QMSFormPage>
+  );
+}
+
+function Stage1ReportBody({ data, set, clientInfo }) {
+  const { byName, loading } = useStandards();
+  const selectedStandard = data.auditStandards || data.isoStandards || clientInfo?.isoStandard || '';
+
+  // Seed the Stage-1 checklist with the selected standard's clauses (Standard schema).
+  useEffect(() => {
+    if (loading) return;
+    if ((data.checklist || []).length) return;
+    const cls = clausesForStandards(byName, selectedStandard);
+    if (cls.length) {
+      set('checklist', cls.map(c => ({ clause: c.no, description: c.text, conformity: 'C', finding: '' })));
+    }
+  }, [loading, selectedStandard]); // eslint-disable-line
+
+  const setTeam = (ri, k, v) => { const t=[...(data.auditTeam||[])]; t[ri]={...t[ri],[k]:v}; set('auditTeam',t); };
+  const setNC   = (ri, k, v) => { const t=[...(data.ncList||[])]; t[ri]={...t[ri],[k]:v}; set('ncList',t); };
+  const setObs  = (ri, k, v) => { const t=[...(data.observationList||[])]; t[ri]={...t[ri],[k]:v}; set('observationList',t); };
+  const setOFI  = (ri, k, v) => { const t=[...(data.ofiList||[])]; t[ri]={...t[ri],[k]:v}; set('ofiList',t); };
+  const setCL   = (ri, k, v) => { const t=[...(data.checklist||[])]; t[ri]={...t[ri],[k]:v}; set('checklist',t); };
+  return (
           <div>
             <SectionTitle>1. Organization & Audit Details</SectionTitle>
             <FormRow cols={2}>
@@ -290,7 +290,7 @@ export default function Form07Stage1AuditReport() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(data.checklist || buildChecklist()).map((row, ri) => (
+                  {(data.checklist || []).map((row, ri) => (
                     <React.Fragment key={ri}>
                       <tr style={{ background: ri%2===0?'white':'#fafafa' }}>
                         <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--primary-dark)', whiteSpace: 'nowrap', verticalAlign: 'top' }}>{row.clause}</td>
@@ -319,8 +319,5 @@ export default function Form07Stage1AuditReport() {
               </table>
             </div>
           </div>
-        );
-      }}
-    </QMSFormPage>
   );
 }

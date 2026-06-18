@@ -1,25 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
+import useStandards, { clausesForStandards } from './useStandards';
 
 const ROLES = ['Lead Auditor','Auditor','Technical Expert','Observer','Guide'];
-const CLAUSES_S1= [
-  ['4.1 Understanding the Organization and its Context The organization shall determine whether climate change is a relevant issue'],[ '4.2 Needs and Expectations of Interested Parties Note Relevant interested partiees can have requirements related to climate change'],
-  ['4.3 Scope of Management System'],[ '4.4 Management System and its Processes'],
-  [ '5.1 Leadership and Commitment'],[ '5.2 Policy'],['5.3 Roles, Responsibilities and Authorities'],
-  [ '6.1 Actions to Address Risks and Opportunities'],[ '6.2 Objectives and Planning to Achieve Them'],
-  [ '6.3 Planning of Changes'],[ '7.1 Resources'],[ '7.2 Competence'],
-  [ '7.3 Awareness'],[ '7.4 Communication'],[ '7.5 Documented Information'],
-  [ '8.1 Operational Planning and Control'],[ '8.2 Requirements for Products and Services'],
-  [ '8.3 Design and Development'],[ '8.4 Control of Externally Provided Processes'],
-  [ '8.5 Production and Service Provision'],[ '8.6 Release of Products and Services'],
-  ['8.7 Control of Nonconforming Outputs'],
-  [ '9.1 Monitoring, Measurement, Analysis and Evaluation'],
-   [ '9.2 Internal Audit'],[ '9.3 Management Review'],
-  [ '10.1 Improvement / Continual Improvement'],
-  [ '10.2 Nonconformity and Corrective Action'],
-  [ '10.3 Continual Improvement '],
-];
-
 
 const EMPTY_TEAM  = { name: '', role: '', competency: '', manDays: '' };
 const EMPTY_SCHED = { dayTime: '', clauses: '', activity: '', auditorName: '' };
@@ -115,7 +98,7 @@ const DEFAULT = {
   auditObjectives: 'Judging the availability to 2nd assessment by checking system conformity and performance status regarding policy and objective.\n1. Conformity of documents regarding developed system.\n2. Review internal audit and management review records.\n3. Site-specific conditions, process and equipments used.\n4. Applicable statutory and regulatory requirements.',
   auditLanguage: 'English',
   auditTeam: [{ ...EMPTY_TEAM }],
-  schedule: CLAUSES_S1.map(c => ({ dayTime: '', clauses: c, activity: '', auditorName: '' })),
+  schedule: [],
 };
 
 export default function Form05Stage1AuditPlan() {
@@ -126,19 +109,37 @@ export default function Form05Stage1AuditPlan() {
       formTitle="Audit Plan — Stage 1"
       defaultData={DEFAULT}
     >
-      {({ data, set, clientInfo }) => {
-        const selectedStandard = data.auditStandards || clientInfo?.isoStandard || '';
-        const setTeam = (ri, key, val) => {
-          const t = [...(data.auditTeam || [])];
-          t[ri] = { ...t[ri], [key]: val };
-          set('auditTeam', t);
-        };
-        const setSched = (ri, key, val) => {
-          const s = [...(data.schedule || [])];
-          s[ri] = { ...s[ri], [key]: val };
-          set('schedule', s);
-        };
-        return (
+      {(props) => <Stage1Body {...props} />}
+    </QMSFormPage>
+  );
+}
+
+function Stage1Body({ data, set, clientInfo }) {
+  const { byName, loading } = useStandards();
+  const selectedStandard = data.auditStandards || clientInfo?.isoStandard || '';
+
+  // Seed the schedule with the selected standard's clauses (from the Standard schema)
+  // the first time the form is opened with no schedule rows yet.
+  useEffect(() => {
+    if (loading) return;
+    if ((data.schedule || []).length) return;
+    const cls = clausesForStandards(byName, selectedStandard);
+    if (cls.length) {
+      set('schedule', cls.map(c => ({ dayTime: '', clauses: `${c.no} ${c.text}`.trim(), activity: '', auditorName: '' })));
+    }
+  }, [loading, selectedStandard]); // eslint-disable-line
+
+  const setTeam = (ri, key, val) => {
+    const t = [...(data.auditTeam || [])];
+    t[ri] = { ...t[ri], [key]: val };
+    set('auditTeam', t);
+  };
+  const setSched = (ri, key, val) => {
+    const s = [...(data.schedule || [])];
+    s[ri] = { ...s[ri], [key]: val };
+    set('schedule', s);
+  };
+  return (
           <div>
             <SectionTitle>1. Plan Information</SectionTitle>
             <FormRow cols={2}>
@@ -266,8 +267,5 @@ export default function Form05Stage1AuditPlan() {
               addLabel="Add Schedule Row"
             />
           </div>
-        );
-      }}
-    </QMSFormPage>
   );
 }

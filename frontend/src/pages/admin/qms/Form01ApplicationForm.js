@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, FileText, ChevronDown, ChevronRight } from 'lucide-react';
 import QMSFormPage from './QMSFormPage';
-
-/* ── constants ── */
-const ISO_LIST = [
-  'ISO 9001:2015','ISO 14001:2015','ISO 45001:2018','ISO 22000:2018',
-  'ISO 27001:2022','ISO/IEC 27701:2025','ISO/IEC 42001:2023',
-  'ISO 22301:2019','ISO 37001:2016','ISO 21001:2018','ISO 50001:2018',
-];
+import useStandards from './useStandards';
 const APP_TYPES = ['Initial','Surveillance','Re-certification','Un-Announced','Follow-up', 'Special Audit'];
 const ACCRED = ['UAF','UASL'];
 const COUNTRY_CODES = [
@@ -167,6 +161,7 @@ const SecCard = ({id, title, children}) => (
 /* ── Inner form component (needs local useState for accordion UI state) ── */
 export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
   const [openSecs, setOpenSecs] = useState({ iso50001:false, isoEnv:false, iso22000:false, iso22301:false, iso27001:false, iso27701:false, iso42001:false, iso37001:false, iso21001:false });
+  const { names: ISO_LIST } = useStandards();
 
   const toggleSec = (k) => setOpenSecs(s=>({...s,[k]:!s[k]}));
   const toggleStd = (s) => {
