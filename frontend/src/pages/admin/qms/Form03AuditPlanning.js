@@ -42,8 +42,7 @@ function deriveClientStandards(clientInfo, names) {
   return names.filter(k => tokens.includes(k));
 }
 
-const blankStd = () => ({ open: true, cols: ['initial'], values: {}, notes: {}, extra: [] });
-const uid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+const blankStd = () => ({ open: true, cols: ['initial'], values: {}, notes: {} });
 
 /* ───────────────────────── Inner interactive component ───────────────────────── */
 function AuditProgramme({ data, set, clientInfo }) {
@@ -188,22 +187,8 @@ function StandardCard({ stdKey, meta, st, setStd, openPop, togglePop, closePop }
     setStd({ notes });
   };
 
-  // Custom clauses the user adds to this standard (editable + removable).
-  const extra = Array.isArray(st.extra) ? st.extra : [];
-  const addClause = () => setStd({ extra: [...extra, { id: uid(), num: '', title: '' }] });
-  const setExtra = (id, field, val) =>
-    setStd({ extra: extra.map(e => (e.id === id ? { ...e, [field]: val } : e)) });
-  const removeClause = (id) => {
-    const values = { ...st.values };
-    delete values[`x_${id}`];
-    setStd({ extra: extra.filter(e => e.id !== id), values });
-  };
-
-  // Combined row list: catalogue clauses (from the Standard schema) + custom ones.
-  const rows = [
-    ...catalogueClauses.map((c, i) => ({ key: `f${i}`, num: c.no || '', title: c.text || '', desc: '', fixed: true })),
-    ...extra.map(e => ({ key: `x_${e.id}`, id: e.id, num: e.num, title: e.title, desc: '', fixed: false })),
-  ];
+  // Clause rows come straight from the Standard schema.
+  const rows = catalogueClauses.map((c, i) => ({ key: `f${i}`, num: c.no || '', title: c.text || '', desc: '' }));
   const N = rows.length;
 
   return (
@@ -280,10 +265,6 @@ function StandardCard({ stdKey, meta, st, setStd, openPop, togglePop, closePop }
               )}
             </div>
 
-            <button type="button" className="aud3-btn add" onClick={e => { e.stopPropagation(); addClause(); }}>
-              <FiPlus size={14} /> Add clause
-            </button>
-
             <span className="aud3-spacer" />
             <span className="aud3-pill">{st.cols.length} of {COLUMNS.length} columns active</span>
           </div>
@@ -299,7 +280,6 @@ function StandardCard({ stdKey, meta, st, setStd, openPop, togglePop, closePop }
                     return (
                       <th key={id} className={`aud3-colhead ${c.type === 'check' ? 'col-check' : 'col-focus'}`}>
                         {c.label}{c.sub && <span className="sub">{c.sub}</span>}
-                        <span className="scope">{scope}</span>
                         {c.removable && (
                           <button type="button" className="x" title={`Remove ${c.label}`} onClick={() => removeCol(id)}>
                             <FiX size={13} />
@@ -316,40 +296,13 @@ function StandardCard({ stdKey, meta, st, setStd, openPop, togglePop, closePop }
                   return (
                     <tr key={r.key}>
                       <td className="area">
-                        {r.fixed ? (
-                          <div className="aud3-clause">
-                            <span className="aud3-cnum">{r.num}</span>
-                            <span>
-                              <span className="aud3-ct">{r.title}</span>
-                              {r.desc && <span className="aud3-cd">{r.desc}</span>}
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="aud3-clause aud3-clause-edit">
-                            <input
-                              className="aud3-clause-num-inp"
-                              value={r.num}
-                              placeholder="No."
-                              onChange={e => setExtra(r.id, 'num', e.target.value)}
-                              aria-label="Clause number"
-                            />
-                            <input
-                              className="aud3-clause-title-inp"
-                              value={r.title}
-                              placeholder="Audit area / clause title…"
-                              onChange={e => setExtra(r.id, 'title', e.target.value)}
-                              aria-label="Clause title"
-                            />
-                            <button
-                              type="button"
-                              className="aud3-clause-del"
-                              title="Remove this clause"
-                              onClick={() => removeClause(r.id)}
-                            >
-                              <FiX size={13} />
-                            </button>
-                          </div>
-                        )}
+                        <div className="aud3-clause">
+                          <span className="aud3-cnum">{r.num}</span>
+                          <span>
+                            <span className="aud3-ct">{r.title}</span>
+                            {r.desc && <span className="aud3-cd">{r.desc}</span>}
+                          </span>
+                        </div>
                       </td>
                       {st.cols.map(id => {
                         const c = colById(id);
