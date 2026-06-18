@@ -1,13 +1,13 @@
 import React from 'react';
-import QMSFormPage, { FormRow, FormField, FInput, SectionTitle, DynamicTable } from './QMSFormPage';
+import QMSFormPage, { FormRow, FormField, FInput, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 
-const YN_OPTS = ['Y','N'];
-const EMPTY_P = { sNo: '', name: '', position: '', openingMeeting: 'Y', closingMeeting: 'Y' };
+const YN_OPTS = ['Yes','No'];
+const EMPTY_P = { sNo: '', name: '', position: '', openingMeeting: 'Yes', closingMeeting: 'Yes' };
 
 const DEFAULT = {
   auditDateFrom: '', auditDateTo: '', standard: '',
   participants: Array.from({ length: 5 }, (_, i) => ({
-    sNo: String(i + 1), name: '', position: '', openingMeeting: 'Y', closingMeeting: 'Y',
+    sNo: String(i + 1), name: '', position: '', openingMeeting: 'Yes', closingMeeting: 'Yes',
   })),
 };
 
@@ -36,7 +36,7 @@ export default function Form10Stage2Meetings() {
                 <FInput value={data.auditDateTo} onChange={v => set('auditDateTo', v)} type="date" />
               </FormField>
               <FormField label="Standard">
-                <FInput value={data.standard} onChange={v => set('standard', v)} placeholder="ISO 9001:2015..." />
+                <StandardChips value={data.standard} />
               </FormField>
             </FormRow>
 

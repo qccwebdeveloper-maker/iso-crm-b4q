@@ -1,5 +1,5 @@
 import React from 'react';
-import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle } from './QMSFormPage';
+import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, StandardChips } from './QMSFormPage';
 
 const STANDARDS = ['ISO 9001:2015','ISO 14001:2015','ISO 45001:2018','ISO 22000:2018','ISO 27001:2022','ISO/IEC 27701:2025','ISO/IEC 42001:2023','ISO 22301:2019','ISO 37001:2016','ISO 21001:2018'];
 const MS_TYPES  = ['Quality Management System','Environmental Management System','Occupational Health and Safety Management System','Food Safety Management System','Information Security Management System','Energy Management System'];
@@ -43,7 +43,7 @@ export default function Form14DraftCertificate() {
           </FormRow>
           <FormRow cols={1}>
             <FormField label="Standard (as on certificate)">
-              <FInput value={data.standard} onChange={v => set('standard', v)} placeholder="e.g. ISO 9001:2015" />
+              <StandardChips value={data.standard} />
             </FormField>
           </FormRow>
           <FormRow cols={1}>

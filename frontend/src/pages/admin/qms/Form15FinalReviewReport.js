@@ -1,5 +1,5 @@
 import React from 'react';
-import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle } from './QMSFormPage';
+import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, StandardChips } from './QMSFormPage';
 
 const INITIAL_CHECKS = [
   { key: 'stg2AuditorDiff',   label: 'Does stage 2 auditor different from stage 1? Yes / No' },
@@ -11,7 +11,7 @@ const INITIAL_CHECKS = [
   { key: 'totalObservations', label: 'Total number of observations found.' },
   { key: 'totalMinorNC',      label: 'Total number of Minor NC found.' },
   { key: 'totalMajorNC',      label: 'Total number of Major NC found.' },
-  { key: 'leadAuditorRec',    label: 'What is the recommendation of Lead Auditor? (Certificate issue / Maintenance / Renewal / Suspend / Withdrawal / Reduce/Extend Scope)' },
+  { key: 'leadAuditorRec',    label: 'What is the recommendation of Lead Auditor? (Certificate issue / Maintenance / Renewal / Suspend / Withdrawal / Reduce/Extend Scope /  Retain Certification)' },
 ];
 const MULTISITE_CHECKS = [
   { key: 'hasMultiSite',      label: 'Does Client have multi-site location? Is calculation of man-days appropriate?' },
@@ -32,8 +32,9 @@ const SURV1_CHECKS = [
   { key: 'observations',      label: 'Total number of observations.' },
   { key: 'minorNC',           label: 'Total number of Minor NC.' },
   { key: 'majorNC',           label: 'Total number of Major NC.' },
-  { key: 'laRecommendation',  label: "What is Lead Auditor's recommendation? (Maintenance / Renewal / Suspend / Withdrawal / Reduce/Extend Scope)" },
+  { key: 'laRecommendation',  label: "What is Lead Auditor's recommendation? (Maintenance / Renewal / Suspend / Withdrawal / Reduce/Extend Scope / Retain Certification)" },
 ];
+
 const RECERT_CHECKS = [
   { key: 'withinTimeline',    label: 'Is Recertification audit planned and conducted within timeline/prior to expiry?' },
   { key: 'siteChange',        label: 'Is any change at client site/address, scope or key management person?' },
@@ -48,7 +49,7 @@ const RECERT_CHECKS = [
   { key: 'observations',      label: 'Total number of observations found.' },
   { key: 'minorNC',           label: 'Total number of Minor NC found.' },
   { key: 'majorNC',           label: 'Total number of Major NC found.' },
-  { key: 'laRecommendation',  label: 'What is Lead Auditor recommendation? (Renewal / Suspend / Withdrawal / Reduce/Extend Scope)' },
+  { key: 'laRecommendation',  label: 'What is Lead Auditor recommendation? (Renewal / Suspend / Withdrawal / Reduce/Extend Scope / Retain Certification)' },
 ];
 
 const buildChecks = (arr) => Object.fromEntries(arr.map(c => [c.key, 'NA']));
@@ -107,7 +108,7 @@ export default function Form15FinalReviewReport() {
                 <FInput value={data.orgName} onChange={v => set('orgName', v)} placeholder="Organization name" />
               </FormField>
               <FormField label="Standard">
-                <FInput value={data.standard} onChange={v => set('standard', v)} placeholder="ISO 9001:2015..." />
+                <StandardChips value={data.standard} />
               </FormField>
             </FormRow>
             <FormRow cols={2}>
@@ -172,6 +173,7 @@ export default function Form15FinalReviewReport() {
                 { value: 'renewal',               label: 'Renewal' },
                 { value: 'reduce',                label: 'Reduce Scope' },
                 { value: 'extend',                label: 'Extend Scope' },
+                { value: 'retain certification',  label: 'Retain Certification' },
               ].map(o => (
                 <label key={o.value} style={{ display:'flex',alignItems:'center',gap:10,padding:'8px 14px',borderRadius:8,border:`1.5px solid ${data.hodDecision===o.value?'var(--primary)':'#e2e8f0'}`,background:data.hodDecision===o.value?'#fff7ed':'white',cursor:'pointer',fontSize:13 }}>
                   <input type="radio" value={o.value} checked={data.hodDecision===o.value} onChange={()=>set('hodDecision',o.value)} />
@@ -190,3 +192,5 @@ export default function Form15FinalReviewReport() {
     </QMSFormPage>
   );
 }
+
+

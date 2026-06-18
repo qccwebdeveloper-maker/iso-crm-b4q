@@ -1,5 +1,5 @@
 import React from 'react';
-import QMSFormPage, { FormRow, FormField, FInput, SectionTitle, DynamicTable } from './QMSFormPage';
+import QMSFormPage, { FormRow, FormField, FInput, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 
 const EMPTY_CAR = { ncrNo: '', clauseRef: '', minorMajor: 'Minor', ncrDetail: '', writingDate: '', processDept: '', acceptedBy: '', leadAuditorName: '' };
 
@@ -33,7 +33,7 @@ export default function Form12CARRequest() {
                 <FInput value={data.orgName} onChange={v => set('orgName', v)} />
               </FormField>
               <FormField label="Standard">
-                <FInput value={data.standard} onChange={v => set('standard', v)} placeholder="ISO 9001:2015..." />
+                <StandardChips value={data.standard} />
               </FormField>
             </FormRow>
 
@@ -46,7 +46,7 @@ export default function Form12CARRequest() {
                 { key: 'ncrNo',          label: 'NCR No.',        minWidth: 60 },
                 { key: 'clauseRef',      label: 'Clause Ref.',    minWidth: 100 },
                 { key: 'minorMajor',     label: 'Minor / Major',  type: 'select', options: ['Minor','Major'] },
-                { key: 'ncrDetail',      label: 'NCR Detail',     type: 'textarea', minWidth: 220 },
+                { key: 'ncrDetail',      label: 'NCR Detail',     type: 'textarea', fullRow: true },
                 { key: 'writingDate',    label: 'Writing Date',   type: 'date' },
                 { key: 'processDept',    label: 'Process / Dept.', minWidth: 120 },
                 { key: 'acceptedBy',     label: 'Accepted By',    minWidth: 140 },

@@ -1,5 +1,5 @@
 import React from 'react';
-import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle } from './QMSFormPage';
+import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, StandardChips } from './QMSFormPage';
 
 /* ── Audit type options (top-right checkboxes in Excel) ── */
 const AUDIT_TYPES = [
@@ -94,7 +94,7 @@ export default function Form08Stage1ReviewReport() {
     <QMSFormPage
       formType={8}
       formCode="AUD-F-22"
-      formTitle="Review Report — Stage 1 (After Application Review)"
+      formTitle="Review Report — Stage 1 (After Audit Report)"
       defaultData={DEFAULT}
     >
       {({ data, set }) => (
@@ -134,7 +134,7 @@ export default function Form08Stage1ReviewReport() {
               <FInput value={data.orgName} onChange={v => set('orgName', v)} placeholder="Organization name" />
             </FormField>
             <FormField label="Standard(s)">
-              <FInput value={data.standard} onChange={v => set('standard', v)} placeholder="ISO 9001:2015, ISO 14001:2015…" />
+              <StandardChips value={data.standard} />
             </FormField>
           </FormRow>
           <FormRow cols={2}>

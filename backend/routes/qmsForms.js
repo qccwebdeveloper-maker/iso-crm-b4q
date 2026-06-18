@@ -26,7 +26,18 @@ router.get('/client/:clientId', protect, authorize('admin'), async (req, res) =>
     const user = await User.findOne({ clientId: req.params.clientId })
       .select('name company email phone address isoStandard scope clientId');
     if (!user) return res.status(404).json({ message: 'No client found with this ID' });
-    res.json(user);
+
+    // Pull the standards selected in the client's Application Form (F01) so that
+    // every downstream form shows ALL selected standards, not just one.
+    const appForm = await QMSForm.findOne({ clientId: req.params.clientId, formType: 1 })
+      .select('formData');
+    const selected = appForm?.formData?.standards;
+    const standards = Array.isArray(selected) ? selected.filter(Boolean) : [];
+
+    const out = user.toObject();
+    out.standards = standards;
+    if (standards.length) out.isoStandard = standards.join(', ');
+    res.json(out);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 

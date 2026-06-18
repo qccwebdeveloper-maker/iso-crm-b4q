@@ -1,5 +1,5 @@
 import React from 'react';
-import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable } from './QMSFormPage';
+import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 
 const ROLES = ['Lead Auditor','Auditor','Technical Expert','Observer','Guide'];
 const CLAUSES = [
@@ -23,12 +23,15 @@ const CLAUSES = [
 const EMPTY_TEAM  = { name: '', role: '', stage2Days: '' };
 const EMPTY_SCHED = { dayTime: '', clauses: '', auditorName: '' };
 
+// Fixed standard statement — displayed read-only, not editable.
+const AUDIT_OBJECTIVES = 'Judging the Management System by checking system conformity and performance status regarding objective evidence as per ISO 9001 Standard\na. To assess conformity of the Client\'s Management system with the audit criteria\nb. To assess capacity of the client\'s criteria to meet its Objectives\nc. To identify areas of improvement in the Clients premises\nd. To make appropriate recommendation to the CB regarding client\'s certification.';
+
 const DEFAULT = {
   idNo: '', orgName: '', address: '', contactPerson: '', contactDetails: '',
   auditType: '', auditStandards: '', auditPlanDate: '',
   auditDateFrom: '', auditDateTo: '', modeOfAudit: '', onlineMeetingLink: '',
   iafCode: '',
-  auditObjectives: 'Judging the Management System by checking system conformity and performance status regarding objective evidence as per ISO 9001 Standard\na. To assess conformity of the Client\'s Management system with the audit criteria\nb. To assess capacity of the client\'s criteria to meet its QMS Objectives\nc. To identify areas of improvement in the Clients premises\nd. To make appropriate recommendation to the CB regarding client\'s certification.',
+  auditObjectives: AUDIT_OBJECTIVES,
   auditLanguage: 'English',
   auditTeam: [{ ...EMPTY_TEAM }],
   schedule: CLAUSES.map(c => ({ dayTime: '', clauses: c[1], auditorName: '' })),
@@ -61,7 +64,7 @@ export default function Form09Stage2AuditPlan() {
               <FormField label="1.5 Type of Audit">
                 <FSelect value={data.auditType} onChange={v=>set('auditType',v)} placeholder="Select type" options={['Initial','Surveillance','Re-certification','Special']} />
               </FormField>
-              <FormField label="1.6 Audit Standard(s)"><FInput value={data.auditStandards} onChange={v=>set('auditStandards',v)} placeholder="ISO 9001:2015..." /></FormField>
+              <FormField label="1.6 Audit Standard(s)"><StandardChips value={data.auditStandards} /></FormField>
             </FormRow>
             <FormRow cols={3}>
               <FormField label="1.7 Audit Plan Date"><FInput value={data.auditPlanDate} onChange={v=>set('auditPlanDate',v)} type="date" /></FormField>
@@ -79,7 +82,9 @@ export default function Form09Stage2AuditPlan() {
               <FormField label="1.12 Language of Audit"><FInput value={data.auditLanguage} onChange={v=>set('auditLanguage',v)} placeholder="English" /></FormField>
             </FormRow>
             <FormRow cols={1}>
-              <FormField label="1.11 Audit Objectives"><FTextarea value={data.auditObjectives} onChange={v=>set('auditObjectives',v)} rows={5} /></FormField>
+              <FormField label="1.11 Audit Objectives">
+                <div className="qms-readonly-block">{data.auditObjectives || AUDIT_OBJECTIVES}</div>
+              </FormField>
             </FormRow>
 
             <SectionTitle>Audit Team Details</SectionTitle>

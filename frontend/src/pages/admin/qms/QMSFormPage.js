@@ -48,15 +48,22 @@ export function FInput({ value, onChange, placeholder, type = 'text', disabled }
   );
 }
 
-export function FTextarea({ value, onChange, placeholder, rows = 3, disabled }) {
+export function FTextarea({ value, onChange, placeholder, rows = 3, disabled, autoGrow }) {
+  const fit = el => {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  };
   return (
     <textarea
+      ref={autoGrow ? fit : undefined}
       value={value || ''}
-      onChange={e => onChange(e.target.value)}
+      onChange={e => { if (autoGrow) fit(e.target); onChange(e.target.value); }}
       placeholder={placeholder}
       rows={rows}
       disabled={disabled}
       className="qms-inp"
+      style={autoGrow ? { overflow: 'hidden', resize: 'none' } : undefined}
     />
   );
 }
@@ -114,62 +121,121 @@ export function SectionTitle({ children }) {
   return <div className="qms-section-title">{children}</div>;
 }
 
+// Read-only pill display for the standards selected in the Application Form (F01).
+// Renders each standard as a non-removable chip (no cross / remove UI).
+export function StandardChips({ value }) {
+  const list = Array.isArray(value)
+    ? value.filter(Boolean)
+    : String(value || '').split(',').map(s => s.trim()).filter(Boolean);
+  return (
+    <div style={{
+      display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center',
+      minHeight: 44, padding: '8px 12px',
+      border: '1.5px solid var(--primary-200)', borderRadius: 10,
+      background: 'white',
+    }}>
+      {list.length === 0
+        ? <span style={{ color: 'var(--gray-400)', fontSize: 13 }}>—</span>
+        : list.map((s, i) => (
+            <span key={i} style={{
+              display: 'inline-flex', alignItems: 'center',
+              padding: '6px 14px', borderRadius: 999,
+              background: 'var(--primary-50)', border: '1px solid var(--primary-200)',
+              color: 'var(--primary-dark)', fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
+            }}>{s}</span>
+          ))}
+    </div>
+  );
+}
+
 export function DynamicTable({ columns, rows, onAdd, onRemove, onCellChange, disabled, addLabel = 'Add Row' }) {
+  const inlineCols   = columns.filter(c => !c.fullRow);
+  const fullRowCols  = columns.filter(c => c.fullRow);
+  const colCount     = inlineCols.length + (disabled ? 0 : 1);
+
+  const renderField = (c, row, ri, full) => {
+    if (c.type === 'select') {
+      return (
+        <select
+          value={row[c.key] || ''}
+          onChange={e => onCellChange(ri, c.key, e.target.value)}
+          disabled={disabled}
+          className="qms-dyn-inp"
+          style={{ minWidth: 110 }}
+        >
+          <option value="">—</option>
+          {c.options?.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      );
+    }
+    if (c.type === 'textarea') {
+      const autoGrow = el => {
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = `${el.scrollHeight}px`;
+      };
+      return (
+        <textarea
+          ref={autoGrow}
+          value={row[c.key] || ''}
+          onChange={e => { autoGrow(e.target); onCellChange(ri, c.key, e.target.value); }}
+          disabled={disabled}
+          rows={full ? 3 : 2}
+          className="qms-dyn-inp"
+          style={{ resize: 'vertical', minWidth: 140, width: full ? '100%' : undefined, overflow: 'hidden' }}
+        />
+      );
+    }
+    return (
+      <input
+        type={c.type || 'text'}
+        value={row[c.key] || ''}
+        onChange={e => onCellChange(ri, c.key, e.target.value)}
+        disabled={disabled}
+        className="qms-dyn-inp"
+        style={{ minWidth: c.minWidth || 100, width: full ? '100%' : undefined }}
+      />
+    );
+  };
+
   return (
     <div>
       <div className="qms-dyn-table-wrap">
         <table className="qms-dyn-table">
           <thead>
             <tr>
-              {columns.map(c => <th key={c.key}>{c.label}</th>)}
+              {inlineCols.map(c => <th key={c.key}>{c.label}</th>)}
               {!disabled && <th style={{ width: 40 }} />}
             </tr>
           </thead>
           <tbody>
             {rows.map((row, ri) => (
-              <tr key={ri}>
-                {columns.map(c => (
-                  <td key={c.key}>
-                    {c.type === 'select' ? (
-                      <select
-                        value={row[c.key] || ''}
-                        onChange={e => onCellChange(ri, c.key, e.target.value)}
-                        disabled={disabled}
-                        className="qms-dyn-inp"
-                        style={{ minWidth: 110 }}
-                      >
-                        <option value="">—</option>
-                        {c.options?.map(o => <option key={o} value={o}>{o}</option>)}
-                      </select>
-                    ) : c.type === 'textarea' ? (
-                      <textarea
-                        value={row[c.key] || ''}
-                        onChange={e => onCellChange(ri, c.key, e.target.value)}
-                        disabled={disabled}
-                        rows={2}
-                        className="qms-dyn-inp"
-                        style={{ resize: 'vertical', minWidth: 140 }}
-                      />
-                    ) : (
-                      <input
-                        type={c.type || 'text'}
-                        value={row[c.key] || ''}
-                        onChange={e => onCellChange(ri, c.key, e.target.value)}
-                        disabled={disabled}
-                        className="qms-dyn-inp"
-                        style={{ minWidth: c.minWidth || 100 }}
-                      />
-                    )}
-                  </td>
-                ))}
-                {!disabled && (
-                  <td>
-                    <button type="button" onClick={() => onRemove(ri)} className="qms-del-row-btn">
-                      <FiX size={13} />
-                    </button>
-                  </td>
+              <React.Fragment key={ri}>
+                <tr>
+                  {inlineCols.map(c => (
+                    <td key={c.key}>{renderField(c, row, ri, false)}</td>
+                  ))}
+                  {!disabled && (
+                    <td>
+                      <button type="button" onClick={() => onRemove(ri)} className="qms-del-row-btn">
+                        <FiX size={13} />
+                      </button>
+                    </td>
+                  )}
+                </tr>
+                {fullRowCols.length > 0 && (
+                  <tr>
+                    <td colSpan={colCount} style={{ paddingTop: 0 }}>
+                      {fullRowCols.map(c => (
+                        <div key={c.key} style={{ marginTop: 4 }}>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: '#475569', marginBottom: 4 }}>{c.label}</div>
+                          {renderField(c, row, ri, true)}
+                        </div>
+                      ))}
+                    </td>
+                  </tr>
                 )}
-              </tr>
+              </React.Fragment>
             ))}
           </tbody>
         </table>
@@ -236,6 +302,8 @@ export default function QMSFormPage({ formType, formCode, formTitle, defaultData
           address:              client.address     || '',
           scopeOfCertification: client.scope       || '',
           auditStandards:       client.isoStandard || '',
+          isoStandards:         client.isoStandard || '',
+          standard:             client.isoStandard || '',
         });
         setStatus('draft');
         setExistingId(null);
@@ -278,14 +346,23 @@ export default function QMSFormPage({ formType, formCode, formTitle, defaultData
     } catch { toast.error('Delete failed'); }
   };
 
-  const openExisting = (row) => {
-    setClientIdInput(row.clientRef?.clientId || row.clientId || '');
-    setClientInfo(row.clientRef || { clientId: row.clientId });
+  const openExisting = async (row) => {
+    const cid = row.clientRef?.clientId || row.clientId || '';
+    setClientIdInput(cid);
+    setClientInfo(row.clientRef || { clientId: cid });
     setFormData(row.formData || {});
     setStatus(row.status);
     setExistingId(row._id);
     setView('form');
     window.scrollTo(0, 0);
+    // Enrich the client banner with the full record (standards, scope, …) so forms
+    // that read from the application — e.g. F03 — get the same data as a fresh search.
+    if (cid) {
+      try {
+        const { data: client } = await axios.get(`/api/qms-forms/client/${cid}`);
+        setClientInfo(prev => ({ ...(prev || {}), ...client }));
+      } catch { /* keep the lean clientRef if the lookup fails */ }
+    }
   };
 
   const resetForm = () => {

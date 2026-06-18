@@ -1,5 +1,5 @@
 import React from 'react';
-import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable } from './QMSFormPage';
+import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 
 const ROLES = ['Lead Auditor','Auditor','Technical Expert'];
 const NC_TYPES = ['Minor NC','Major NC'];
@@ -28,7 +28,7 @@ const SURV_CHECKS = [
   'Compliance of use of QCC logo/marks & Applicable AB logo / marks, if applicable',
   'Any changes with respect to management system',
   'Any Complaints / interested party feedback',
-  'Any Change in Scope',
+  'Any Change in Scope',  
   'Any additional Information',
 ];
 
@@ -92,7 +92,7 @@ export default function Form11Stage2AuditReport() {
               <FormField label="1.5 Type of Audit">
                 <FSelect value={data.auditType} onChange={v=>set('auditType',v)} placeholder="Select" options={['Stage II','Surveillance','Recertification','Special Audit']} />
               </FormField>
-              <FormField label="1.6 Audit Standard(s)"><FInput value={data.auditStandards} onChange={v=>set('auditStandards',v)} /></FormField>
+              <FormField label="1.6 Audit Standard(s)"><StandardChips value={data.auditStandards} /></FormField>
             </FormRow>
             <FormRow cols={2}>
               <FormField label="1.7 Mode of Audit">
@@ -200,42 +200,50 @@ export default function Form11Stage2AuditReport() {
               </FormField>
             </FormRow>
 
+ 
+ 
+    
+
             <SectionTitle>5. Quality Stage-2 Audit Checklist</SectionTitle>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <thead>
                   <tr style={{ background: '#f8fafc' }}>
-                    {['Clause','Description','Done?','C/NC/O/OFI','Finding'].map(h => (
+                    {['Clause','Description','C/NC/O/OFI'].map(h => (
                       <th key={h} style={{ padding: '8px 10px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', borderBottom: '1.5px solid #e2e8f0' }}>{h}</th>
                     ))}
                   </tr>
                   <tr style={{ background: '#f1f5f9', fontSize: 10, color: '#9ca3af' }}>
                     <th style={{ padding: '4px 10px' }}></th>
-                    <th style={{ padding: '4px 10px' }}>☑ Done / ☐ Not Done / N/A Not Applicable</th>
                     <th style={{ padding: '4px 10px' }}></th>
                     <th style={{ padding: '4px 10px' }}>C–Conformity NC–Non Conformity O–Observation OFI–Opportunity N/A–Not Applicable</th>
-                    <th style={{ padding: '4px 10px' }}></th>
                   </tr>
                 </thead>
                 <tbody>
                   {(data.checklist || buildChecklist()).map((row, ri) => (
-                    <tr key={ri} style={{ borderBottom: '1px solid #f1f5f9', background: ri%2===0?'white':'#fafafa' }}>
-                      <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--primary-dark)', whiteSpace: 'nowrap' }}>{row.clause}</td>
-                      <td style={{ padding: '6px 10px', fontSize: 11.5, whiteSpace: 'pre-line', maxWidth: 340 }}>{row.description}</td>
-                      <td style={{ padding: '6px 10px', textAlign: 'center' }}>
-                        <input type="checkbox" checked={!!row.done} onChange={e=>setCL(ri,'done',e.target.checked)} />
-                      </td>
-                      <td style={{ padding: '6px 8px' }}>
-                        <select value={row.conformity||'N/A'} onChange={e=>setCL(ri,'conformity',e.target.value)}
-                          style={{ padding: '4px 6px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', background: 'white' }}>
-                          {CONFORMITY.map(c=><option key={c} value={c}>{c}</option>)}
-                        </select>
-                      </td>
-                      <td style={{ padding: '6px 8px' }}>
-                        <input type="text" value={row.finding||''} onChange={e=>setCL(ri,'finding',e.target.value)}
-                          placeholder="Finding..." style={{ padding: '4px 8px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', width: '100%', minWidth: 160 }} />
-                      </td>
-                    </tr>
+                    <React.Fragment key={ri}>
+                      <tr style={{ background: ri%2===0?'white':'#fafafa' }}>
+                        <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--primary-dark)', whiteSpace: 'nowrap', verticalAlign: 'top' }}>{row.clause}</td>
+                        <td style={{ padding: '6px 10px', fontSize: 11.5, whiteSpace: 'pre-line', maxWidth: 340, verticalAlign: 'top' }}>{row.description}</td>
+                        <td style={{ padding: '6px 8px', verticalAlign: 'top' }}>
+                          <select value={row.conformity||'N/A'} onChange={e=>setCL(ri,'conformity',e.target.value)}
+                            style={{ padding: '4px 6px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', background: 'white' }}>
+                            {CONFORMITY.map(c=><option key={c} value={c}>{c}</option>)}
+                          </select>
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid #f1f5f9', background: ri%2===0?'white':'#fafafa' }}>
+                        <td colSpan={3} style={{ padding: '0 10px 10px' }}>
+                          <textarea value={row.finding||''}
+                            onChange={e=>setCL(ri,'finding',e.target.value)}
+                            onInput={e=>{ e.target.style.height='auto'; e.target.style.height=e.target.scrollHeight+'px'; }}
+                            ref={el=>{ if(el){ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; } }}
+                            rows={2}
+                            placeholder="Finding / evidence / notes..."
+                            style={{ padding: '8px 10px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', width: '100%', resize: 'none', overflow: 'hidden', fontFamily: 'inherit', lineHeight: 1.5, boxSizing: 'border-box' }} />
+                        </td>
+                      </tr>
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
