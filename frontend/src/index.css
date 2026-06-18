@@ -1211,6 +1211,14 @@ select.form-control { cursor: pointer; }
 textarea.qms-inp { resize: vertical; min-height: 72px; }
 select.qms-inp { cursor: pointer; }
 
+/* Read-only display block — fixed standard text, not editable */
+.qms-readonly-block {
+  padding: 11px 14px; border: 1.5px solid var(--primary-100);
+  border-radius: var(--r-sm); background: var(--primary-50);
+  font-size: 13px; line-height: 1.55; color: var(--gray-700);
+  white-space: pre-wrap; word-break: break-word;
+}
+
 /* ── Save bar ── */
 .qms-save-bar {
   display: flex; align-items: center; justify-content: space-between;

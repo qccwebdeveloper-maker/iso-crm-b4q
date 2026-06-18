@@ -48,15 +48,22 @@ export function FInput({ value, onChange, placeholder, type = 'text', disabled }
   );
 }
 
-export function FTextarea({ value, onChange, placeholder, rows = 3, disabled }) {
+export function FTextarea({ value, onChange, placeholder, rows = 3, disabled, autoGrow }) {
+  const fit = el => {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  };
   return (
     <textarea
+      ref={autoGrow ? fit : undefined}
       value={value || ''}
-      onChange={e => onChange(e.target.value)}
+      onChange={e => { if (autoGrow) fit(e.target); onChange(e.target.value); }}
       placeholder={placeholder}
       rows={rows}
       disabled={disabled}
       className="qms-inp"
+      style={autoGrow ? { overflow: 'hidden', resize: 'none' } : undefined}
     />
   );
 }
