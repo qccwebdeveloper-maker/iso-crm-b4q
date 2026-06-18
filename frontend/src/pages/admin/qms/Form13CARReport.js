@@ -79,7 +79,7 @@ export default function Form13CARReport() {
                     <FTextarea value={nc.detailsOfNC} onChange={v => setNC(ri, 'detailsOfNC', v)} rows={3} placeholder="Describe the non-conformity in detail..." />
                   </FormField>
                 </FormRow>
-
+          
                 <SectionTitle>Result of Corrective Action</SectionTitle>
                 <FormRow cols={1}>
                   <FormField label="1. Root Cause">
