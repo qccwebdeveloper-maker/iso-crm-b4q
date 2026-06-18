@@ -8,7 +8,7 @@ const ISO_LIST = [
   'ISO 27001:2022','ISO/IEC 27701:2025','ISO/IEC 42001:2023',
   'ISO 22301:2019','ISO 37001:2016','ISO 21001:2018','ISO 50001:2018',
 ];
-const APP_TYPES = ['Initial','Surveillance','Re-certification','Un-Announced','Follow-up'];
+const APP_TYPES = ['Initial','Surveillance','Re-certification','Un-Announced','Follow-up', 'Special Audit'];
 const ACCRED = ['UAF','UASL'];
 const COUNTRY_CODES = [
   {code:'+1',country:'US/Canada'},{code:'+7',country:'Russia'},{code:'+20',country:'Egypt'},

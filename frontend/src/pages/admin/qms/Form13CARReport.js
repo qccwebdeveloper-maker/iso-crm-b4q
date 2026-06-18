@@ -66,7 +66,7 @@ export default function Form13CARReport() {
                   </FormField>
                   <FormField label="Audit Type">
                     <FSelect value={nc.auditType} onChange={v => setNC(ri, 'auditType', v)} placeholder="Select type"
-                      options={['Stage-2','Surveillance','Re-certification','Follow-up']} />
+                      options={[ 'Stage-1', 'Stage-2', 'Surveillance', 'Re-certification', 'Follow-up' ,'Special' ]} />
                   </FormField>
                 </FormRow>
                 <FormRow cols={1}>
@@ -79,7 +79,7 @@ export default function Form13CARReport() {
                     <FTextarea value={nc.detailsOfNC} onChange={v => setNC(ri, 'detailsOfNC', v)} rows={3} placeholder="Describe the non-conformity in detail..." />
                   </FormField>
                 </FormRow>
-
+          
                 <SectionTitle>Result of Corrective Action</SectionTitle>
                 <FormRow cols={1}>
                   <FormField label="1. Root Cause">
