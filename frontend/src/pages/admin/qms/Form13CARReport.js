@@ -66,7 +66,7 @@ export default function Form13CARReport() {
                   </FormField>
                   <FormField label="Audit Type">
                     <FSelect value={nc.auditType} onChange={v => setNC(ri, 'auditType', v)} placeholder="Select type"
-                      options={['Stage-2','Surveillance','Re-certification','Follow-up']} />
+                      options={[ 'Stage-1', 'Stage-2', 'Surveillance', 'Re-certification', 'Follow-up' ,'Special' ]} />
                   </FormField>
                 </FormRow>
                 <FormRow cols={1}>

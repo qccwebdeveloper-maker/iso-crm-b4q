@@ -16,110 +16,62 @@ const colOrder = id => COLUMNS.findIndex(c => c.id === id);
 const colById  = id => COLUMNS.find(c => c.id === id);
 
 /* ============ Generic Annex-SL (high-level structure) clause set ============ */
-const HLS_CLAUSES = [
-  ['4.1', 'Understanding the Organization and its Context', 'Determine whether climate change is a relevant issue.'],
-  ['4.2', 'Needs and Expectations of Interested Parties', 'Relevant interested parties can have requirements related to climate change.'],
-  ['4.3', 'Scope of the Management System', ''],
+/* ============ Full clause set ============
+   The complete ISO high-level-structure clause checklist (4.1 → 10.3). Applied to
+   EVERY standard so each accordion opens with all clauses; extra clauses can still
+   be added per standard via the "Add clause" button.                                */
+const FULL_CLAUSES = [
+  ['4.1', 'Understanding the Organization and its Context', 'The organization shall determine whether climate change is a relevant issue.'],
+  ['4.2', 'Needs and Expectations of Interested Parties', 'NOTE: Relevant interested parties can have requirements related to climate change.'],
+  ['4.3', 'Scope of Management System', ''],
   ['4.4', 'Management System and its Processes', ''],
   ['5.1', 'Leadership and Commitment', ''],
   ['5.2', 'Policy', ''],
   ['5.3', 'Roles, Responsibilities and Authorities', ''],
   ['6.1', 'Actions to Address Risks and Opportunities', ''],
   ['6.2', 'Objectives and Planning to Achieve Them', ''],
+  ['6.3', 'Planning of Changes', ''],
   ['7.1', 'Resources', ''],
   ['7.2', 'Competence', ''],
   ['7.3', 'Awareness', ''],
   ['7.4', 'Communication', ''],
   ['7.5', 'Documented Information', ''],
   ['8.1', 'Operational Planning and Control', ''],
+  ['8.2', 'Requirements for Products and Services', ''],
+  ['8.3', 'Design and Development', ''],
+  ['8.4', 'Control of Externally Provided Processes, Products and Services', ''],
+  ['8.5', 'Production and Service Provision', ''],
+  ['8.6', 'Release of Products and Services', ''],
+  ['8.7', 'Control of Nonconforming Outputs', ''],
   ['9.1', 'Monitoring, Measurement, Analysis and Evaluation', ''],
+  ['9.1.2', 'Customer Satisfaction / Customer Feedback', ''],
   ['9.2', 'Internal Audit', ''],
   ['9.3', 'Management Review', ''],
-  ['10.1', 'Continual Improvement', ''],
+  ['10.1', 'Improvement / Continual Improvement', ''],
   ['10.2', 'Nonconformity and Corrective Action', ''],
+  ['10.3', 'Continual Improvement', ''],
 ];
 
 /* ============ Standards catalogue ============
    Keys match the ISO standard labels used across the application (NewApplication.js),
-   so the standards selected here line up with what the client applied for.            */
-const STANDARDS = {
-  'ISO 9001:2015': {
-    code: '9001', desc: 'Quality Management System',
-    clauses: [
-      ['4.1', 'Understanding the Organization and its Context', 'Determine whether climate change is a relevant issue.'],
-      ['4.2', 'Needs and Expectations of Interested Parties', 'Interested parties can have requirements related to climate change.'],
-      ['4.3', 'Scope of the Management System', ''],
-      ['4.4', 'Management System and its Processes', ''],
-      ['5.1', 'Leadership and Commitment', ''],
-      ['5.2', 'Quality Policy', ''],
-      ['5.3', 'Roles, Responsibilities and Authorities', ''],
-      ['6.1', 'Actions to Address Risks and Opportunities', ''],
-      ['6.2', 'Quality Objectives and Planning', ''],
-      ['7.5', 'Documented Information', ''],
-      ['8.1', 'Operational Planning and Control', ''],
-      ['8.5', 'Production and Service Provision', ''],
-      ['9.2', 'Internal Audit', ''],
-      ['9.3', 'Management Review', ''],
-      ['10.2', 'Nonconformity and Corrective Action', ''],
-    ],
-  },
-  'ISO 14001:2015':   { code: '14001', desc: 'Environmental Management System', clauses: HLS_CLAUSES },
-  'ISO 45001:2018':   { code: '45001', desc: 'Occupational Health & Safety', clauses: HLS_CLAUSES },
-  'ISO 22000:2018':   { code: '22000', desc: 'Food Safety Management', clauses: HLS_CLAUSES },
-  'ISO 27001:2022': {
-    code: '27001', desc: 'Information Security Management',
-    clauses: [
-      ['4.1', 'Understanding the Organization and its Context', ''],
-      ['4.2', 'Needs and Expectations of Interested Parties', ''],
-      ['4.3', 'Scope of the ISMS', ''],
-      ['5.2', 'Information Security Policy', ''],
-      ['6.1', 'Actions to Address Risks and Opportunities', ''],
-      ['6.1.3', 'Information Security Risk Treatment', ''],
-      ['8.1', 'Operational Planning and Control', ''],
-      ['9.2', 'Internal Audit', ''],
-      ['10.1', 'Continual Improvement', ''],
-    ],
-  },
-  'ISO/IEC 27701:2025': {
-    code: '27701', desc: 'Privacy Information Management',
-    clauses: [
-      ['5.2', 'Context of the Organization (PIMS)', ''],
-      ['5.3', 'Leadership', ''],
-      ['5.4', 'Planning', ''],
-      ['6.x', 'PIMS-Specific Requirements', ''],
-      ['7.2', 'PII Controllers — Conditions for Collection', ''],
-      ['7.3', 'Obligations to PII Principals', ''],
-      ['8.2', 'PII Processors — Obligations', ''],
-    ],
-  },
-  'ISO/IEC 42001:2023': {
-    code: '42001', desc: 'AI Management System',
-    clauses: [
-      ['4.1', 'Understanding the Organization and its Context', ''],
-      ['4.2', 'Needs and Expectations of Interested Parties', ''],
-      ['5.2', 'AI Policy', ''],
-      ['6.1', 'Actions to Address Risks and Opportunities', ''],
-      ['6.1.3', 'AI Risk Treatment', ''],
-      ['8.3', 'AI System Impact Assessment', ''],
-      ['9.2', 'Internal Audit', ''],
-    ],
-  },
-  'ISO 22301:2019':   { code: '22301', desc: 'Business Continuity Management', clauses: HLS_CLAUSES },
-  'ISO 37001:2016': {
-    code: '37001', desc: 'Anti-Bribery Management',
-    clauses: [
-      ['4.1', 'Understanding the Organization and its Context', ''],
-      ['4.5', 'Bribery Risk Assessment', ''],
-      ['5.2', 'Anti-Bribery Policy', ''],
-      ['5.3.2', 'Anti-Bribery Compliance Function', ''],
-      ['7.2', 'Competence — Employment Process', ''],
-      ['8.2', 'Due Diligence', ''],
-      ['8.7', 'Gifts, Hospitality, Donations', ''],
-    ],
-  },
-  'ISO 21001:2018':   { code: '21001', desc: 'Educational Organizations', clauses: HLS_CLAUSES },
-  'ISO 50001:2018':   { code: '50001', desc: 'Energy Management System', clauses: HLS_CLAUSES },
+   so the standards selected here line up with what the client applied for. Every
+   standard uses the full clause set above.                                          */
+const STANDARD_META = {
+  'ISO 9001:2015':      { code: '9001',  desc: 'Quality Management System' },
+  'ISO 14001:2015':     { code: '14001', desc: 'Environmental Management System' },
+  'ISO 45001:2018':     { code: '45001', desc: 'Occupational Health & Safety' },
+  'ISO 22000:2018':     { code: '22000', desc: 'Food Safety Management' },
+  'ISO 27001:2022':     { code: '27001', desc: 'Information Security Management' },
+  'ISO/IEC 27701:2025': { code: '27701', desc: 'Privacy Information Management' },
+  'ISO/IEC 42001:2023': { code: '42001', desc: 'AI Management System' },
+  'ISO 22301:2019':     { code: '22301', desc: 'Business Continuity Management' },
+  'ISO 37001:2016':     { code: '37001', desc: 'Anti-Bribery Management' },
+  'ISO 21001:2018':     { code: '21001', desc: 'Educational Organizations' },
+  'ISO 50001:2018':     { code: '50001', desc: 'Energy Management System' },
 };
+const STANDARDS = Object.fromEntries(
+  Object.entries(STANDARD_META).map(([key, m]) => [key, { ...m, clauses: FULL_CLAUSES }])
+);
 const STANDARD_KEYS = Object.keys(STANDARDS);
 
 /* All the standards the client selected in their Application Form (F01).
@@ -141,7 +93,8 @@ function deriveClientStandards(clientInfo) {
   return STANDARD_KEYS.filter(k => tokens.includes(k));
 }
 
-const blankStd = () => ({ open: true, cols: ['initial'], values: {}, notes: {} });
+const blankStd = () => ({ open: true, cols: ['initial'], values: {}, notes: {}, extra: [] });
+const uid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 
 /* ───────────────────────── Inner interactive component ───────────────────────── */
 function AuditProgramme({ data, set, clientInfo }) {
@@ -267,8 +220,8 @@ function StandardCard({ stdKey, st, setStd, openPop, togglePop, closePop }) {
   };
   const removeCol = (id) => { setStd({ cols: st.cols.filter(x => x !== id) }); closePop(); };
 
-  const setCheck = (clauseNum, colId, val) => {
-    const values = { ...st.values, [clauseNum]: { ...(st.values[clauseNum] || {}), [colId]: val } };
+  const setCheck = (rowKey, colId, val) => {
+    const values = { ...st.values, [rowKey]: { ...(st.values[rowKey] || {}), [colId]: val } };
     setStd({ values });
   };
   const setNote = (colId, field, val) => {
@@ -276,7 +229,23 @@ function StandardCard({ stdKey, st, setStd, openPop, togglePop, closePop }) {
     setStd({ notes });
   };
 
-  const N = meta.clauses.length;
+  // Custom clauses the user adds to this standard (editable + removable).
+  const extra = Array.isArray(st.extra) ? st.extra : [];
+  const addClause = () => setStd({ extra: [...extra, { id: uid(), num: '', title: '' }] });
+  const setExtra = (id, field, val) =>
+    setStd({ extra: extra.map(e => (e.id === id ? { ...e, [field]: val } : e)) });
+  const removeClause = (id) => {
+    const values = { ...st.values };
+    delete values[`x_${id}`];
+    setStd({ extra: extra.filter(e => e.id !== id), values });
+  };
+
+  // Combined row list: fixed catalogue clauses + custom ones.
+  const rows = [
+    ...meta.clauses.map(([num, title, desc]) => ({ key: num, num, title, desc, fixed: true })),
+    ...extra.map(e => ({ key: `x_${e.id}`, id: e.id, num: e.num, title: e.title, desc: '', fixed: false })),
+  ];
+  const N = rows.length;
 
   return (
     <section className={`aud3-std${st.open ? ' open' : ''}`}>
@@ -352,6 +321,10 @@ function StandardCard({ stdKey, st, setStd, openPop, togglePop, closePop }) {
               )}
             </div>
 
+            <button type="button" className="aud3-btn add" onClick={e => { e.stopPropagation(); addClause(); }}>
+              <FiPlus size={14} /> Add clause
+            </button>
+
             <span className="aud3-spacer" />
             <span className="aud3-pill">{st.cols.length} of {COLUMNS.length} columns active</span>
           </div>
@@ -379,18 +352,45 @@ function StandardCard({ stdKey, st, setStd, openPop, togglePop, closePop }) {
                 </tr>
               </thead>
               <tbody>
-                {meta.clauses.map(([num, title, desc], i) => {
-                  const vals = st.values[num] || {};
+                {rows.map((r, i) => {
+                  const vals = st.values[r.key] || {};
                   return (
-                    <tr key={num}>
+                    <tr key={r.key}>
                       <td className="area">
-                        <div className="aud3-clause">
-                          <span className="aud3-cnum">{num}</span>
-                          <span>
-                            <span className="aud3-ct">{title}</span>
-                            {desc && <span className="aud3-cd">{desc}</span>}
-                          </span>
-                        </div>
+                        {r.fixed ? (
+                          <div className="aud3-clause">
+                            <span className="aud3-cnum">{r.num}</span>
+                            <span>
+                              <span className="aud3-ct">{r.title}</span>
+                              {r.desc && <span className="aud3-cd">{r.desc}</span>}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="aud3-clause aud3-clause-edit">
+                            <input
+                              className="aud3-clause-num-inp"
+                              value={r.num}
+                              placeholder="No."
+                              onChange={e => setExtra(r.id, 'num', e.target.value)}
+                              aria-label="Clause number"
+                            />
+                            <input
+                              className="aud3-clause-title-inp"
+                              value={r.title}
+                              placeholder="Audit area / clause title…"
+                              onChange={e => setExtra(r.id, 'title', e.target.value)}
+                              aria-label="Clause title"
+                            />
+                            <button
+                              type="button"
+                              className="aud3-clause-del"
+                              title="Remove this clause"
+                              onClick={() => removeClause(r.id)}
+                            >
+                              <FiX size={13} />
+                            </button>
+                          </div>
+                        )}
                       </td>
                       {st.cols.map(id => {
                         const c = colById(id);
@@ -401,8 +401,8 @@ function StandardCard({ stdKey, st, setStd, openPop, togglePop, closePop }) {
                                 type="checkbox"
                                 className="aud3-cbx"
                                 checked={!!vals[id]}
-                                onChange={e => setCheck(num, id, e.target.checked)}
-                                aria-label={`${num} — ${c.label}`}
+                                onChange={e => setCheck(r.key, id, e.target.checked)}
+                                aria-label={`${r.num} — ${c.label}`}
                               />
                             </td>
                           );

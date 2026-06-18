@@ -1538,6 +1538,23 @@ select.qms-inp { cursor: pointer; }
 .aud3-ct { font-size: 13px; font-weight: 600; line-height: 1.3; color: var(--gray-800); }
 .aud3-cd { font-size: 11.5px; color: var(--gray-500); margin-top: 2px; line-height: 1.35; }
 
+/* editable custom clause row */
+.aud3-clause-edit { gap: 7px; align-items: center; }
+.aud3-clause-num-inp, .aud3-clause-title-inp {
+  font: inherit; font-size: 12.5px; color: var(--gray-800);
+  border: 1.5px solid var(--gray-200); border-radius: 7px; padding: 6px 9px;
+  background: white; box-sizing: border-box;
+}
+.aud3-clause-num-inp { width: 58px; flex: 0 0 auto; font-family: 'JetBrains Mono', monospace; font-weight: 700; text-align: center; }
+.aud3-clause-title-inp { flex: 1 1 auto; min-width: 120px; }
+.aud3-clause-num-inp:focus, .aud3-clause-title-inp:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-50); }
+.aud3-clause-del {
+  flex: 0 0 auto; width: 24px; height: 24px; border: 0; border-radius: 6px;
+  background: var(--red-50); color: var(--red); cursor: pointer;
+  display: grid; place-items: center; transition: .15s;
+}
+.aud3-clause-del:hover { background: #fde4e1; }
+
 .aud3-cbx { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); vertical-align: middle; }
 
 .aud3-colhead { position: relative; }
