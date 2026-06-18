@@ -49,7 +49,7 @@ export function FInput({ value, onChange, placeholder, type = 'text', disabled }
   );
 }
 
-export function FTextarea({ value, onChange, placeholder, rows = 3, disabled, autoGrow }) {
+export function FTextarea({ value, onChange, placeholder, rows = 3, disabled, readOnly, autoGrow }) {
   const fit = el => {
     if (!el) return;
     el.style.height = 'auto';
@@ -63,8 +63,12 @@ export function FTextarea({ value, onChange, placeholder, rows = 3, disabled, au
       placeholder={placeholder}
       rows={rows}
       disabled={disabled}
+      readOnly={readOnly}
       className="qms-inp"
-      style={autoGrow ? { overflow: 'hidden', resize: 'none' } : undefined}
+      style={{
+        ...(autoGrow ? { overflow: 'hidden', resize: 'none' } : null),
+        ...(readOnly ? { background: 'var(--gray-50)', cursor: 'default' } : null),
+      }}
     />
   );
 }
@@ -154,10 +158,11 @@ export function StandardChips({ value }) {
   );
 }
 
-export function DynamicTable({ columns, rows, onAdd, onRemove, onCellChange, disabled, addLabel = 'Add Row' }) {
+export function DynamicTable({ columns, rows, onAdd, onRemove, onCellChange, disabled, hideAdd, hideRemove, addLabel = 'Add Row' }) {
   const inlineCols   = columns.filter(c => !c.fullRow);
   const fullRowCols  = columns.filter(c => c.fullRow);
-  const colCount     = inlineCols.length + (disabled ? 0 : 1);
+  const showRemove   = !disabled && !hideRemove;
+  const colCount     = inlineCols.length + (showRemove ? 1 : 0);
 
   const renderField = (c, row, ri, full) => {
     if (c.type === 'select') {
@@ -186,9 +191,10 @@ export function DynamicTable({ columns, rows, onAdd, onRemove, onCellChange, dis
           value={row[c.key] || ''}
           onChange={e => { autoGrow(e.target); onCellChange(ri, c.key, e.target.value); }}
           disabled={disabled}
+          readOnly={c.readOnly}
           rows={full ? 3 : 2}
           className="qms-dyn-inp"
-          style={{ resize: 'vertical', minWidth: 140, width: full ? '100%' : undefined, overflow: 'hidden' }}
+          style={{ resize: 'vertical', minWidth: 140, width: full ? '100%' : undefined, overflow: 'hidden', ...(c.readOnly ? { background: 'var(--gray-50)', cursor: 'default' } : null) }}
         />
       );
     }
@@ -198,8 +204,9 @@ export function DynamicTable({ columns, rows, onAdd, onRemove, onCellChange, dis
         value={row[c.key] || ''}
         onChange={e => onCellChange(ri, c.key, e.target.value)}
         disabled={disabled}
+        readOnly={c.readOnly}
         className="qms-dyn-inp"
-        style={{ minWidth: c.minWidth || 100, width: full ? '100%' : undefined }}
+        style={{ minWidth: c.minWidth || 100, width: full ? '100%' : undefined, ...(c.readOnly ? { background: 'var(--gray-50)', cursor: 'default' } : null) }}
       />
     );
   };
@@ -211,7 +218,7 @@ export function DynamicTable({ columns, rows, onAdd, onRemove, onCellChange, dis
           <thead>
             <tr>
               {inlineCols.map(c => <th key={c.key}>{c.label}</th>)}
-              {!disabled && <th style={{ width: 40 }} />}
+              {showRemove && <th style={{ width: 40 }} />}
             </tr>
           </thead>
           <tbody>
@@ -221,7 +228,7 @@ export function DynamicTable({ columns, rows, onAdd, onRemove, onCellChange, dis
                   {inlineCols.map(c => (
                     <td key={c.key}>{renderField(c, row, ri, false)}</td>
                   ))}
-                  {!disabled && (
+                  {showRemove && (
                     <td>
                       <button type="button" onClick={() => onRemove(ri)} className="qms-del-row-btn">
                         <FiX size={13} />
@@ -246,7 +253,7 @@ export function DynamicTable({ columns, rows, onAdd, onRemove, onCellChange, dis
           </tbody>
         </table>
       </div>
-      {!disabled && (
+      {!disabled && !hideAdd && (
         <button type="button" onClick={onAdd} className="qms-add-row-btn">
           <FiPlusCircle size={13} /> {addLabel}
         </button>

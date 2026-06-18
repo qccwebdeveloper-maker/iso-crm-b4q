@@ -1,11 +1,17 @@
 import React, { useEffect } from 'react';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
-import useStandards, { clausesForStandards } from './useStandards';
+import useStandards, { clausesForStandards, deriveClientStandards } from './useStandards';
+import { FiChevronRight } from 'react-icons/fi';
+
+/* Short code (e.g. "27001") pulled from a standard name for the accordion mark. */
+const stdCode = (name) => {
+  const m = String(name || '').match(/(\d{4,5})/);
+  return m ? m[1] : String(name || '').slice(0, 6);
+};
 
 const ROLES = ['Lead Auditor','Auditor','Technical Expert','Observer','Guide'];
 
 const EMPTY_TEAM  = { name: '', role: '', competency: '', manDays: '' };
-const EMPTY_SCHED = { dayTime: '', clauses: '', activity: '', auditorName: '' };
 
 const ROLE_RESPONSIBILITIES = [
   {
@@ -98,7 +104,9 @@ const DEFAULT = {
   auditObjectives: 'Judging the availability to 2nd assessment by checking system conformity and performance status regarding policy and objective.\n1. Conformity of documents regarding developed system.\n2. Review internal audit and management review records.\n3. Site-specific conditions, process and equipments used.\n4. Applicable statutory and regulatory requirements.',
   auditLanguage: 'English',
   auditTeam: [{ ...EMPTY_TEAM }],
-  schedule: [],
+  // Audit schedule is kept separately per selected standard:
+  //   { [standardName]: [ { dayTime, clauses, activity, auditorName }, ... ] }
+  schedules: {},
 };
 
 export default function Form05Stage1AuditPlan() {
@@ -115,29 +123,57 @@ export default function Form05Stage1AuditPlan() {
 }
 
 function Stage1Body({ data, set, clientInfo }) {
-  const { byName, loading } = useStandards();
-  const selectedStandard = data.auditStandards || clientInfo?.isoStandard || '';
+  const { byName, names, loading } = useStandards();
 
-  // Seed the schedule with the selected standard's clauses (from the Standard schema)
-  // the first time the form is opened with no schedule rows yet.
+  // Standards the client actually selected in their Application Form (F01) — read
+  // from the live client record, NOT from any stale snapshot saved on this form.
+  //  - liveApp:  resolved from the client record loaded into the banner.
+  //  - savedApp: snapshotted into this form's data the first time it loaded, so the
+  //              schedule still renders when the form is reopened from the list view.
+  const liveApp  = deriveClientStandards(clientInfo, names);
+  const savedApp = Array.isArray(data.appStandards) ? data.appStandards : [];
+  const stdNames = names.filter(k => liveApp.includes(k) || savedApp.includes(k));
+  const schedules = data.schedules || {};
+  const openMap   = data.scheduleOpen || {};
+
+  // Snapshot the application standards into the form data once available, so the
+  // selection survives saving and reopening from the list.
+  useEffect(() => {
+    if (liveApp.length && JSON.stringify(savedApp) !== JSON.stringify(liveApp)) {
+      set('appStandards', liveApp);
+    }
+  }, [clientInfo, names.length]); // eslint-disable-line
+
+  // Seed each selected standard's schedule with its own clauses (from the Standard
+  // schema) the first time the form is opened with no rows yet for that standard.
   useEffect(() => {
     if (loading) return;
-    if ((data.schedule || []).length) return;
-    const cls = clausesForStandards(byName, selectedStandard);
-    if (cls.length) {
-      set('schedule', cls.map(c => ({ dayTime: '', clauses: `${c.no} ${c.text}`.trim(), activity: '', auditorName: '' })));
-    }
-  }, [loading, selectedStandard]); // eslint-disable-line
+    const next = { ...(data.schedules || {}) };
+    let changed = false;
+    stdNames.forEach(name => {
+      if ((next[name] || []).length) return;
+      const cls = clausesForStandards(byName, name);
+      if (cls.length) {
+        next[name] = cls.map(c => ({ dayTime: '', clauses: `${c.no} ${c.text}`.trim(), activity: '', auditorName: '' }));
+        changed = true;
+      }
+    });
+    if (changed) set('schedules', next);
+  }, [loading, stdNames.join('|')]); // eslint-disable-line
+
+  const isOpen   = name => openMap[name] !== false; // default open
+  const toggleOpen = name => set('scheduleOpen', { ...openMap, [name]: !isOpen(name) });
 
   const setTeam = (ri, key, val) => {
     const t = [...(data.auditTeam || [])];
     t[ri] = { ...t[ri], [key]: val };
     set('auditTeam', t);
   };
-  const setSched = (ri, key, val) => {
-    const s = [...(data.schedule || [])];
+  const setScheduleFor = (name, rows) => set('schedules', { ...(data.schedules || {}), [name]: rows });
+  const setSched = (name, ri, key, val) => {
+    const s = [...(schedules[name] || [])];
     s[ri] = { ...s[ri], [key]: val };
-    set('schedule', s);
+    setScheduleFor(name, s);
   };
   return (
           <div>
@@ -172,7 +208,7 @@ function Stage1Body({ data, set, clientInfo }) {
                   options={['Initial','Surveillance','Re-certification','Un-Announced','Follow-up']} />
               </FormField>
               <FormField label="1.6 Audit Standard(s)">
-                <StandardChips value={selectedStandard} />
+                <StandardChips value={stdNames} />
               </FormField>
             </FormRow>
             <FormRow cols={3}>
@@ -204,7 +240,7 @@ function Stage1Body({ data, set, clientInfo }) {
             </FormRow>
             <FormRow cols={1}>
               <FormField label="1.12 Audit Objectives">
-                <FTextarea value={data.auditObjectives} onChange={v => set('auditObjectives', v)} rows={4} />
+                <FTextarea value={data.auditObjectives} onChange={v => set('auditObjectives', v)} rows={4} autoGrow readOnly />
               </FormField>
             </FormRow>
             <FormRow cols={1}>
@@ -245,27 +281,52 @@ function Stage1Body({ data, set, clientInfo }) {
               </div>
             ))}
 
-            <SectionTitle>
-              Audit Schedule — Stage 1
-              {selectedStandard ? (
-                <span style={{ marginLeft: 10, fontSize: 12, fontWeight: 600, color: 'var(--primary)', background: 'var(--primary-50)', border: '1px solid var(--primary-200)', borderRadius: 6, padding: '2px 8px' }}>
-                  {selectedStandard}
-                </span>
-              ) : null}
-            </SectionTitle>
-            <DynamicTable
-              columns={[
-                { key: 'dayTime',    label: 'Day & Time (From–To)', minWidth: 160 },
-                { key: 'clauses',    label: 'Clauses',             type: 'textarea', minWidth: 200 },
-                { key: 'auditorName',label: 'Auditor Name',        minWidth: 120 },
-                { key: 'activity',   label: 'Activity / Key Documents / Records for Verification', type: 'textarea', minWidth: 240 },
-              ]}
-              rows={data.schedule || []}
-              onAdd={() => set('schedule', [...(data.schedule || []), { ...EMPTY_SCHED }])}
-              onRemove={ri => set('schedule', (data.schedule || []).filter((_, i) => i !== ri))}
-              onCellChange={setSched}
-              addLabel="Add Schedule Row"
-            />
+            <SectionTitle>Audit Schedule — Stage 1</SectionTitle>
+            {stdNames.length === 0 ? (
+              <div className="aud3-empty">
+                No ISO standards were selected in this client's Application Form (F01).
+              </div>
+            ) : (
+              <div className="aud3-stack">
+                {stdNames.map(name => {
+                  const rows = schedules[name] || [];
+                  const open = isOpen(name);
+                  const meta = byName[name];
+                  const cols = [
+                    { key: 'dayTime',    label: 'Day & Time (From–To)', minWidth: 160 },
+                    { key: 'clauses',    label: 'Clauses',             type: 'textarea', minWidth: 200, readOnly: true },
+                    { key: 'auditorName',label: 'Auditor Name',        minWidth: 120 },
+                    { key: 'activity',   label: 'Activity / Key Documents / Records for Verification', type: 'textarea', minWidth: 240 },
+                  ];
+                  return (
+                    <section key={name} className={`aud3-std${open ? ' open' : ''}`}>
+                      <button type="button" className="aud3-head" onClick={() => toggleOpen(name)}>
+                        <span className="aud3-chev"><FiChevronRight size={18} /></span>
+                        <span className="aud3-mark">{stdCode(name)}</span>
+                        <span className="aud3-title">
+                          <span className="name">{name}</span>
+                          {meta?.category && <span className="desc">{meta.category}</span>}
+                        </span>
+                        <span className="aud3-meta">
+                          <span className="aud3-pill active">{rows.length} row{rows.length === 1 ? '' : 's'}</span>
+                        </span>
+                      </button>
+                      {open && (
+                        <div className="aud3-body" style={{ padding: 16 }}>
+                          <DynamicTable
+                            columns={cols}
+                            rows={rows}
+                            hideAdd
+                            hideRemove
+                            onCellChange={(ri, key, val) => setSched(name, ri, key, val)}
+                          />
+                        </div>
+                      )}
+                    </section>
+                  );
+                })}
+              </div>
+            )}
           </div>
   );
 }

@@ -31,6 +31,28 @@ export function standardNames(value) {
     : String(value || '').split(',').map(s => s.trim()).filter(Boolean);
 }
 
+/* Resolve the standards the client actually selected in their Application Form (F01).
+   The backend (/api/qms-forms/client/:id) returns `standards` as an array and also
+   joins them into `isoStandard`; prefer the array, fall back to the joined strings.
+   `names` is the live catalogue (Standard schema) — only standards that still exist
+   in the catalogue are kept, in catalogue order. This is the single source of truth
+   for "which standards apply to this client" and must NOT be read from a form's own
+   saved `auditStandards`/`isoStandard` snapshot, which can go stale when F01 changes. */
+export function deriveClientStandards(clientInfo, names) {
+  if (!clientInfo) return [];
+  let tokens = [];
+  if (Array.isArray(clientInfo.standards)) {
+    tokens = clientInfo.standards;
+  } else {
+    const raw = [clientInfo.isoStandard, clientInfo.isoStandards, clientInfo.standard]
+      .filter(Boolean)
+      .join(',');
+    tokens = raw.split(',');
+  }
+  tokens = tokens.map(s => String(s).trim()).filter(Boolean);
+  return names.filter(k => tokens.includes(k));
+}
+
 /* Collect the clauses for the given standard name(s) from the fetched catalogue,
    deduped by clause number + text and kept in catalogue order. Each clause is a
    { no, text } record as stored on the Standard schema. */
