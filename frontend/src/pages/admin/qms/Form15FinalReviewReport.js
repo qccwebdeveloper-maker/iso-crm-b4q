@@ -34,6 +34,7 @@ const SURV1_CHECKS = [
   { key: 'majorNC',           label: 'Total number of Major NC.' },
   { key: 'laRecommendation',  label: "What is Lead Auditor's recommendation? (Maintenance / Renewal / Suspend / Withdrawal / Reduce/Extend Scope / Retain Certification)" },
 ];
+
 const RECERT_CHECKS = [
   { key: 'withinTimeline',    label: 'Is Recertification audit planned and conducted within timeline/prior to expiry?' },
   { key: 'siteChange',        label: 'Is any change at client site/address, scope or key management person?' },
@@ -191,3 +192,5 @@ export default function Form15FinalReviewReport() {
     </QMSFormPage>
   );
 }
+
+

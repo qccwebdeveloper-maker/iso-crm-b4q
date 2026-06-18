@@ -339,14 +339,23 @@ export default function QMSFormPage({ formType, formCode, formTitle, defaultData
     } catch { toast.error('Delete failed'); }
   };
 
-  const openExisting = (row) => {
-    setClientIdInput(row.clientRef?.clientId || row.clientId || '');
-    setClientInfo(row.clientRef || { clientId: row.clientId });
+  const openExisting = async (row) => {
+    const cid = row.clientRef?.clientId || row.clientId || '';
+    setClientIdInput(cid);
+    setClientInfo(row.clientRef || { clientId: cid });
     setFormData(row.formData || {});
     setStatus(row.status);
     setExistingId(row._id);
     setView('form');
     window.scrollTo(0, 0);
+    // Enrich the client banner with the full record (standards, scope, …) so forms
+    // that read from the application — e.g. F03 — get the same data as a fresh search.
+    if (cid) {
+      try {
+        const { data: client } = await axios.get(`/api/qms-forms/client/${cid}`);
+        setClientInfo(prev => ({ ...(prev || {}), ...client }));
+      } catch { /* keep the lean clientRef if the lookup fails */ }
+    }
   };
 
   const resetForm = () => {
