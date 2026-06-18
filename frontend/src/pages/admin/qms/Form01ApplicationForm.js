@@ -163,6 +163,17 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
   const [openSecs, setOpenSecs] = useState({ iso50001:false, isoEnv:false, iso22000:false, iso22301:false, iso27001:false, iso27701:false, iso42001:false, iso37001:false, iso21001:false });
   const { names: ISO_LIST } = useStandards();
 
+  // Drop any saved standard that is no longer in the live catalogue (Admin → Standards)
+  // — e.g. legacy hard-coded values like "ISO 9001:2015" — so they don't appear as
+  // stuck chips that can't be unticked. "Others" is a manual entry, always kept.
+  useEffect(() => {
+    if (!ISO_LIST.length) return;
+    const allowed = new Set([...ISO_LIST, 'Others']);
+    const cur = data.standards || [];
+    const pruned = cur.filter(s => allowed.has(s));
+    if (pruned.length !== cur.length) set('standards', pruned);
+  }, [ISO_LIST.join('|')]); // eslint-disable-line
+
   const toggleSec = (k) => setOpenSecs(s=>({...s,[k]:!s[k]}));
   const toggleStd = (s) => {
     const cur = data.standards || [];

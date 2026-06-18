@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Layout from '../../../components/common/Layout';
 import toast from 'react-hot-toast';
+import useStandards from './useStandards';
 import {
   FiSearch, FiUser, FiSave, FiFileText, FiList, FiPlusCircle,
   FiEdit2, FiTrash2, FiCheckCircle, FiClock, FiAlertCircle, FiX,
@@ -123,10 +124,15 @@ export function SectionTitle({ children }) {
 
 // Read-only pill display for the standards selected in the Application Form (F01).
 // Renders each standard as a non-removable chip (no cross / remove UI).
+// Only standards present in the live catalogue (Admin → Standards) are shown — legacy
+// values that are no longer configured (e.g. "ISO 9001:2015") are dropped.
 export function StandardChips({ value }) {
-  const list = Array.isArray(value)
+  const { names } = useStandards();
+  const raw = Array.isArray(value)
     ? value.filter(Boolean)
     : String(value || '').split(',').map(s => s.trim()).filter(Boolean);
+  // Filter to catalogue standards once it has loaded; before that, show as-is.
+  const list = names.length ? raw.filter(s => names.includes(s)) : raw;
   return (
     <div style={{
       display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center',
