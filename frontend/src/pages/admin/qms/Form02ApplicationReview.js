@@ -128,6 +128,12 @@ export default function Form02ApplicationReview() {
           commitTeam(t);
         };
 
+        // IMS (Integrated Management System) only applies when 2+ standards are
+        // selected in the application. Only then do its Annex I details auto-fetch.
+        const stdCount = String(data.auditStandards || '')
+          .split(',').map(s => s.trim()).filter(Boolean).length;
+        const isIMS = stdCount >= 2;
+
         return (
           <div>
             {/* ── 1. Organization Information ── */}
@@ -368,7 +374,7 @@ export default function Form02ApplicationReview() {
             {/* 8a. Organization details */}
             <FormRow cols={2}>
               <FormField label="Organization Name">
-                <FInput value={data.imsOrgName || data.orgName} onChange={v => set('imsOrgName', v)} placeholder="Organization name" />
+                <FInput value={data.imsOrgName || (isIMS ? data.orgName : '')} onChange={v => set('imsOrgName', v)} placeholder="Organization name" />
               </FormField>
               <FormField label="No. of Employees">
                 <FInput value={data.imsEmployees} onChange={v => set('imsEmployees', v)} type="number" placeholder="0" />
@@ -376,7 +382,7 @@ export default function Form02ApplicationReview() {
             </FormRow>
             <FormRow cols={1}>
               <FormField label="Applicable Standards">
-                <FInput value={data.imsStandards} onChange={v => set('imsStandards', v)} placeholder="e.g. ISO 9001, ISO 14001, ISO 45001" />
+                <FInput value={data.imsStandards || (isIMS ? data.auditStandards : '')} onChange={v => set('imsStandards', v)} placeholder="e.g. ISO 9001, ISO 14001, ISO 45001" />
               </FormField>
             </FormRow>
 
