@@ -447,7 +447,9 @@ pre { max-width: 100%; overflow-x: auto; }
 }
 .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(249,115,22,.12); }
 .form-control::placeholder { color: var(--gray-400); }
-textarea.form-control { resize: vertical; min-height: 76px; }
+/* field-sizing lets the box grow to fit its full content automatically;
+   resize/min-height stay as a fallback for browsers without support. */
+textarea.form-control { resize: vertical; min-height: 76px; field-sizing: content; }
 select.form-control { cursor: pointer; }
 .input-error { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239,68,68,.12) !important; }
 .field-error  { font-size: 11px; color: #ef4444; margin-top: 2px; }

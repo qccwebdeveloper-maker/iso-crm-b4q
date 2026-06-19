@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import Layout from '../../../components/common/Layout';
 import toast from 'react-hot-toast';
@@ -14,6 +14,32 @@ const STATUS_META = {
   saved:     { bg: '#d1fae5', color: '#065f46', Icon: FiCheckCircle, label: 'Saved'     },
   completed: { bg: '#dbeafe', color: '#1e40af', Icon: FiCheckCircle, label: 'Completed' },
 };
+
+// Fields every QMS form mirrors from the Application Form (F01) / client record.
+// Returns a copy of `saved` with any BLANK shared field auto-filled from the
+// client record, so address, scope, REFNO, ID and mode of audit are fetched on
+// every form — without clobbering values already entered on this form.
+function withAppDefaults(saved, client) {
+  const out = { ...(saved || {}) };
+  if (!client) return out;
+  const shared = {
+    idNo:                 client.clientId      || '',
+    refno:                client.refno         || client.clientId || '',
+    orgName:              client.company       || '',
+    organizationName:     client.company       || '',
+    address:              client.address       || '',
+    scopeOfCertification: client.scope         || '',
+    modeOfAudit:          client.modeOfWorking || '',
+    auditStandards:       client.isoStandard   || '',
+    isoStandards:         client.isoStandard   || '',
+    standard:             client.isoStandard   || '',
+  };
+  for (const [k, v] of Object.entries(shared)) {
+    const cur = out[k];
+    if (v && (cur === undefined || cur === null || cur === '')) out[k] = v;
+  }
+  return out;
+}
 
 // ─── Shared primitive components ─────────────────────────────────────────────
 
@@ -49,17 +75,21 @@ export function FInput({ value, onChange, placeholder, type = 'text', disabled }
   );
 }
 
-export function FTextarea({ value, onChange, placeholder, rows = 3, disabled, readOnly, autoGrow }) {
+export function FTextarea({ value, onChange, placeholder, rows = 3, disabled, readOnly, autoGrow = true }) {
+  const ref = useRef(null);
   const fit = el => {
     if (!el) return;
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight}px`;
   };
+  // Re-fit whenever the value changes — covers typing, pre-fill and form loads
+  // so the box always grows to show the full content.
+  useEffect(() => { if (autoGrow) fit(ref.current); }, [value, autoGrow]);
   return (
     <textarea
-      ref={autoGrow ? fit : undefined}
+      ref={ref}
       value={value || ''}
-      onChange={e => { if (autoGrow) fit(e.target); onChange(e.target.value); }}
+      onChange={e => { onChange(e.target.value); if (autoGrow) fit(e.target); }}
       placeholder={placeholder}
       rows={rows}
       disabled={disabled}
@@ -299,24 +329,27 @@ export default function QMSFormPage({ formType, formCode, formTitle, defaultData
       setClientInfo(client);
       try {
         const { data: existing } = await axios.get(`/api/qms-forms/by-client/${id}/${formType}`);
-        setFormData(existing.formData || defaultData || {});
+        setFormData(withAppDefaults(existing.formData || defaultData || {}, client));
         setStatus(existing.status || 'draft');
         setExistingId(existing._id);
         toast.success('Existing form loaded');
       } catch {
         setFormData({
           ...(defaultData || {}),
-          orgName:              client.company     || '',
-          organizationName:     client.company     || '',
-          contactPerson:        client.name        || '',
-          emailId:              client.email       || '',
-          contactNumbers:       client.phone       || '',
-          mobileNumber:         client.phone       || '',
-          address:              client.address     || '',
-          scopeOfCertification: client.scope       || '',
-          auditStandards:       client.isoStandard || '',
-          isoStandards:         client.isoStandard || '',
-          standard:             client.isoStandard || '',
+          idNo:                 client.clientId      || '',
+          refno:                client.refno         || client.clientId || '',
+          orgName:              client.company       || '',
+          organizationName:     client.company       || '',
+          contactPerson:        client.name          || '',
+          emailId:              client.email         || '',
+          contactNumbers:       client.phone         || '',
+          mobileNumber:         client.phone         || '',
+          address:              client.address       || '',
+          scopeOfCertification: client.scope         || '',
+          modeOfAudit:          client.modeOfWorking || '',
+          auditStandards:       client.isoStandard   || '',
+          isoStandards:         client.isoStandard   || '',
+          standard:             client.isoStandard   || '',
         });
         setStatus('draft');
         setExistingId(null);
@@ -374,6 +407,9 @@ export default function QMSFormPage({ formType, formCode, formTitle, defaultData
       try {
         const { data: client } = await axios.get(`/api/qms-forms/client/${cid}`);
         setClientInfo(prev => ({ ...(prev || {}), ...client }));
+        // Fill any blank shared fields (address, scope, REFNO, ID, mode of audit)
+        // from the application record, preserving anything already entered.
+        setFormData(prev => withAppDefaults(prev, client));
       } catch { /* keep the lean clientRef if the lookup fails */ }
     }
   };
