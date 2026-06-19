@@ -1212,6 +1212,10 @@ select.form-control { cursor: pointer; }
 .qms-inp:disabled { background: var(--gray-50); color: var(--gray-500); cursor: not-allowed; }
 textarea.qms-inp { resize: vertical; min-height: 72px; }
 select.qms-inp { cursor: pointer; }
+/* Hide the number-input spinner arrows on QMS inputs */
+.qms-inp[type="number"]::-webkit-outer-spin-button,
+.qms-inp[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.qms-inp[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Read-only display block — fixed standard text, not editable */
 .qms-readonly-block {

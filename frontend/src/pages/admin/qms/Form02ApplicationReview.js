@@ -113,10 +113,19 @@ export default function Form02ApplicationReview() {
       defaultData={DEFAULT}
     >
       {({ data, set }) => {
+        // Save the team rows and auto-recalculate the man-days totals from them.
+        const num = v => parseFloat(v) || 0;
+        const commitTeam = (t) => {
+          const s1 = t.reduce((a, r) => a + num(r.stage1Days), 0);
+          const s2 = t.reduce((a, r) => a + num(r.stage2Days), 0);
+          set('auditTeam', t);
+          set('totalMandaysS1', s1);
+          set('totalMandaysS2', s2);
+        };
         const setTeam = (ri, key, val) => {
           const t = [...(data.auditTeam || [])];
           t[ri] = { ...t[ri], [key]: val };
-          set('auditTeam', t);
+          commitTeam(t);
         };
 
         return (
@@ -229,8 +238,8 @@ export default function Form02ApplicationReview() {
                 { key: 'stage2Days', label: 'Stage-2 Man-days', type: 'text', minWidth: 100 },
               ]}
               rows={data.auditTeam || []}
-              onAdd={() => set('auditTeam', [...(data.auditTeam || []), { ...EMPTY_AUDITOR }])}
-              onRemove={ri => set('auditTeam', (data.auditTeam || []).filter((_, i) => i !== ri))}
+              onAdd={() => commitTeam([...(data.auditTeam || []), { ...EMPTY_AUDITOR }])}
+              onRemove={ri => commitTeam((data.auditTeam || []).filter((_, i) => i !== ri))}
               onCellChange={setTeam}
               addLabel="Add Auditor"
             />
@@ -248,10 +257,10 @@ export default function Form02ApplicationReview() {
             <SectionTitle>Audit Man-days Summary</SectionTitle>
             <FormRow cols={2}>
               <FormField label="Total Audit Mandays (Stage 1)">
-                <FInput value={data.totalMandaysS1} onChange={v => set('totalMandaysS1', v)} type="number" placeholder="0" />
+                <FInput value={data.totalMandaysS1} type="number" placeholder="0" disabled />
               </FormField>
               <FormField label="Total Audit Mandays (Stage 2)">
-                <FInput value={data.totalMandaysS2} onChange={v => set('totalMandaysS2', v)} type="number" placeholder="0" />
+                <FInput value={data.totalMandaysS2} type="number" placeholder="0" disabled />
               </FormField>
             </FormRow>
             <FormRow cols={2}>
