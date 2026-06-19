@@ -7,7 +7,7 @@ const EMPTY_P = { sNo: '', name: '', position: '', openingMeeting: 'Yes', closin
 const DEFAULT = {
   auditDateFrom: '', auditDateTo: '', standard: '',
   participants: Array.from({ length: 5 }, (_, i) => ({
-    sNo: String(i + 1), name: '', position: '', openingMeeting: 'Yes', closingMeeting: 'Yes',
+    sNo: String(i + 1), name: '', position: '', openingMeeting: '', closingMeeting: '',
   })),
 };
 

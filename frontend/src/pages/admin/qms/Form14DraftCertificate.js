@@ -1,6 +1,5 @@
 import React from 'react';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, StandardChips } from './QMSFormPage';
-import useStandards from './useStandards';
 
 const MS_TYPES  = ['Quality Management System','Environmental Management System','Occupational Health and Safety Management System','Food Safety Management System','Information Security Management System','Energy Management System'];
 
@@ -27,7 +26,6 @@ export default function Form14DraftCertificate() {
 }
 
 function CertBody({ data, set }) {
-  const { names } = useStandards();
   return (
         <div>
           <div style={{ background: '#eff6ff', borderRadius: 10, border: '1px solid #bfdbfe', padding: '14px 18px', marginBottom: 20, fontSize: 13, color: '#1e40af', lineHeight: 1.6 }}>
@@ -41,11 +39,6 @@ function CertBody({ data, set }) {
             </FormField>
             <FormField label="Management System Type">
               <FSelect value={data.managementSystemType} onChange={v => set('managementSystemType', v)} placeholder="Select type" options={MS_TYPES} />
-            </FormField>
-          </FormRow>
-          <FormRow cols={1}>
-            <FormField label="Standard for Certificate Generation">
-              <FSelect value={data.selectedStandard} onChange={v => set('selectedStandard', v)} placeholder="Select standard" options={names} />
             </FormField>
           </FormRow>
           <FormRow cols={1}>
