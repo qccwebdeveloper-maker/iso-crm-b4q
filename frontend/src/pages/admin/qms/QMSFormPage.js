@@ -25,6 +25,7 @@ function withAppDefaults(saved, client) {
   const shared = {
     idNo:                 client.clientId      || '',
     refno:                client.refno         || client.clientId || '',
+    acceptanceRefNo:      client.clientId      || '',
     orgName:              client.company       || '',
     organizationName:     client.company       || '',
     address:              client.address       || '',
@@ -338,6 +339,7 @@ export default function QMSFormPage({ formType, formCode, formTitle, defaultData
           ...(defaultData || {}),
           idNo:                 client.clientId      || '',
           refno:                client.refno         || client.clientId || '',
+          acceptanceRefNo:      client.clientId      || '',
           orgName:              client.company       || '',
           organizationName:     client.company       || '',
           contactPerson:        client.name          || '',
