@@ -45,6 +45,12 @@ router.get('/client/:clientId', protect, authorize('admin'), async (req, res) =>
     if (fd.organizationName)     out.company = fd.organizationName;
     if (fd.address)              out.address = fd.address;
     if (fd.scopeOfCertification) out.scope   = fd.scopeOfCertification;
+    // Total employees = sum of the "Effective No. Filled by QCC" column (last
+    // column) of F01's employee table — used as No. of Persons under Certification.
+    const empTable = Array.isArray(fd.empTable) ? fd.empTable : [];
+    out.empTotal = empTable.reduce(
+      (a, r) => a + (Array.isArray(r) ? (Number(r[r.length - 1]) || 0) : 0), 0
+    );
     res.json(out);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
