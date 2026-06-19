@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Save, FileText, ChevronDown, ChevronRight } from 'lucide-react';
 import QMSFormPage from './QMSFormPage';
 import useStandards from './useStandards';
@@ -101,6 +101,25 @@ export const INIT = {
 };
 
 /* ── helper UI components ── */
+// Free-text field that starts as a single line and grows to show all the text typed.
+const GrowText = ({value, onChange, placeholder, className='form-control', style}) => {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px`; }
+  }, [value]);
+  return (
+    <textarea
+      ref={ref}
+      rows={1}
+      className={className}
+      placeholder={placeholder}
+      value={value||''}
+      onChange={e=>onChange(e.target.value)}
+      style={{resize:'none', overflow:'hidden', minHeight:40, ...style}}
+    />
+  );
+};
 const Row = ({children, mb=12}) => (
   <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:'0 16px',marginBottom:mb}}>
     {children}
@@ -189,9 +208,9 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
     const t = tbl.map((r,ri)=>ri===row ? r.map((c,ci)=>ci===col?Number(val)||0:c) : r);
     set('empTable', t);
   };
-  const rowTotal  = (row) => ((data.empTable||[])[row]||emptyRow()).reduce((a,b)=>a+b,0);
   const colTotal  = (col) => (data.empTable||[]).reduce((a,r)=>a+(r?.[col]||0),0);
-  const grandTotal = ()   => (data.empTable||[]).flat().reduce((a,b)=>a+b,0);
+  // Total no. of employees = total of the "Effective No. Filled by QCC" column (last column)
+  const effectiveTotal = () => colTotal(EMP_COLS.length - 1);
   const scrollTo  = (id)  => { const el=document.getElementById('f01-'+id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); };
 
   const has14001 = (data.standards||[]).includes('ISO 14001:2015');
@@ -294,7 +313,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
               </FG>
             </Row>
             <FG label="Name of Organization" required>
-              <input className="form-control" placeholder="e.g. ABC Manufacturing Ltd" value={data.organizationName||''} onChange={e=>set('organizationName',e.target.value)}/>
+              <GrowText placeholder="e.g. ABC Manufacturing Ltd" value={data.organizationName} onChange={v=>set('organizationName',v)}/>
             </FG>
             <FG label="Address" required>
               <textarea className="form-control" rows={3} placeholder="Full address" value={data.address||''} onChange={e=>set('address',e.target.value)}/>
@@ -316,10 +335,10 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                 <input type="email" className="form-control" placeholder="info@company.com" value={data.emailId||''} onChange={e=>set('emailId',e.target.value)}/>
               </FG>
               <FG label="Contact Person" required>
-                <input className="form-control" placeholder="Full name" value={data.contactPerson||''} onChange={e=>set('contactPerson',e.target.value)}/>
+                <GrowText placeholder="Full name" value={data.contactPerson} onChange={v=>set('contactPerson',v)}/>
               </FG>
               <FG label="Designation">
-                <input className="form-control" placeholder="e.g. Quality Manager" value={data.designation||''} onChange={e=>set('designation',e.target.value)}/>
+                <GrowText placeholder="e.g. Quality Manager" value={data.designation} onChange={v=>set('designation',v)}/>
               </FG>
             </Row>
             <Row mb={0}>
@@ -356,10 +375,10 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
           <SecCard id="f01-standards-sec" title="Standards & Application Type">
             <Row>
               <FG label="Main Processes / Activities" full>
-                <input className="form-control" placeholder="e.g. purchase, store, production" value={data.mainProcesses||''} onChange={e=>set('mainProcesses',e.target.value)}/>
+                <GrowText placeholder="e.g. purchase, store, production" value={data.mainProcesses} onChange={v=>set('mainProcesses',v)}/>
               </FG>
               <FG label="Outsourced Processes, if any" full>
-                <input className="form-control" placeholder="e.g. printing, packaging" value={data.outsourcedProcesses||''} onChange={e=>set('outsourcedProcesses',e.target.value)}/>
+                <GrowText placeholder="e.g. printing, packaging" value={data.outsourcedProcesses} onChange={v=>set('outsourcedProcesses',v)}/>
               </FG>
             </Row>
             <div className="form-group">
@@ -384,7 +403,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                 </div>
               )}
               {(data.standards||[]).includes('Others')&&(
-                <input className="form-control" style={{marginTop:8}} placeholder="Specify other standard(s)" value={data.othersStandard||''} onChange={e=>set('othersStandard',e.target.value)}/>
+                <GrowText style={{marginTop:8}} placeholder="Specify other standard(s)" value={data.othersStandard} onChange={v=>set('othersStandard',v)}/>
               )}
             </div>
             <Row mb={0}>
@@ -417,7 +436,6 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                   <tr>
                     <TCell head>Activities</TCell>
                     {EMP_COLS.map(c=><TCell key={c} head>{c}</TCell>)}
-                    <TCell head>Total</TCell>
                   </tr>
                 </thead>
                 <tbody>
@@ -432,15 +450,13 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                             style={{width:'100%',padding:'5px 7px',border:'1.5px solid var(--primary-200)',borderRadius:6,fontSize:12,textAlign:'center',outline:'none',background:'white'}}/>
                         </td>
                       ))}
-                      <td style={{padding:'8px 10px',textAlign:'center',fontWeight:700,fontSize:13,color:'var(--primary)',border:'1px solid var(--primary-100)',background:'var(--primary-50)'}}>{rowTotal(ri)}</td>
                     </tr>
                   ))}
                   <tr style={{background:'var(--primary-100)'}}>
                     <td style={{padding:'9px 12px',fontWeight:800,border:'1px solid var(--primary-200)',fontSize:13,color:'var(--text-1)'}}>Total</td>
                     {EMP_COLS.map((_,ci)=>(
-                      <td key={ci} style={{padding:'9px 10px',textAlign:'center',fontWeight:700,border:'1px solid var(--primary-200)',fontSize:13,color:'var(--primary-dark)'}}>{colTotal(ci)}</td>
+                      <td key={ci} style={{padding:'9px 10px',textAlign:'center',fontWeight:700,border:'1px solid var(--primary-200)',fontSize:13,color:ci===EMP_COLS.length-1?'var(--primary)':'var(--primary-dark)'}}>{colTotal(ci)}</td>
                     ))}
-                    <td style={{padding:'9px 10px',textAlign:'center',fontWeight:800,border:'1px solid var(--primary-200)',fontSize:15,color:'var(--primary)'}}>{grandTotal()}</td>
                   </tr>
                 </tbody>
               </table>
@@ -450,10 +466,10 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                 <input className="form-control" type="number" min="0" value={data.remotePersonnel||0} onChange={e=>set('remotePersonnel',Number(e.target.value)||0)}/>
               </FG>
               <FG label="No. of Employees (auto)">
-                <input className="form-control" value={grandTotal()} readOnly style={{background:'var(--primary-50)',fontWeight:700,color:'var(--primary)'}}/>
+                <input className="form-control" value={effectiveTotal()} readOnly style={{background:'var(--primary-50)',fontWeight:700,color:'var(--primary)'}}/>
               </FG>
               <FG label="Operation for Weekend / Weekly Holiday" full>
-                <input className="form-control" placeholder="e.g. Saturday half day, Sunday off" value={data.weekendOperation||''} onChange={e=>set('weekendOperation',e.target.value)}/>
+                <GrowText placeholder="e.g. Saturday half day, Sunday off" value={data.weekendOperation} onChange={v=>set('weekendOperation',v)}/>
               </FG>
             </Row>
           </SecCard>
@@ -469,7 +485,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
             ].map(({n,label,hint,field})=>(
               <div key={field} className="form-group">
                 <label className="form-label">{n} {label} <span style={{fontWeight:400,color:'var(--gray-400)'}}>{hint}</span></label>
-                <input className="form-control" value={data[field]||''} onChange={e=>set(field,e.target.value)}/>
+                <GrowText value={data[field]} onChange={v=>set(field,v)}/>
               </div>
             ))}
             <Row>
@@ -485,8 +501,8 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
               </label>
               {data.alreadyCertified&&(
                 <Row mb={0}>
-                  <FG label="Certified Standard(s)"><input className="form-control" placeholder="e.g. ISO 9001:2015" value={data.certStandard||''} onChange={e=>set('certStandard',e.target.value)}/></FG>
-                  <FG label="Certification Body"><input className="form-control" value={data.certBody||''} onChange={e=>set('certBody',e.target.value)}/></FG>
+                  <FG label="Certified Standard(s)"><GrowText placeholder="e.g. ISO 9001:2015" value={data.certStandard} onChange={v=>set('certStandard',v)}/></FG>
+                  <FG label="Certification Body"><GrowText value={data.certBody} onChange={v=>set('certBody',v)}/></FG>
                   <FG label="Issue Date"><input type="date" className="form-control" value={data.certIssueDate||''} onChange={e=>set('certIssueDate',e.target.value)}/></FG>
                   <FG label="Expiry Date"><input type="date" className="form-control" value={data.certExpiryDate||''} onChange={e=>set('certExpiryDate',e.target.value)}/></FG>
                 </Row>
@@ -542,10 +558,10 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                 <AccSec title="This Section for ISO 50001:2018 – Energy Management System – Additional Details"
                   color="#16a34a" isOpen={openSecs.iso50001} onToggle={()=>toggleSec('iso50001')}>
                   <Row mb={0}>
-                    <FG label="Annual Energy Consumption (Unit KWH etc.)"><input className="form-control" value={data.annualEnergyConsumption||''} onChange={e=>set('annualEnergyConsumption',e.target.value)}/></FG>
+                    <FG label="Annual Energy Consumption (Unit KWH etc.)"><GrowText value={data.annualEnergyConsumption} onChange={v=>set('annualEnergyConsumption',v)}/></FG>
                     <FG label="Number of EnMS Effective Personnels"><input className="form-control" type="number" min="0" value={data.enmsPersonnels||''} onChange={e=>set('enmsPersonnels',e.target.value)}/></FG>
-                    <FG label="Name & Number of Energy Sources"><input className="form-control" value={data.energySources||''} onChange={e=>set('energySources',e.target.value)}/></FG>
-                    <FG label="Name & Number of significant energy uses (SEUs)"><input className="form-control" value={data.significantEnergyUses||''} onChange={e=>set('significantEnergyUses',e.target.value)}/></FG>
+                    <FG label="Name & Number of Energy Sources"><GrowText value={data.energySources} onChange={v=>set('energySources',v)}/></FG>
+                    <FG label="Name & Number of significant energy uses (SEUs)"><GrowText value={data.significantEnergyUses} onChange={v=>set('significantEnergyUses',v)}/></FG>
                   </Row>
                 </AccSec>
               )}
@@ -570,7 +586,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                   <Row>
                     <FG label="Operating air emission facility"><select className="form-control" value={data.airEmissionFacility||''} onChange={e=>set('airEmissionFacility',e.target.value)}><option value="">Select</option><option>YES</option><option>NO</option></select></FG>
                     <FG label="Operating waste water treatment facility"><select className="form-control" value={data.wastewaterFacility||''} onChange={e=>set('wastewaterFacility',e.target.value)}><option value="">Select</option><option>YES</option><option>NO</option></select></FG>
-                    <FG label="Kind of wastes & amount (Ton/year)"><input className="form-control" value={data.wastesAmount||''} onChange={e=>set('wastesAmount',e.target.value)}/></FG>
+                    <FG label="Kind of wastes & amount (Ton/year)"><GrowText value={data.wastesAmount} onChange={v=>set('wastesAmount',v)}/></FG>
                     <FG label="Usage of hazardous chemical substances?"><select className="form-control" value={data.hazardousChemicals||''} onChange={e=>set('hazardousChemicals',e.target.value)}><option value="">Select</option><option>YES</option><option>NO</option></select></FG>
                   </Row>
                   {[
@@ -587,7 +603,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                   ].map(({label,field})=>(
                     <div key={field} className="form-group">
                       <label className="form-label" style={{fontSize:12}}>{label}</label>
-                      <input className="form-control" value={data[field]||''} onChange={e=>set(field,e.target.value)}/>
+                      <GrowText value={data[field]} onChange={v=>set(field,v)}/>
                     </div>
                   ))}
                   <YNRow label="Does your organization is not regulated by the law and don't need any license?" field="notRegulatedByLaw" form={data} set={set}/>
@@ -610,7 +626,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                         <option value="">Select</option><option>Yes</option><option>No</option><option>In Progress</option>
                       </select>
                     </FG>
-                    <FG label="FSSAI License Registration No."><input className="form-control" placeholder="e.g. 12345678901234" value={data.iso22000FSSAI||''} onChange={e=>set('iso22000FSSAI',e.target.value)}/></FG>
+                    <FG label="FSSAI License Registration No."><GrowText placeholder="e.g. 12345678901234" value={data.iso22000FSSAI} onChange={v=>set('iso22000FSSAI',v)}/></FG>
                     <FG label="Total No. of HACCP Studies"><input className="form-control" type="number" min="0" value={data.iso22000HACCPStudies||''} onChange={e=>set('iso22000HACCPStudies',e.target.value)}/></FG>
                   </Row>
                   <Row>
@@ -625,7 +641,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                         <option value="">Select</option><option>Low</option><option>Medium</option><option>High</option>
                       </select>
                     </FG>
-                    <FG label="Building Area (sq.ft / m²)"><input className="form-control" placeholder="e.g. 5000 sq.ft" value={data.iso22000BuildingArea||''} onChange={e=>set('iso22000BuildingArea',e.target.value)}/></FG>
+                    <FG label="Building Area (sq.ft / m²)"><GrowText placeholder="e.g. 5000 sq.ft" value={data.iso22000BuildingArea} onChange={v=>set('iso22000BuildingArea',v)}/></FG>
                   </Row>
                   <Row>
                     <FG label="Closed Production System?">
@@ -650,8 +666,8 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                     </FG>
                   </Row>
                   <Row>
-                    <FG label="Product Types"><input className="form-control" placeholder="e.g. Packaged food, beverages" value={data.iso22000ProductTypes||''} onChange={e=>set('iso22000ProductTypes',e.target.value)}/></FG>
-                    <FG label="Product Lines"><input className="form-control" value={data.iso22000ProductLines||''} onChange={e=>set('iso22000ProductLines',e.target.value)}/></FG>
+                    <FG label="Product Types"><GrowText placeholder="e.g. Packaged food, beverages" value={data.iso22000ProductTypes} onChange={v=>set('iso22000ProductTypes',v)}/></FG>
+                    <FG label="Product Lines"><GrowText value={data.iso22000ProductLines} onChange={v=>set('iso22000ProductLines',v)}/></FG>
                     <FG label="Product Development?">
                       <select className="form-control" value={data.iso22000ProductDev||''} onChange={e=>set('iso22000ProductDev',e.target.value)}>
                         <option value="">Select</option><option>Yes</option><option>No</option>
@@ -689,7 +705,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                     </FG>
                   )}
                   <FG label="Other Factors (specify)" full>
-                    <input className="form-control" value={data.iso22000OtherFactors||''} onChange={e=>set('iso22000OtherFactors',e.target.value)}/>
+                    <GrowText value={data.iso22000OtherFactors} onChange={v=>set('iso22000OtherFactors',v)}/>
                   </FG>
                 </AccSec>
               )}
@@ -702,8 +718,8 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                     <FG label="Number of Critical Business Processes Identified"><input className="form-control" type="number" min="0" value={data.iso22301CriticalProcesses||''} onChange={e=>set('iso22301CriticalProcesses',e.target.value)}/></FG>
                   </Row>
                   <Row>
-                    <FG label="Recovery Time Objective (RTO)"><input className="form-control" placeholder="e.g. 4 hours, 24 hours" value={data.iso22301RTO||''} onChange={e=>set('iso22301RTO',e.target.value)}/></FG>
-                    <FG label="Recovery Point Objective (RPO)"><input className="form-control" placeholder="e.g. 1 hour, 8 hours" value={data.iso22301RPO||''} onChange={e=>set('iso22301RPO',e.target.value)}/></FG>
+                    <FG label="Recovery Time Objective (RTO)"><GrowText placeholder="e.g. 4 hours, 24 hours" value={data.iso22301RTO} onChange={v=>set('iso22301RTO',v)}/></FG>
+                    <FG label="Recovery Point Objective (RPO)"><GrowText placeholder="e.g. 1 hour, 8 hours" value={data.iso22301RPO} onChange={v=>set('iso22301RPO',v)}/></FG>
                   </Row>
                   <Row>
                     <FG label="Business Impact Analysis (BIA) Status">
@@ -761,12 +777,12 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                 <AccSec title="This Section for ISO 27001:2022 – Information Security Management System – Additional Details"
                   color="#7c3aed" isOpen={openSecs.iso27001} onToggle={()=>toggleSec('iso27001')}>
                   <Row>
-                    <FG label="SOA Version No."><input className="form-control" placeholder="e.g. v1.0" value={data.iso27001SoaVersion||''} onChange={e=>set('iso27001SoaVersion',e.target.value)}/></FG>
+                    <FG label="SOA Version No."><GrowText placeholder="e.g. v1.0" value={data.iso27001SoaVersion} onChange={v=>set('iso27001SoaVersion',v)}/></FG>
                     <FG label="Date of Implementation"><input type="date" className="form-control" value={data.iso27001SoaDate||''} onChange={e=>set('iso27001SoaDate',e.target.value)}/></FG>
                     <FG label="Risk Assessment & Risk Treatment Date"><input type="date" className="form-control" value={data.iso27001RiskAssessmentDate||''} onChange={e=>set('iso27001RiskAssessmentDate',e.target.value)}/></FG>
                   </Row>
                   <FG label="Any outsourced process (i.e., IT / Data Centre / Server)" full>
-                    <input className="form-control" value={data.iso27001OutsourcedProcess||''} onChange={e=>set('iso27001OutsourcedProcess',e.target.value)}/>
+                    <GrowText value={data.iso27001OutsourcedProcess} onChange={v=>set('iso27001OutsourcedProcess',v)}/>
                   </FG>
                   <div style={{background:'var(--primary-50)',borderRadius:8,padding:'12px 16px',marginBottom:12}}>
                     <div style={{fontWeight:700,fontSize:12.5,color:'var(--primary-dark)',marginBottom:10}}>Business Complexity — Select applicable level (1 / 2 / 3)</div>
@@ -858,12 +874,12 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                       </select>
                     </FG>
                     <FG label="B) Categories of PII Principals' data processed">
-                      <input className="form-control" value={data.iso27701PIICategories||''} onChange={e=>set('iso27701PIICategories',e.target.value)} placeholder="e.g. Employees, Customers, Minors..."/>
+                      <GrowText value={data.iso27701PIICategories} onChange={v=>set('iso27701PIICategories',v)} placeholder="e.g. Employees, Customers, Minors..."/>
                     </FG>
                   </Row>
                   <Row>
                     <FG label="C) Current status of PIMS Statement of Applicability (SoA)">
-                      <input className="form-control" value={data.iso27701SoaStatus||''} onChange={e=>set('iso27701SoaStatus',e.target.value)} placeholder="e.g. v1.0, Date implemented"/>
+                      <GrowText value={data.iso27701SoaStatus} onChange={v=>set('iso27701SoaStatus',v)} placeholder="e.g. v1.0, Date implemented"/>
                     </FG>
                     <FG label="D) Confidential / Sensitive PIMS information not available to audit team?">
                       <select className="form-control" value={data.iso27701ConfidentialInfo||''} onChange={e=>set('iso27701ConfidentialInfo',e.target.value)}>
@@ -1084,9 +1100,9 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                       <tr key={i} style={{background:i%2===0?'white':'#fafafa'}}>
                         <td style={{padding:'8px 12px',fontSize:12.5,border:'1px solid var(--gray-100)',verticalAlign:'top'}}>{i+1}) {item}</td>
                         <td style={{padding:'5px 7px',border:'1px solid var(--gray-100)'}}>
-                          <input type="text" value={samp[key]||''}
-                            onChange={e=>set('multiSiteSampling',{...samp,[key]:e.target.value})}
-                            style={{width:'100%',padding:'6px 8px',border:'1.5px solid var(--primary-200)',borderRadius:6,fontSize:12,outline:'none',boxSizing:'border-box'}}/>
+                          <GrowText value={samp[key]} className=""
+                            onChange={v=>set('multiSiteSampling',{...samp,[key]:v})}
+                            style={{width:'100%',padding:'6px 8px',border:'1.5px solid var(--primary-200)',borderRadius:6,fontSize:12,outline:'none',boxSizing:'border-box',fontFamily:'inherit'}}/>
                         </td>
                       </tr>
                     );
@@ -1123,7 +1139,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                   {l:'App. Type',    v:data.applicationType||'—'},
                   {l:'Mode',         v:data.modeOfWorking||'—'},
                   {l:'Contact',      v:data.contactPerson||'—'},
-                  {l:'Total Emp.',   v:grandTotal()},
+                  {l:'Total Emp.',   v:effectiveTotal()},
                   {l:'Accreditation',v:data.accreditationBody||'—'},
                   {l:'Scope',        v:data.scopeOfCertification?(data.scopeOfCertification.slice(0,60)+'…'):'—'},
                 ].map(({l,v})=>(
@@ -1148,7 +1164,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                 </div>
                 <div style={{padding:'10px 16px'}}>
                   <div style={{fontSize:11,fontWeight:700,color:'var(--gray-600)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.04em'}}>Representative Name</div>
-                  <input className="form-control" placeholder="Authorised signatory name" value={data.representativeName||''} onChange={e=>set('representativeName',e.target.value)}/>
+                  <GrowText placeholder="Authorised signatory name" value={data.representativeName} onChange={v=>set('representativeName',v)}/>
                 </div>
               </div>
               <div style={{background:'var(--primary)',color:'white',padding:'9px 16px',fontWeight:700,fontSize:13,textAlign:'center',letterSpacing:'.03em'}}>
@@ -1157,11 +1173,11 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
               <div className="decl-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',borderBottom:'1px solid var(--primary-100)'}}>
                 <div style={{padding:'10px 16px',borderRight:'1px solid var(--primary-100)'}}>
                   <div style={{fontSize:11,fontWeight:700,color:'var(--gray-600)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.04em'}}>Acceptance, Ref. No</div>
-                  <input className="form-control" placeholder="e.g. ACC-2024-001" value={data.acceptanceRefNo||''} onChange={e=>set('acceptanceRefNo',e.target.value)}/>
+                  <GrowText placeholder="e.g. ACC-2024-001" value={data.acceptanceRefNo} onChange={v=>set('acceptanceRefNo',v)}/>
                 </div>
                 <div style={{padding:'10px 16px'}}>
                   <div style={{fontSize:11,fontWeight:700,color:'var(--gray-600)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.04em'}}>Not Acceptance</div>
-                  <input className="form-control" placeholder="Reason for non-acceptance (if any)" value={data.notAcceptance||''} onChange={e=>set('notAcceptance',e.target.value)}/>
+                  <GrowText placeholder="Reason for non-acceptance (if any)" value={data.notAcceptance} onChange={v=>set('notAcceptance',v)}/>
                 </div>
               </div>
               <div style={{padding:'10px 16px',borderBottom:'1px solid var(--primary-100)'}}>

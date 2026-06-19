@@ -27,16 +27,24 @@ router.get('/client/:clientId', protect, authorize('admin'), async (req, res) =>
       .select('name company email phone address isoStandard scope clientId');
     if (!user) return res.status(404).json({ message: 'No client found with this ID' });
 
-    // Pull the standards selected in the client's Application Form (F01) so that
-    // every downstream form shows ALL selected standards, not just one.
+    // The Application Form (F01) is the single source of truth: pull the details
+    // entered there so every downstream form can auto-fetch REFNO, the full
+    // standards list, address, scope and mode of audit. F01 values win over the
+    // bare client record; the client record is the fallback when F01 is empty.
     const appForm = await QMSForm.findOne({ clientId: req.params.clientId, formType: 1 })
       .select('formData');
-    const selected = appForm?.formData?.standards;
+    const fd = appForm?.formData || {};
+    const selected = fd.standards;
     const standards = Array.isArray(selected) ? selected.filter(Boolean) : [];
 
     const out = user.toObject();
     out.standards = standards;
-    if (standards.length) out.isoStandard = standards.join(', ');
+    if (standards.length)        out.isoStandard = standards.join(', ');
+    out.refno         = fd.refno || '';
+    out.modeOfWorking = fd.modeOfWorking || '';
+    if (fd.organizationName)     out.company = fd.organizationName;
+    if (fd.address)              out.address = fd.address;
+    if (fd.scopeOfCertification) out.scope   = fd.scopeOfCertification;
     res.json(out);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
