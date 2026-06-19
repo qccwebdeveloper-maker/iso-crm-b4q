@@ -1,5 +1,25 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import axios from 'axios';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, StandardChips } from './QMSFormPage';
+
+/* Invisible helper: pulls the Type of Audit from F02 (Application Review) and fills
+   it here when blank. */
+function AuditTypeFetcher({ clientInfo, data, set }) {
+  useEffect(() => {
+    const cid = clientInfo?.clientId;
+    if (!cid) return;
+    let cancelled = false;
+    axios.get(`/api/qms-forms/by-client/${cid}/2`)
+      .then(({ data: f2 }) => {
+        if (cancelled) return;
+        const at = f2?.formData?.auditType;
+        if (at !== undefined) set('auditType', at || '');
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [clientInfo?.clientId]); // eslint-disable-line
+  return null;
+}
 
 const INITIAL_CHECKS = [
   { key: 'stg2AuditorDiff',   label: 'Does stage 2 auditor different from stage 1? Yes / No' },
@@ -98,10 +118,11 @@ export default function Form15FinalReviewReport() {
       formTitle="Final Review Report"
       defaultData={DEFAULT}
     >
-      {({ data, set }) => {
+      {({ data, set, clientInfo }) => {
         const setCheck = (section, key, val) => set(section, { ...(data[section] || {}), [key]: val });
         return (
           <div>
+            <AuditTypeFetcher clientInfo={clientInfo} data={data} set={set} />
             <SectionTitle>Organization Details</SectionTitle>
             <FormRow cols={2}>
               <FormField label="Organization Name" required>
@@ -113,8 +134,7 @@ export default function Form15FinalReviewReport() {
             </FormRow>
             <FormRow cols={2}>
               <FormField label="Audit Type">
-                <FSelect value={data.auditType} onChange={v => set('auditType', v)} placeholder="Select"
-                  options={['INITIAL AUDIT','Surveillance','Recertification','Special Audit']} />
+                <FInput value={data.auditType} disabled placeholder="Auto-filled from Application Review (F02)" />
               </FormField>
               <FormField label="Mode of Audit">
                 <FSelect value={data.modeOfAudit} onChange={v => set('modeOfAudit', v)} placeholder="Select"

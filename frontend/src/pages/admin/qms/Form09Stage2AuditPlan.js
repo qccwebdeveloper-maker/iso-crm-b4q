@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import axios from 'axios';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 import useStandards, { clausesForStandards, deriveClientStandards } from './useStandards';
 import { FiChevronRight } from 'react-icons/fi';
@@ -9,7 +10,7 @@ const stdCode = (name) => {
   return m ? m[1] : String(name || '').slice(0, 6);
 };
 
-const ROLES = ['Lead Auditor','Auditor','Technical Expert','Observer','Guide'];
+const ROLES = ['Lead Auditor','Auditor','Technical Expert','Application & Report Reviewer','HOD','Observer','Guide'];
 
 const EMPTY_TEAM  = { name: '', role: '', stage2Days: '' };
 
@@ -62,6 +63,45 @@ function Stage2PlanBody({ data, set, clientInfo }) {
     }
   }, [clientInfo, names.length]); // eslint-disable-line
 
+  // Type of Audit is fetched from F02 (Application Review), filled when blank here.
+  useEffect(() => {
+    const cid = clientInfo?.clientId;
+    if (!cid) return;
+    let cancelled = false;
+    axios.get(`/api/qms-forms/by-client/${cid}/2`)
+      .then(({ data: f2 }) => {
+        if (cancelled) return;
+        const fd = f2?.formData || {};
+        // Type of Audit is a read-only mirror of F02 — always reflect its value.
+        if (fd.auditType !== undefined) set('auditType', fd.auditType || '');
+        // Other planning details — Stage-2 dates here — filled when blank.
+        const map = {
+          contactPerson:     fd.contactPerson,
+          contactDetails:    fd.contactNumbers,
+          modeOfAudit:       fd.modeOfAudit,
+          onlineMeetingLink: fd.onlineMeetingLink,
+          iafCode:           fd.iafCode,
+          auditDateFrom:     fd.stage2DateFrom,
+          auditDateTo:       fd.stage2DateTo,
+        };
+        Object.entries(map).forEach(([k, v]) => {
+          if (v && !(data[k] && String(data[k]).trim())) set(k, v);
+        });
+        // Audit team — carry auditors with Stage-2 man-days when none entered yet.
+        const team = (fd.auditTeam || [])
+          .filter(m => (m.name && m.name.trim()) || (m.role && m.role.trim()));
+        const hasTeam = (data.auditTeam || []).some(m => m.name && m.name.trim());
+        if (team.length && !hasTeam) {
+          set('auditTeam', team.map(m => ({
+            name: m.name || '', role: m.role || '',
+            stage2Days: m.stage2Days != null ? String(m.stage2Days) : '',
+          })));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [clientInfo?.clientId]); // eslint-disable-line
+
   // Seed each selected standard's schedule with its own clauses (Standard schema).
   useEffect(() => {
     if (loading) return;
@@ -97,7 +137,7 @@ function Stage2PlanBody({ data, set, clientInfo }) {
             </FormRow>
             <FormRow cols={2}>
               <FormField label="1.5 Type of Audit">
-                <FSelect value={data.auditType} onChange={v=>set('auditType',v)} placeholder="Select type" options={['Initial','Surveillance','Re-certification','Special']} />
+                <FInput value={data.auditType} disabled placeholder="Auto-filled from Application Review (F02)" />
               </FormField>
               <FormField label="1.6 Audit Standard(s)"><StandardChips value={data.auditStandards} /></FormField>
             </FormRow>

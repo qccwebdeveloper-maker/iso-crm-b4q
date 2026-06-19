@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import axios from 'axios';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 import useStandards, { clausesForStandards, deriveClientStandards } from './useStandards';
 import { FiChevronRight } from 'react-icons/fi';
@@ -85,6 +86,21 @@ function Stage2ReportBody({ data, set, clientInfo }) {
     }
   }, [clientInfo, names.length]); // eslint-disable-line
 
+  // Type of Audit is fetched from F02 (Application Review), filled when blank here.
+  useEffect(() => {
+    const cid = clientInfo?.clientId;
+    if (!cid) return;
+    let cancelled = false;
+    axios.get(`/api/qms-forms/by-client/${cid}/2`)
+      .then(({ data: f2 }) => {
+        if (cancelled) return;
+        const at = f2?.formData?.auditType;
+        if (at !== undefined) set('auditType', at || '');
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [clientInfo?.clientId]); // eslint-disable-line
+
   // Seed each selected standard's checklist with its own clauses (Standard schema).
   useEffect(() => {
     if (loading) return;
@@ -124,7 +140,7 @@ function Stage2ReportBody({ data, set, clientInfo }) {
             </FormRow>
             <FormRow cols={2}>
               <FormField label="1.5 Type of Audit">
-                <FSelect value={data.auditType} onChange={v=>set('auditType',v)} placeholder="Select" options={['Stage II','Surveillance','Recertification','Special Audit']} />
+                <FInput value={data.auditType} disabled placeholder="Auto-filled from Application Review (F02)" />
               </FormField>
               <FormField label="1.6 Audit Standard(s)"><StandardChips value={data.auditStandards} /></FormField>
             </FormRow>

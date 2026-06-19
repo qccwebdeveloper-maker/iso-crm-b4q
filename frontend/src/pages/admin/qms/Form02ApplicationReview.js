@@ -20,7 +20,7 @@ const EMPTY_AUDITOR = { name: '', role: '', stage1Days: '', stage2Days: '' };
 const DEFAULT = {
   // Organization
   idNo: '', orgName: '', address: '', contactPerson: '', contactNumbers: '',
-  noOfPersons: '', auditTypeStage1: 'Stage I', auditTypeStage2: 'Stage II',
+  noOfPersons: '', auditType: '',
   auditStandards: '', modeOfAudit: '', onlineMeetingLink: '',
   scopeOfCertification: '', auditLanguage: 'English', iafCode: '',
   // Transfer
@@ -159,15 +159,13 @@ export default function Form02ApplicationReview() {
                 <FInput value={data.contactNumbers} onChange={v => set('contactNumbers', v)} placeholder="+91 XXXXX XXXXX" />
               </FormField>
             </FormRow>
-            <FormRow cols={3}>
+            <FormRow cols={2}>
               <FormField label="No. of Persons under Certification">
                 <FInput value={data.noOfPersons} onChange={v => set('noOfPersons', v)} type="number" placeholder="0" />
               </FormField>
-              <FormField label="Audit Type — Stage I">
-                <FInput value={data.auditTypeStage1} onChange={v => set('auditTypeStage1', v)} placeholder="Stage I" />
-              </FormField>
-              <FormField label="Audit Type — Stage II">
-                <FInput value={data.auditTypeStage2} onChange={v => set('auditTypeStage2', v)} placeholder="Stage II" />
+              <FormField label="Type of Audit">
+                <FSelect value={data.auditType} onChange={v => set('auditType', v)} placeholder="Select type"
+                  options={['Initial', 'Surveillance', 'Re-certification', 'Un-Announced', 'Follow-up', 'Special Audit']} />
               </FormField>
             </FormRow>
             <FormRow cols={2}>

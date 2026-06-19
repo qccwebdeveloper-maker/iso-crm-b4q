@@ -1,14 +1,37 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import axios from 'axios';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, StandardChips } from './QMSFormPage';
 
-/* ── Audit type options (top-right checkboxes in Excel) ── */
-const AUDIT_TYPES = [
-  'Initial Audit',
-  '1st Surveillance',
-  '2nd Surveillance',
-  'Re-certification',
-  'Special Audit',
-];
+
+/* Map the Application Form (F01) "Application Type" to this form's Audit Type. */
+const APP_TYPE_TO_AUDIT = {
+  'Initial':          'Initial Audit',
+  'Surveillance':     '1st Surveillance',
+  'Re-certification': 'Re-certification',
+  'Special Audit':    'Special Audit',
+};
+
+/* Invisible helper: pulls the Type of Audit and online meeting link from F02
+   (Application Review) and fills them here when blank. The audit type is mapped to
+   this form's radio labels. Mode of Audit arrives via the shared client pre-fill. */
+function AuditTypeFetcher({ clientInfo, data, set }) {
+  useEffect(() => {
+    const cid = clientInfo?.clientId;
+    if (!cid) return;
+    let cancelled = false;
+    axios.get(`/api/qms-forms/by-client/${cid}/2`)
+      .then(({ data: f2 }) => {
+        if (cancelled) return;
+        const fd = f2?.formData || {};
+        const mapped = APP_TYPE_TO_AUDIT[fd.auditType];
+        if (mapped) set('auditType', mapped);
+        if (fd.onlineMeetingLink && !(data.onlineMeetingLink && String(data.onlineMeetingLink).trim())) set('onlineMeetingLink', fd.onlineMeetingLink);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [clientInfo?.clientId]); // eslint-disable-line
+  return null;
+}
 
 /* ── Yes / No / NA options ── */
 const YNA = ['Yes', 'No', 'N/A'];
@@ -97,37 +120,19 @@ export default function Form08Stage1ReviewReport() {
       formTitle="Review Report — Stage 1 (After Audit Report)"
       defaultData={DEFAULT}
     >
-      {({ data, set }) => (
+      {({ data, set, clientInfo }) => (
         <div>
+          <AuditTypeFetcher clientInfo={clientInfo} data={data} set={set} />
 
           {/* ── 1. Organization Details ── */}
           <SectionTitle>Organization Details</SectionTitle>
 
-          {/* Audit Type — checkboxes matching Excel top-right */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 10.5, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 8 }}>
-              Audit Type <span style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-              {AUDIT_TYPES.map(t => (
-                <label key={t} style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '8px 16px', borderRadius: 8, cursor: 'pointer',
-                  border: `1.5px solid ${data.auditType === t ? 'var(--primary)' : '#e2e8f0'}`,
-                  background: data.auditType === t ? 'var(--primary-50)' : 'white',
-                  fontSize: 12.5, fontWeight: data.auditType === t ? 700 : 500,
-                  color: data.auditType === t ? 'var(--primary-dark)' : '#374151',
-                  transition: 'all .14s',
-                }}>
-                  <input type="radio" name="auditType" value={t}
-                    checked={data.auditType === t}
-                    onChange={() => set('auditType', t)}
-                    style={{ accentColor: 'var(--primary)', width: 14, height: 14 }} />
-                  {t}
-                </label>
-              ))}
-            </div>
-          </div>
+          {/* Audit Type — read-only, fetched from Application Review (F02) */}
+          <FormRow cols={1}>
+            <FormField label="Audit Type" required>
+              <FInput value={data.auditType} disabled placeholder="Auto-filled from Application Review (F02)" />
+            </FormField>
+          </FormRow>
 
           <FormRow cols={2}>
             <FormField label="Organization Name" required>
@@ -139,8 +144,7 @@ export default function Form08Stage1ReviewReport() {
           </FormRow>
           <FormRow cols={2}>
             <FormField label="Mode of Audit">
-              <FSelect value={data.modeOfAudit} onChange={v => set('modeOfAudit', v)} placeholder="Select mode"
-                options={['Online', 'Onsite', 'Hybrid']} />
+              <FInput value={data.modeOfAudit} disabled placeholder="Auto-filled from Application Form" />
             </FormField>
             <FormField label="Online Meeting Link (if applicable)">
               <FInput value={data.onlineMeetingLink} onChange={v => set('onlineMeetingLink', v)} placeholder="https://..." />
@@ -348,14 +352,6 @@ export default function Form08Stage1ReviewReport() {
             </FormField>
             <FormField label="Review Date">
               <FInput value={data.reviewDate} onChange={v => set('reviewDate', v)} type="date" />
-            </FormField>
-          </FormRow>
-          <FormRow cols={2}>
-            <FormField label="Second Reviewer Name (if applicable)">
-              <FInput value={data.reviewer2Name} onChange={v => set('reviewer2Name', v)} placeholder="Second reviewer name" />
-            </FormField>
-            <FormField label="Second Review Date">
-              <FInput value={data.reviewer2Date} onChange={v => set('reviewer2Date', v)} type="date" />
             </FormField>
           </FormRow>
 

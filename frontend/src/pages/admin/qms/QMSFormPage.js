@@ -29,17 +29,31 @@ function withAppDefaults(saved, client) {
     noOfPersons:          client.empTotal ? String(client.empTotal) : '',
     orgName:              client.company       || '',
     organizationName:     client.company       || '',
+    contactPerson:        client.contactPerson || client.name || '',
+    emailId:              client.email         || '',
+    email:                client.email         || '',
+    contactDetails:       client.phone         || '',
+    contactNumbers:       client.phone         || '',
+    mobileNumber:         client.phone         || '',
     address:              client.address       || '',
     scopeOfCertification: client.scope         || '',
     modeOfAudit:          client.modeOfWorking || '',
-    auditStandards:       client.isoStandard   || '',
-    isoStandards:         client.isoStandard   || '',
     standard:             client.isoStandard   || '',
   };
   for (const [k, v] of Object.entries(shared)) {
     const cur = out[k];
     if (v && (cur === undefined || cur === null || cur === '')) out[k] = v;
   }
+  // Standards display always mirrors the CURRENT application selection, so every
+  // form shows exactly the standards picked in F01 — one if one is selected, two
+  // if two — even when reopening a form saved with an earlier selection.
+  if (client.isoStandard) {
+    out.auditStandards = client.isoStandard;
+    out.isoStandards   = client.isoStandard;
+  }
+  // Contact person always reflects F01's contact person (when entered there), so a
+  // form saved earlier with the company name is corrected to the real contact.
+  if (client.contactPerson) out.contactPerson = client.contactPerson;
   return out;
 }
 
@@ -344,8 +358,10 @@ export default function QMSFormPage({ formType, formCode, formTitle, defaultData
           noOfPersons:          client.empTotal ? String(client.empTotal) : '',
           orgName:              client.company       || '',
           organizationName:     client.company       || '',
-          contactPerson:        client.name          || '',
+          contactPerson:        client.contactPerson || client.name || '',
           emailId:              client.email         || '',
+          email:                client.email         || '',
+          contactDetails:       client.phone         || '',
           contactNumbers:       client.phone         || '',
           mobileNumber:         client.phone         || '',
           address:              client.address       || '',

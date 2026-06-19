@@ -1,5 +1,16 @@
 import React, { useEffect } from 'react';
-import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, FRadioGroup, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
+import axios from 'axios';
+import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FRadioGroup, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
+
+// Format two ISO dates (yyyy-mm-dd) into a "DD Mon - DD Mon YYYY" range string.
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtDateRange = (from, to) => {
+  const part = iso => { const [, m, d] = String(iso).split('-'); return `${parseInt(d, 10)} ${MONTHS[parseInt(m, 10) - 1]}`; };
+  const year = iso => String(iso).split('-')[0];
+  if (from && to) return `${part(from)} - ${part(to)} ${year(to)}`;
+  if (from) return `${part(from)} ${year(from)}`;
+  return '';
+};
 import useStandards, { clausesForStandards, deriveClientStandards } from './useStandards';
 import { FiChevronRight } from 'react-icons/fi';
 
@@ -9,7 +20,7 @@ const stdCode = (name) => {
   return m ? m[1] : String(name || '').slice(0, 6);
 };
 
-const ROLES = ['Lead Auditor','Auditor','Technical Expert'];
+const ROLES = ['Lead Auditor','Auditor','Technical Expert','Application & Report Reviewer','HOD','Guide','Observer'];
 const NC_TYPES = ['Minor NC','Major NC','Observation','OFI'];
 const REC_OPTS = [
   { value: 'proceed', label: 'Recommended proceeding with Stage 2 within agreed timeframe after review of Stage-1 audit results.' },
@@ -55,7 +66,17 @@ const DEFAULT = {
   scopeOfCertification: '', iafCode: '', quotedManDaysAdequate: '',
   auditStandards: '',
   auditTeam: [{ name: '', role: '', standard: '', stage1MD: '' }],
-  auditObjectives: "To review and evaluate the client's documented Quality Management System, including site-specific conditions, applicable legal/statutory/regulatory/contractual requirements, QMS scope, processes, risks, opportunities, and standard-specific requirements, in order to determine the organization's preparedness and readiness for the Stage 2 certification audit.",
+  auditObjectives: `The objectives of the Stage-1 Audit are to determine the organization's readiness for the Stage-2 Certification Audit by evaluating the adequacy, implementation status, and effectiveness of the Management System documentation and processes.
+
+The audit objectives include:
+1. To assess the conformity and adequacy of the documented management system against the applicable standard requirements.
+2. To review the status of implementation of the management system, including established policies, objectives, procedures, and documented information.
+3. To evaluate the organization's internal audit programme and management review process to ensure they have been effectively planned and conducted.
+4. To assess site-specific conditions, operational processes, infrastructure, equipment, and resources relevant to the scope of certification.
+5. To verify identification and compliance evaluation of applicable statutory, regulatory, and legal requirements.
+6. To assess the organization's preparedness for the Stage-2 Audit and identify any areas of concern that could be classified as nonconformities during Stage-2.
+7. To confirm the certification scope, organizational context, interested parties, risks and opportunities, and understanding of applicable management system requirements.
+8. To collect sufficient information regarding the management system, processes, locations, and activities to facilitate effective planning of the Stage-2 Audit.`,
   auditCriteria: 'Client QMS Manual, policies, procedures, SOPs, process flow, risk assessment, legal register, objectives, internal audit records, management review records, operational control records, compliance obligations, customer/contractual requirements, and applicable site-specific requirements.',
   briefAboutOrg: '',
   auditDurationChange: '', employeeDetailChange: '', employeeDetailChangeDetails: '',
@@ -105,6 +126,44 @@ function Stage1ReportBody({ data, set, clientInfo }) {
     }
   }, [clientInfo, names.length]); // eslint-disable-line
 
+  // Fetch the meeting link and Stage-1 audit dates from F02 (Application Review) and
+  // fill them here when blank, without overwriting anything already entered.
+  useEffect(() => {
+    const cid = clientInfo?.clientId;
+    if (!cid) return;
+    let cancelled = false;
+    axios.get(`/api/qms-forms/by-client/${cid}/2`)
+      .then(({ data: f2 }) => {
+        if (cancelled) return;
+        const fd = f2?.formData || {};
+        const map = {
+          onlineMeetingLink: fd.onlineMeetingLink,
+          modeOfAudit:       fd.modeOfAudit,
+          auditDates:        fmtDateRange(fd.stage1DateFrom, fd.stage1DateTo),
+          stage1Duration:    fd.totalMandaysS1 != null && fd.totalMandaysS1 !== '' ? String(fd.totalMandaysS1) : '',
+          iafCode:           fd.iafCode,
+        };
+        Object.entries(map).forEach(([k, v]) => {
+          if (v && !(data[k] && String(data[k]).trim())) set(k, v);
+        });
+        // Type of Audit is a read-only mirror of F02 — always reflect its value.
+        if (fd.auditType !== undefined) set('auditType', fd.auditType || '');
+        // Audit team — carry the auditors from F02 (name, role, Stage-1 man-days)
+        // when none have been entered here yet.
+        const team = (fd.auditTeam || [])
+          .filter(m => (m.name && m.name.trim()) || (m.role && m.role.trim()));
+        const hasTeam = (data.auditTeam || []).some(m => m.name && m.name.trim());
+        if (team.length && !hasTeam) {
+          set('auditTeam', team.map(m => ({
+            name: m.name || '', role: m.role || '', standard: '',
+            stage1MD: m.stage1Days != null ? String(m.stage1Days) : '',
+          })));
+        }
+      })
+      .catch(() => { /* no F02 yet — keep application/defaults */ });
+    return () => { cancelled = true; };
+  }, [clientInfo?.clientId]); // eslint-disable-line
+
   // Seed each selected standard's checklist with its own clauses (Standard schema).
   useEffect(() => {
     if (loading) return;
@@ -144,7 +203,7 @@ function Stage1ReportBody({ data, set, clientInfo }) {
             <FormRow cols={2}>
               <FormField label="1.3 Address"><FTextarea value={data.address} onChange={v=>set('address',v)} rows={2} /></FormField>
               <FormField label="Mode of Audit">
-                <FSelect value={data.modeOfAudit} onChange={v=>set('modeOfAudit',v)} placeholder="Select" options={['Online','Onsite','Hybrid']} />
+                <FInput value={data.modeOfAudit} disabled placeholder="Auto-filled from Application Form" />
               </FormField>
             </FormRow>
             <FormRow cols={2}>
@@ -157,7 +216,7 @@ function Stage1ReportBody({ data, set, clientInfo }) {
             </FormRow>
             <FormRow cols={2}>
               <FormField label="1.6 Type of Audit">
-                <FSelect value={data.auditType} onChange={v=>set('auditType',v)} placeholder="Select" options={['Initial','Surveillance','Re-certification']} />
+                <FInput value={data.auditType} disabled placeholder="Auto-filled from Application Review (F02)" />
               </FormField>
               <FormField label="Stage-1 Audit Duration"><FInput value={data.stage1Duration} onChange={v=>set('stage1Duration',v)} placeholder="e.g. 1 day" /></FormField>
             </FormRow>

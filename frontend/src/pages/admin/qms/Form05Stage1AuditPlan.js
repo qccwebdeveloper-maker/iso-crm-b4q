@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import axios from 'axios';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 import useStandards, { clausesForStandards, deriveClientStandards } from './useStandards';
 import { FiChevronRight } from 'react-icons/fi';
@@ -101,7 +102,17 @@ const DEFAULT = {
   auditType: '', auditStandards: '', auditPlanDate: '',
   auditDateFrom: '', auditDateTo: '', modeOfAudit: '', onlineMeetingLink: '',
   scopeOfCertification: '', iafCode: '',
-  auditObjectives: 'Judging the availability to 2nd assessment by checking system conformity and performance status regarding policy and objective.\n1. Conformity of documents regarding developed system.\n2. Review internal audit and management review records.\n3. Site-specific conditions, process and equipments used.\n4. Applicable statutory and regulatory requirements.',
+  auditObjectives: `The objectives of the Stage-1 Audit are to determine the organization's readiness for the Stage-2 Certification Audit by evaluating the adequacy, implementation status, and effectiveness of the Management System documentation and processes.
+
+The audit objectives include:
+1. To assess the conformity and adequacy of the documented management system against the applicable standard requirements.
+2. To review the status of implementation of the management system, including established policies, objectives, procedures, and documented information.
+3. To evaluate the organization's internal audit programme and management review process to ensure they have been effectively planned and conducted.
+4. To assess site-specific conditions, operational processes, infrastructure, equipment, and resources relevant to the scope of certification.
+5. To verify identification and compliance evaluation of applicable statutory, regulatory, and legal requirements.
+6. To assess the organization's preparedness for the Stage-2 Audit and identify any areas of concern that could be classified as nonconformities during Stage-2.
+7. To confirm the certification scope, organizational context, interested parties, risks and opportunities, and understanding of applicable management system requirements.
+8. To collect sufficient information regarding the management system, processes, locations, and activities to facilitate effective planning of the Stage-2 Audit.`,
   auditLanguage: 'English',
   auditTeam: [{ ...EMPTY_TEAM }],
   // Audit schedule is kept separately per selected standard:
@@ -143,6 +154,48 @@ function Stage1Body({ data, set, clientInfo }) {
       set('appStandards', liveApp);
     }
   }, [clientInfo, names.length]); // eslint-disable-line
+
+  // Fetch the planning details from F02 (Application Review) — e.g. mode of audit,
+  // online meeting link, IAF code, contact details, scope — and fill any field that
+  // is still blank here, without overwriting anything already entered on this form.
+  useEffect(() => {
+    const cid = clientInfo?.clientId;
+    if (!cid) return;
+    let cancelled = false;
+    axios.get(`/api/qms-forms/by-client/${cid}/2`)
+      .then(({ data: f2 }) => {
+        if (cancelled) return;
+        const fd = f2?.formData || {};
+        const map = {
+          contactPerson:        fd.contactPerson,
+          contactDetails:       fd.contactNumbers,
+          modeOfAudit:          fd.modeOfAudit,
+          onlineMeetingLink:    fd.onlineMeetingLink,
+          scopeOfCertification: fd.scopeOfCertification,
+          iafCode:              fd.iafCode,
+          auditDateFrom:        fd.stage1DateFrom,
+          auditDateTo:          fd.stage1DateTo,
+        };
+        Object.entries(map).forEach(([k, v]) => {
+          if (v && !(data[k] && String(data[k]).trim())) set(k, v);
+        });
+        // Type of Audit is a read-only mirror of F02 — always reflect its value.
+        if (fd.auditType !== undefined) set('auditType', fd.auditType || '');
+        // Audit team — carry over the auditors from F02 (name, role, total man-days)
+        // when none have been entered here yet.
+        const team = (fd.auditTeam || [])
+          .filter(m => (m.name && m.name.trim()) || (m.role && m.role.trim()));
+        const hasTeam = (data.auditTeam || []).some(m => m.name && m.name.trim());
+        if (team.length && !hasTeam) {
+          set('auditTeam', team.map(m => {
+            const md = (parseFloat(m.stage1Days) || 0) + (parseFloat(m.stage2Days) || 0);
+            return { name: m.name || '', role: m.role || '', competency: '', manDays: md ? String(md) : '' };
+          }));
+        }
+      })
+      .catch(() => { /* no F02 yet — keep application/defaults */ });
+    return () => { cancelled = true; };
+  }, [clientInfo?.clientId]); // eslint-disable-line
 
   // Seed each selected standard's schedule with its own clauses (from the Standard
   // schema) the first time the form is opened with no rows yet for that standard.
@@ -204,8 +257,7 @@ function Stage1Body({ data, set, clientInfo }) {
             </FormRow>
             <FormRow cols={2}>
               <FormField label="1.5 Type of Audit">
-                <FSelect value={data.auditType} onChange={v => set('auditType', v)} placeholder="Select type"
-                  options={['Initial','Surveillance','Re-certification','Un-Announced','Follow-up']} />
+                <FInput value={data.auditType} disabled placeholder="Auto-filled from Application Review (F02)" />
               </FormField>
               <FormField label="1.6 Audit Standard(s)">
                 <StandardChips value={stdNames} />
