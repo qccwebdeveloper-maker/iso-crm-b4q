@@ -342,7 +342,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
               </FG>
             </Row>
             <Row mb={0}>
-              <FG label="Mode of Working">
+              <FG label="Mode of Audit">
                 <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
                   {['Online','Onsite','Hybrid'].map(m=>(
                     <label key={m} style={{display:'flex',alignItems:'center',gap:6,cursor:'pointer',padding:'8px 14px',
