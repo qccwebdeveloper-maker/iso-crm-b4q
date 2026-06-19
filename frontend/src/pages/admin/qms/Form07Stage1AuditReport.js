@@ -1,6 +1,13 @@
 import React, { useEffect } from 'react';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, FRadioGroup, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
-import useStandards, { clausesForStandards } from './useStandards';
+import useStandards, { clausesForStandards, deriveClientStandards } from './useStandards';
+import { FiChevronRight } from 'react-icons/fi';
+
+/* Short code (e.g. "27001") pulled from a standard name for the accordion mark. */
+const stdCode = (name) => {
+  const m = String(name || '').match(/(\d{4,5})/);
+  return m ? m[1] : String(name || '').slice(0, 6);
+};
 
 const ROLES = ['Lead Auditor','Auditor','Technical Expert'];
 const NC_TYPES = ['Minor NC','Major NC','Observation','OFI'];
@@ -60,7 +67,9 @@ const DEFAULT = {
   ncList: [],
   observationList: [],
   ofiList: [],
-  checklist: [],
+  // Stage-1 checklist is kept per selected standard:
+  //   { [standardName]: [ { clause, description, conformity, finding }, ... ] }
+  checklists: {},
 };
 
 export default function Form07Stage1AuditReport() {
@@ -77,24 +86,49 @@ export default function Form07Stage1AuditReport() {
 }
 
 function Stage1ReportBody({ data, set, clientInfo }) {
-  const { byName, loading } = useStandards();
-  const selectedStandard = data.auditStandards || data.isoStandards || clientInfo?.isoStandard || '';
+  const { byName, names, loading } = useStandards();
 
-  // Seed the Stage-1 checklist with the selected standard's clauses (Standard schema).
+  // Standards the client selected in their Application Form (F01) drive the
+  // checklist grouping — read from the live client record, falling back to a
+  // snapshot saved on this form so it still renders when reopened from the list.
+  const liveApp  = deriveClientStandards(clientInfo, names);
+  const savedApp = Array.isArray(data.appStandards) ? data.appStandards : [];
+  const stdNames = names.filter(k => liveApp.includes(k) || savedApp.includes(k));
+  const checklists = data.checklists || {};
+  const openMap    = data.checklistOpen || {};
+
+  // Snapshot the application standards into the form data once available, so the
+  // checklist still renders after saving and reopening from the list.
+  useEffect(() => {
+    if (liveApp.length && JSON.stringify(savedApp) !== JSON.stringify(liveApp)) {
+      set('appStandards', liveApp);
+    }
+  }, [clientInfo, names.length]); // eslint-disable-line
+
+  // Seed each selected standard's checklist with its own clauses (Standard schema).
   useEffect(() => {
     if (loading) return;
-    if ((data.checklist || []).length) return;
-    const cls = clausesForStandards(byName, selectedStandard);
-    if (cls.length) {
-      set('checklist', cls.map(c => ({ clause: c.no, description: c.text, conformity: 'C', finding: '' })));
-    }
-  }, [loading, selectedStandard]); // eslint-disable-line
+    const next = { ...(data.checklists || {}) };
+    let changed = false;
+    stdNames.forEach(name => {
+      if ((next[name] || []).length) return;
+      const cls = clausesForStandards(byName, name);
+      if (cls.length) {
+        next[name] = cls.map(c => ({ clause: c.no, description: c.text, conformity: 'C', finding: '' }));
+        changed = true;
+      }
+    });
+    if (changed) set('checklists', next);
+  }, [loading, stdNames.join('|')]); // eslint-disable-line
+
+  const isOpen     = name => openMap[name] !== false; // default open
+  const toggleOpen = name => set('checklistOpen', { ...openMap, [name]: !isOpen(name) });
 
   const setTeam = (ri, k, v) => { const t=[...(data.auditTeam||[])]; t[ri]={...t[ri],[k]:v}; set('auditTeam',t); };
   const setNC   = (ri, k, v) => { const t=[...(data.ncList||[])]; t[ri]={...t[ri],[k]:v}; set('ncList',t); };
   const setObs  = (ri, k, v) => { const t=[...(data.observationList||[])]; t[ri]={...t[ri],[k]:v}; set('observationList',t); };
   const setOFI  = (ri, k, v) => { const t=[...(data.ofiList||[])]; t[ri]={...t[ri],[k]:v}; set('ofiList',t); };
-  const setCL   = (ri, k, v) => { const t=[...(data.checklist||[])]; t[ri]={...t[ri],[k]:v}; set('checklist',t); };
+  const setCL   = (name, ri, k, v) => { const t=[...(checklists[name]||[])]; t[ri]={...t[ri],[k]:v}; set('checklists',{...checklists,[name]:t}); };
   return (
           <div>
             <SectionTitle>1. Organization & Audit Details</SectionTitle>
@@ -275,49 +309,77 @@ function Stage1ReportBody({ data, set, clientInfo }) {
               onRemove={ri=>set('ofiList',(data.ofiList||[]).filter((_,i)=>i!==ri))} onCellChange={setOFI} addLabel="Add OFI" />
 
             <SectionTitle>5. Stage-1 Audit Checklist</SectionTitle>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc' }}>
-                    {['Clause','Description','C/NC/O/OFI'].map(h => (
-                      <th key={h} style={{ padding: '8px 10px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', borderBottom: '1.5px solid #e2e8f0' }}>{h}</th>
-                    ))}
-                  </tr>
-                  <tr style={{ background: '#f8fafc' }}>
-                    <td colSpan={3} style={{ padding: '4px 10px 8px', fontSize: 11, fontWeight: 600, color: '#94a3b8', borderBottom: '1.5px solid #e2e8f0' }}>
-                      C – Conformity&nbsp;&nbsp; NC – Non Conformity&nbsp;&nbsp; O – Observation&nbsp;&nbsp; OFI – Opportunity&nbsp;&nbsp; N/A – Not Applicable
-                    </td>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(data.checklist || []).map((row, ri) => (
-                    <React.Fragment key={ri}>
-                      <tr style={{ background: ri%2===0?'white':'#fafafa' }}>
-                        <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--primary-dark)', whiteSpace: 'nowrap', verticalAlign: 'top' }}>{row.clause}</td>
-                        <td style={{ padding: '6px 10px', fontSize: 12, whiteSpace: 'pre-line', lineHeight: 1.55, minWidth: 220, verticalAlign: 'top' }}>{row.description}</td>
-                        <td style={{ padding: '6px 8px', verticalAlign: 'top' }}>
-                          <select value={row.conformity||'C'} onChange={e=>setCL(ri,'conformity',e.target.value)}
-                            style={{ padding: '4px 6px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', background: 'white' }}>
-                            {CONFORMITY.map(c=><option key={c} value={c}>{c}</option>)}
-                          </select>
-                        </td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid #f1f5f9', background: ri%2===0?'white':'#fafafa' }}>
-                        <td colSpan={3} style={{ padding: '0 10px 10px' }}>
-                          <textarea value={row.finding||''}
-                            onChange={e=>setCL(ri,'finding',e.target.value)}
-                            onInput={e=>{ e.target.style.height='auto'; e.target.style.height=e.target.scrollHeight+'px'; }}
-                            ref={el=>{ if(el){ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; } }}
-                            rows={2}
-                            placeholder="Finding / evidence / notes..."
-                            style={{ padding: '8px 10px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', width: '100%', resize: 'none', overflow: 'hidden', fontFamily: 'inherit', lineHeight: 1.5, boxSizing: 'border-box' }} />
-                        </td>
-                      </tr>
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', marginBottom: 10 }}>
+              C – Conformity&nbsp;&nbsp; NC – Non Conformity&nbsp;&nbsp; O – Observation&nbsp;&nbsp; OFI – Opportunity&nbsp;&nbsp; N/A – Not Applicable
             </div>
+            {stdNames.length === 0 ? (
+              <div className="aud3-empty">
+                No ISO standards were selected in this client's Application Form (F01).
+              </div>
+            ) : (
+              <div className="aud3-stack">
+                {stdNames.map(name => {
+                  const rows = checklists[name] || [];
+                  const open = isOpen(name);
+                  const meta = byName[name];
+                  return (
+                    <section key={name} className={`aud3-std${open ? ' open' : ''}`}>
+                      <button type="button" className="aud3-head" onClick={() => toggleOpen(name)}>
+                        <span className="aud3-chev"><FiChevronRight size={18} /></span>
+                        <span className="aud3-mark">{stdCode(name)}</span>
+                        <span className="aud3-title">
+                          <span className="name">{name}</span>
+                          {meta?.category && <span className="desc">{meta.category}</span>}
+                        </span>
+                        <span className="aud3-meta">
+                          <span className="aud3-pill active">{rows.length} row{rows.length === 1 ? '' : 's'}</span>
+                        </span>
+                      </button>
+                      {open && (
+                        <div className="aud3-body" style={{ padding: 16, overflowX: 'auto' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                            <thead>
+                              <tr style={{ background: '#f8fafc' }}>
+                                {['Clause','Description','C/NC/O/OFI'].map(h => (
+                                  <th key={h} style={{ padding: '8px 10px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', borderBottom: '1.5px solid #e2e8f0' }}>{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {rows.map((row, ri) => (
+                                <React.Fragment key={ri}>
+                                  <tr style={{ background: ri%2===0?'white':'#fafafa' }}>
+                                    <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--primary-dark)', whiteSpace: 'nowrap', verticalAlign: 'top' }}>{row.clause}</td>
+                                    <td style={{ padding: '6px 10px', fontSize: 12, whiteSpace: 'pre-line', lineHeight: 1.55, minWidth: 220, verticalAlign: 'top' }}>{row.description}</td>
+                                    <td style={{ padding: '6px 8px', verticalAlign: 'top' }}>
+                                      <select value={row.conformity||'C'} onChange={e=>setCL(name,ri,'conformity',e.target.value)}
+                                        style={{ padding: '4px 6px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', background: 'white' }}>
+                                        {CONFORMITY.map(c=><option key={c} value={c}>{c}</option>)}
+                                      </select>
+                                    </td>
+                                  </tr>
+                                  <tr style={{ borderBottom: '1px solid #f1f5f9', background: ri%2===0?'white':'#fafafa' }}>
+                                    <td colSpan={3} style={{ padding: '0 10px 10px' }}>
+                                      <textarea value={row.finding||''}
+                                        onChange={e=>setCL(name,ri,'finding',e.target.value)}
+                                        onInput={e=>{ e.target.style.height='auto'; e.target.style.height=e.target.scrollHeight+'px'; }}
+                                        ref={el=>{ if(el){ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; } }}
+                                        rows={2}
+                                        placeholder="Finding / evidence / notes..."
+                                        style={{ padding: '8px 10px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', width: '100%', resize: 'none', overflow: 'hidden', fontFamily: 'inherit', lineHeight: 1.5, boxSizing: 'border-box' }} />
+                                    </td>
+                                  </tr>
+                                </React.Fragment>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </section>
+                  );
+                })}
+              </div>
+            )}
           </div>
   );
 }

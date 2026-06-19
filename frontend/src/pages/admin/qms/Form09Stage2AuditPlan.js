@@ -1,11 +1,17 @@
 import React, { useEffect } from 'react';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
-import useStandards, { clausesForStandards } from './useStandards';
+import useStandards, { clausesForStandards, deriveClientStandards } from './useStandards';
+import { FiChevronRight } from 'react-icons/fi';
+
+/* Short code (e.g. "27001") pulled from a standard name for the accordion mark. */
+const stdCode = (name) => {
+  const m = String(name || '').match(/(\d{4,5})/);
+  return m ? m[1] : String(name || '').slice(0, 6);
+};
 
 const ROLES = ['Lead Auditor','Auditor','Technical Expert','Observer','Guide'];
 
 const EMPTY_TEAM  = { name: '', role: '', stage2Days: '' };
-const EMPTY_SCHED = { dayTime: '', clauses: '', auditorName: '' };
 
 // Fixed standard statement — displayed read-only, not editable.
 const AUDIT_OBJECTIVES = 'Judging the Management System by checking system conformity and performance status regarding objective evidence as per ISO 9001 Standard\na. To assess conformity of the Client\'s Management system with the audit criteria\nb. To assess capacity of the client\'s criteria to meet its Objectives\nc. To identify areas of improvement in the Clients premises\nd. To make appropriate recommendation to the CB regarding client\'s certification.';
@@ -18,7 +24,9 @@ const DEFAULT = {
   auditObjectives: AUDIT_OBJECTIVES,
   auditLanguage: 'English',
   auditTeam: [{ ...EMPTY_TEAM }],
-  schedule: [],
+  // Audit schedule is kept separately per selected standard:
+  //   { [standardName]: [ { dayTime, clauses, auditorName }, ... ] }
+  schedules: {},
 };
 
 export default function Form09Stage2AuditPlan() {
@@ -35,20 +43,46 @@ export default function Form09Stage2AuditPlan() {
 }
 
 function Stage2PlanBody({ data, set, clientInfo }) {
-  const { byName, loading } = useStandards();
-  const selectedStandard = data.auditStandards || clientInfo?.isoStandard || '';
+  const { byName, names, loading } = useStandards();
 
+  // Standards the client selected in their Application Form (F01) drive the
+  // schedule grouping — read from the live client record, falling back to a
+  // snapshot saved on this form so it still renders when reopened from the list.
+  const liveApp  = deriveClientStandards(clientInfo, names);
+  const savedApp = Array.isArray(data.appStandards) ? data.appStandards : [];
+  const stdNames = names.filter(k => liveApp.includes(k) || savedApp.includes(k));
+  const schedules = data.schedules || {};
+  const openMap   = data.scheduleOpen || {};
+
+  // Snapshot the application standards into the form data once available, so the
+  // schedule still renders after saving and reopening from the list.
+  useEffect(() => {
+    if (liveApp.length && JSON.stringify(savedApp) !== JSON.stringify(liveApp)) {
+      set('appStandards', liveApp);
+    }
+  }, [clientInfo, names.length]); // eslint-disable-line
+
+  // Seed each selected standard's schedule with its own clauses (Standard schema).
   useEffect(() => {
     if (loading) return;
-    if ((data.schedule || []).length) return;
-    const cls = clausesForStandards(byName, selectedStandard);
-    if (cls.length) {
-      set('schedule', cls.map(c => ({ dayTime: '', clauses: `${c.no} ${c.text}`.trim(), auditorName: '' })));
-    }
-  }, [loading, selectedStandard]); // eslint-disable-line
+    const next = { ...(data.schedules || {}) };
+    let changed = false;
+    stdNames.forEach(name => {
+      if ((next[name] || []).length) return;
+      const cls = clausesForStandards(byName, name);
+      if (cls.length) {
+        next[name] = cls.map(c => ({ dayTime: '', clauses: `${c.no} ${c.text}`.trim(), auditorName: '' }));
+        changed = true;
+      }
+    });
+    if (changed) set('schedules', next);
+  }, [loading, stdNames.join('|')]); // eslint-disable-line
+
+  const isOpen     = name => openMap[name] !== false; // default open
+  const toggleOpen = name => set('scheduleOpen', { ...openMap, [name]: !isOpen(name) });
 
   const setTeam  = (ri,k,v)=>{ const t=[...(data.auditTeam||[])]; t[ri]={...t[ri],[k]:v}; set('auditTeam',t); };
-  const setSched = (ri,k,v)=>{ const t=[...(data.schedule||[])]; t[ri]={...t[ri],[k]:v}; set('schedule',t); };
+  const setSched = (name, ri, k, v) => { const t=[...(schedules[name]||[])]; t[ri]={...t[ri],[k]:v}; set('schedules',{...schedules,[name]:t}); };
   return (
           <div>
             <SectionTitle>1. Plan Information</SectionTitle>
@@ -95,10 +129,50 @@ function Stage2PlanBody({ data, set, clientInfo }) {
               onRemove={ri=>set('auditTeam',(data.auditTeam||[]).filter((_,i)=>i!==ri))} onCellChange={setTeam} addLabel="Add Team Member" />
 
             <SectionTitle>Audit Schedule — Stage 2</SectionTitle>
-            <DynamicTable
-              columns={[{key:'dayTime',label:'Day & Time (From–To)',minWidth:160},{key:'clauses',label:'Clauses',type:'textarea',minWidth:220},{key:'auditorName',label:'Auditor Name',minWidth:120}]}
-              rows={data.schedule||[]} onAdd={()=>set('schedule',[...(data.schedule||[]),{...EMPTY_SCHED}])}
-              onRemove={ri=>set('schedule',(data.schedule||[]).filter((_,i)=>i!==ri))} onCellChange={setSched} addLabel="Add Schedule Row" />
+            {stdNames.length === 0 ? (
+              <div className="aud3-empty">
+                No ISO standards were selected in this client's Application Form (F01).
+              </div>
+            ) : (
+              <div className="aud3-stack">
+                {stdNames.map(name => {
+                  const rows = schedules[name] || [];
+                  const open = isOpen(name);
+                  const meta = byName[name];
+                  const cols = [
+                    { key: 'dayTime',     label: 'Day & Time (From–To)', minWidth: 160 },
+                    { key: 'clauses',     label: 'Clauses',              type: 'textarea', minWidth: 220, readOnly: true },
+                    { key: 'auditorName', label: 'Auditor Name',         minWidth: 120 },
+                  ];
+                  return (
+                    <section key={name} className={`aud3-std${open ? ' open' : ''}`}>
+                      <button type="button" className="aud3-head" onClick={() => toggleOpen(name)}>
+                        <span className="aud3-chev"><FiChevronRight size={18} /></span>
+                        <span className="aud3-mark">{stdCode(name)}</span>
+                        <span className="aud3-title">
+                          <span className="name">{name}</span>
+                          {meta?.category && <span className="desc">{meta.category}</span>}
+                        </span>
+                        <span className="aud3-meta">
+                          <span className="aud3-pill active">{rows.length} row{rows.length === 1 ? '' : 's'}</span>
+                        </span>
+                      </button>
+                      {open && (
+                        <div className="aud3-body" style={{ padding: 16 }}>
+                          <DynamicTable
+                            columns={cols}
+                            rows={rows}
+                            hideAdd
+                            hideRemove
+                            onCellChange={(ri, key, val) => setSched(name, ri, key, val)}
+                          />
+                        </div>
+                      )}
+                    </section>
+                  );
+                })}
+              </div>
+            )}
           </div>
   );
 }
