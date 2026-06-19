@@ -45,6 +45,11 @@ router.get('/client/:clientId', protect, authorize('admin'), async (req, res) =>
     if (fd.organizationName)     out.company = fd.organizationName;
     if (fd.address)              out.address = fd.address;
     if (fd.scopeOfCertification) out.scope   = fd.scopeOfCertification;
+    // Contact details — prefer what was entered in F01, fall back to the client record.
+    if (fd.emailId)       out.email = fd.emailId;
+    if (fd.contactPerson) out.contactPerson = fd.contactPerson;
+    const f1Phone = `${fd.countryCode || ''} ${fd.mobileNumber || ''}`.trim();
+    if (fd.mobileNumber)  out.phone = f1Phone;
     // Total employees = sum of the "Effective No. Filled by QCC" column (last
     // column) of F01's employee table — used as No. of Persons under Certification.
     const empTable = Array.isArray(fd.empTable) ? fd.empTable : [];
