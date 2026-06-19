@@ -1,7 +1,6 @@
 import React from 'react';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, StandardChips } from './QMSFormPage';
 
-const STANDARDS = ['ISO 9001:2015','ISO 14001:2015','ISO 45001:2018','ISO 22000:2018','ISO 27001:2022','ISO/IEC 27701:2025','ISO/IEC 42001:2023','ISO 22301:2019','ISO 37001:2016','ISO 21001:2018'];
 const MS_TYPES  = ['Quality Management System','Environmental Management System','Occupational Health and Safety Management System','Food Safety Management System','Information Security Management System','Energy Management System'];
 
 const DEFAULT = {
@@ -21,7 +20,13 @@ export default function Form14DraftCertificate() {
       formTitle="Draft for Certificate Approval"
       defaultData={DEFAULT}
     >
-      {({ data, set }) => (
+      {({ data, set }) => <CertBody data={data} set={set} />}
+    </QMSFormPage>
+  );
+}
+
+function CertBody({ data, set }) {
+  return (
         <div>
           <div style={{ background: '#eff6ff', borderRadius: 10, border: '1px solid #bfdbfe', padding: '14px 18px', marginBottom: 20, fontSize: 13, color: '#1e40af', lineHeight: 1.6 }}>
             <strong>Important:</strong> This content will be used in your certificate. Please write carefully and confirm. If you have a previous certificate, please note the details below.
@@ -34,11 +39,6 @@ export default function Form14DraftCertificate() {
             </FormField>
             <FormField label="Management System Type">
               <FSelect value={data.managementSystemType} onChange={v => set('managementSystemType', v)} placeholder="Select type" options={MS_TYPES} />
-            </FormField>
-          </FormRow>
-          <FormRow cols={1}>
-            <FormField label="Standard for Certificate Generation">
-              <FSelect value={data.selectedStandard} onChange={v => set('selectedStandard', v)} placeholder="Select standard" options={STANDARDS} />
             </FormField>
           </FormRow>
           <FormRow cols={1}>
@@ -96,7 +96,5 @@ export default function Form14DraftCertificate() {
             </FormField>
           </FormRow>
         </div>
-      )}
-    </QMSFormPage>
   );
 }

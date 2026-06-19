@@ -12,11 +12,11 @@ router.get('/', protect, async (req, res) => {
 
 router.post('/', protect, authorize('admin'), async (req, res) => {
   try {
-    const { name, category, description, active } = req.body;
-    if (!name || !category) return res.status(400).json({ message: 'Name and category required' });
+    const { name, category, description, clauses, active } = req.body;
+    if (!name) return res.status(400).json({ message: 'Name required' });
     const exists = await Standard.findOne({ name });
     if (exists) return res.status(400).json({ message: 'Standard already exists' });
-    const standard = await Standard.create({ name, category, description, active: active !== false });
+    const standard = await Standard.create({ name, category, description, clauses: clauses || [], active: active !== false });
     res.status(201).json(standard);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
