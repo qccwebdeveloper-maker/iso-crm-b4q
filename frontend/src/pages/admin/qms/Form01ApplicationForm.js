@@ -1164,7 +1164,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                 </div>
                 <div style={{padding:'10px 16px'}}>
                   <div style={{fontSize:11,fontWeight:700,color:'var(--gray-600)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.04em'}}>Representative Name</div>
-                  <GrowText placeholder="Authorised signatory name" value={data.representativeName} onChange={v=>set('representativeName',v)}/>
+                  <GrowText placeholder="Authorised signatory name" value={data.representativeName||data.contactPerson||''} onChange={v=>set('representativeName',v)}/>
                 </div>
               </div>
               <div style={{background:'var(--primary)',color:'white',padding:'9px 16px',fontWeight:700,fontSize:13,textAlign:'center',letterSpacing:'.03em'}}>

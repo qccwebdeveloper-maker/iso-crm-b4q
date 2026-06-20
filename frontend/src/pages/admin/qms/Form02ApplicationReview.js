@@ -321,7 +321,7 @@ export default function Form02ApplicationReview() {
             </FormRow>
             <FormRow cols={2}>
               <FormField label="Reviewer Name">
-                <FInput value={data.reviewerName} onChange={v => set('reviewerName', v)} placeholder="Reviewer name" />
+                <FInput value={data.reviewerName || (data.auditTeam || []).find(a => a.role === 'Application & Report Reviewer')?.name || ''} onChange={v => set('reviewerName', v)} placeholder="Reviewer name" />
               </FormField>
               <FormField label="Review Date">
                 <FInput value={data.reviewDate} onChange={v => set('reviewDate', v)} type="date" />

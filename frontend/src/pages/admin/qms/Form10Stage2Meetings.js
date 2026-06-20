@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import axios from 'axios';
 import QMSFormPage, { FormRow, FormField, FInput, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 
 const YN_OPTS = ['Yes','No'];
-const EMPTY_P = { sNo: '', name: '', position: '', openingMeeting: 'Yes', closingMeeting: 'Yes' };
+const EMPTY_P = { sNo: '', name: '', position: '', openingMeeting: '', closingMeeting: '' };
 
 const DEFAULT = {
   auditDateFrom: '', auditDateTo: '', standard: '',
@@ -19,48 +20,70 @@ export default function Form10Stage2Meetings() {
       formTitle="Attendance List — Opening & Closing Meeting (Stage-2)"
       defaultData={DEFAULT}
     >
-      {({ data, set }) => {
-        const setP = (ri, key, val) => {
-          const p = [...(data.participants || [])];
-          p[ri] = { ...p[ri], [key]: val };
-          set('participants', p);
-        };
-        return (
-          <div>
-            <SectionTitle>Meeting Details</SectionTitle>
-            <FormRow cols={3}>
-              <FormField label="Audit Date — Stage 2 (From)">
-                <FInput value={data.auditDateFrom} onChange={v => set('auditDateFrom', v)} type="date" />
-              </FormField>
-              <FormField label="Audit Date To">
-                <FInput value={data.auditDateTo} onChange={v => set('auditDateTo', v)} type="date" />
-              </FormField>
-              <FormField label="Standard">
-                <StandardChips value={data.standard} />
-              </FormField>
-            </FormRow>
-
-            <SectionTitle>Participants</SectionTitle>
-            <DynamicTable
-              columns={[
-                { key: 'sNo',            label: 'S.No.',               minWidth: 50 },
-                { key: 'name',           label: 'Name',                minWidth: 160 },
-                { key: 'position',       label: 'Position / Department', minWidth: 180 },
-                { key: 'openingMeeting', label: 'Opening Meeting (Y/N)', type: 'select', options: YN_OPTS },
-                { key: 'closingMeeting', label: 'Closing Meeting (Y/N)', type: 'select', options: YN_OPTS },
-              ]}
-              rows={data.participants || []}
-              onAdd={() => {
-                const cur = data.participants || [];
-                set('participants', [...cur, { ...EMPTY_P, sNo: String(cur.length + 1) }]);
-              }}
-              onRemove={ri => set('participants', (data.participants || []).filter((_, i) => i !== ri))}
-              onCellChange={setP}
-              addLabel="Add Participant"
-            />
-          </div>
-        );
-      }}
+      {(props) => <Form10Body {...props} />}
     </QMSFormPage>
+  );
+}
+
+function Form10Body({ data, set, clientInfo }) {
+  const setP = (ri, key, val) => {
+    const p = [...(data.participants || [])];
+    p[ri] = { ...p[ri], [key]: val };
+    set('participants', p);
+  };
+
+  // Fetch the Stage-2 audit dates from F02 (Application Review) and fill them here
+  // when still blank, without overwriting dates already entered on this form.
+  useEffect(() => {
+    const cid = clientInfo?.clientId;
+    if (!cid) return;
+    let cancelled = false;
+    axios.get(`/api/qms-forms/by-client/${cid}/2`)
+      .then(({ data: f2 }) => {
+        if (cancelled) return;
+        const fd = f2?.formData || {};
+        const map = { auditDateFrom: fd.stage2DateFrom, auditDateTo: fd.stage2DateTo };
+        Object.entries(map).forEach(([k, v]) => {
+          if (v && !(data[k] && String(data[k]).trim())) set(k, v);
+        });
+      })
+      .catch(() => { /* no F02 yet — keep defaults */ });
+    return () => { cancelled = true; };
+  }, [clientInfo?.clientId]); // eslint-disable-line
+
+  return (
+    <div>
+      <SectionTitle>Meeting Details</SectionTitle>
+      <FormRow cols={3}>
+        <FormField label="Audit Date — Stage 2 (From)">
+          <FInput value={data.auditDateFrom} onChange={v => set('auditDateFrom', v)} type="date" />
+        </FormField>
+        <FormField label="Audit Date To">
+          <FInput value={data.auditDateTo} onChange={v => set('auditDateTo', v)} type="date" />
+        </FormField>
+        <FormField label="Standard">
+          <StandardChips value={data.standard} />
+        </FormField>
+      </FormRow>
+
+      <SectionTitle>Participants</SectionTitle>
+      <DynamicTable
+        columns={[
+          { key: 'sNo',            label: 'S.No.',               minWidth: 50 },
+          { key: 'name',           label: 'Name',                minWidth: 160 },
+          { key: 'position',       label: 'Position / Department', minWidth: 180 },
+          { key: 'openingMeeting', label: 'Opening Meeting (Y/N)', type: 'select', options: YN_OPTS },
+          { key: 'closingMeeting', label: 'Closing Meeting (Y/N)', type: 'select', options: YN_OPTS },
+        ]}
+        rows={data.participants || []}
+        onAdd={() => {
+          const cur = data.participants || [];
+          set('participants', [...cur, { ...EMPTY_P, sNo: String(cur.length + 1) }]);
+        }}
+        onRemove={ri => set('participants', (data.participants || []).filter((_, i) => i !== ri))}
+        onCellChange={setP}
+        addLabel="Add Participant"
+      />
+    </div>
   );
 }
