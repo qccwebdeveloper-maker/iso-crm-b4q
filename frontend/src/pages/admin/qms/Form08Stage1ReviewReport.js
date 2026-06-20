@@ -26,6 +26,25 @@ function AuditTypeFetcher({ clientInfo, data, set }) {
         const mapped = APP_TYPE_TO_AUDIT[fd.auditType];
         if (mapped) set('auditType', mapped);
         if (fd.onlineMeetingLink && !(data.onlineMeetingLink && String(data.onlineMeetingLink).trim())) set('onlineMeetingLink', fd.onlineMeetingLink);
+
+        // Auditor(s) approved for Stage 1 — names of team members assigned Stage-1 man-days
+        const blank = v => !(v && String(v).trim());
+        const stage1Auditors = (fd.auditTeam || [])
+          .filter(a => a && a.name && String(a.name).trim() && a.stage1Days && String(a.stage1Days).trim() && String(a.stage1Days).trim() !== '0')
+          .map(a => String(a.name).trim());
+        if (stage1Auditors.length && blank(data.auditorNames)) set('auditorNames', stage1Auditors.join(', '));
+
+        // Stage-1 audit dates
+        if (fd.stage1DateFrom && blank(data.auditDateFrom)) set('auditDateFrom', fd.stage1DateFrom);
+        if (fd.stage1DateTo && blank(data.auditDateTo)) set('auditDateTo', fd.stage1DateTo);
+
+        // Reviewer name — team member with the "Application & Report Reviewer" role
+        const reviewer = (fd.auditTeam || []).find(a => a && a.role === 'Application & Report Reviewer' && a.name && String(a.name).trim());
+        if (reviewer) {
+          const rn = String(reviewer.name).trim();
+          if (blank(data.reviewerStatement)) set('reviewerStatement', rn);
+          if (blank(data.reviewerName)) set('reviewerName', rn);
+        }
       })
       .catch(() => {});
     return () => { cancelled = true; };

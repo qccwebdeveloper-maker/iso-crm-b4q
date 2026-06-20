@@ -10,6 +10,36 @@ const stdCode = (name) => {
   return m ? m[1] : String(name || '').slice(0, 6);
 };
 
+/* Format an ISO date range (yyyy-mm-dd) into "DD Mon - DD Mon YYYY". */
+const DATE_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtAuditDay = (iso) => {
+  if (!iso) return null;
+  const [y, m, d] = String(iso).split('-');
+  const mi = parseInt(m, 10) - 1;
+  if (!y || !d || mi < 0 || mi > 11) return null;
+  return { d: String(parseInt(d, 10)), mon: DATE_MONTHS[mi], y };
+};
+const fmtAuditDateRange = (from, to) => {
+  const a = fmtAuditDay(from), b = fmtAuditDay(to);
+  if (a && b) {
+    if (a.y === b.y && a.mon === b.mon && a.d === b.d) return `${a.d} ${a.mon} ${a.y}`;
+    if (a.y === b.y) return `${a.d} ${a.mon} - ${b.d} ${b.mon} ${b.y}`;
+    return `${a.d} ${a.mon} ${a.y} - ${b.d} ${b.mon} ${b.y}`;
+  }
+  const one = a || b;
+  return one ? `${one.d} ${one.mon} ${one.y}` : '';
+};
+
+/* Add a number of whole months to an ISO date (yyyy-mm-dd), returning ISO. */
+const addMonthsISO = (iso, n) => {
+  if (!iso) return '';
+  const [y, m, d] = String(iso).split('-').map(x => parseInt(x, 10));
+  if (!y || !m || !d) return '';
+  const dt = new Date(y, m - 1 + n, d);
+  const pad = x => String(x).padStart(2, '0');
+  return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+};
+
 const ROLES = ['Lead Auditor','Auditor','Technical Expert'];
 const NC_TYPES = ['Minor NC','Major NC'];
 const CONFORMITY = ['C','NC','O','OFI','N/A'];
@@ -22,14 +52,20 @@ const SURV_CHECKS = [
   'Any additional Information',
 ];
 
+/* Fixed, non-editable Stage-2 audit objective wording. */
+const AUDIT_OBJECTIVES = 'To verify the effective implementation, adequacy, conformity and performance of the organization’s Management System during Stage–2 audit. The audit objective is to determine whether the implemented management system is capable of consistently meeting customer requirements, statutory and regulatory requirements, applicable legal obligations, and the organization’s own policies and objectives. The audit shall also evaluate process effectiveness, risk-based thinking, achievement of objectives, operational controls, monitoring and measurement results, internal audit effectiveness, management review outputs, corrective actions, continual improvement, and overall readiness for certification decision.';
+
+/* Fixed, non-editable Stage-2 audit criteria wording. */
+const AUDIT_CRITERIA = 'Applicable requirements of organization’s documented policies, manuals, procedures, SOPs, work instructions, process flow charts, risk assessments, objectives and targets; applicable statutory, regulatory, legal and contractual requirements; customer requirements; operational control requirements; monitoring and measurement records; internal audit reports; management review records; corrective action records; performance evaluation results; applicable IAF mandatory documents and accreditation requirements; and other relevant normative references applicable to the organization’s scope of certification.';
+
 const DEFAULT = {
   idNo: '', orgName: '', address: '', contactPerson: '', contactDetails: '',
   auditType: 'Stage II', auditStandards: 'ISO 9001', modeOfAudit: '',
   onlineMeetingLink: '', scopeOfCertification: '', iafCode: '',
   auditLanguage: 'English', auditDates: '',
   auditTeam: [{ name: '', role: '', competency: '', stage2MD: '' }],
-  auditObjectives: '',
-  auditCriteria: '',
+  auditObjectives: AUDIT_OBJECTIVES,
+  auditCriteria: AUDIT_CRITERIA,
   deviationFromPlan: '',
   significantIssues: '',
   significantChanges: '',
@@ -86,7 +122,16 @@ function Stage2ReportBody({ data, set, clientInfo }) {
     }
   }, [clientInfo, names.length]); // eslint-disable-line
 
-  // Type of Audit is fetched from F02 (Application Review), filled when blank here.
+  // Audit Objectives & Criteria are fixed, non-editable wording — keep them persisted
+  // so saved and exported reports always carry the standard text (covers older forms).
+  useEffect(() => {
+    if (data.auditObjectives !== AUDIT_OBJECTIVES) set('auditObjectives', AUDIT_OBJECTIVES);
+    if (data.auditCriteria !== AUDIT_CRITERIA) set('auditCriteria', AUDIT_CRITERIA);
+  }, [data.auditObjectives, data.auditCriteria]); // eslint-disable-line
+
+  // Section-1 details are fetched from F02 (Application Review). Type of Audit always
+  // mirrors F02; the remaining detail fields fill in only when still blank here so any
+  // manual edits are preserved.
   useEffect(() => {
     const cid = clientInfo?.clientId;
     if (!cid) return;
@@ -94,8 +139,51 @@ function Stage2ReportBody({ data, set, clientInfo }) {
     axios.get(`/api/qms-forms/by-client/${cid}/2`)
       .then(({ data: f2 }) => {
         if (cancelled) return;
-        const at = f2?.formData?.auditType;
-        if (at !== undefined) set('auditType', at || '');
+        const fd = f2?.formData || {};
+        if (fd.auditType !== undefined) set('auditType', fd.auditType || '');
+
+        const blank = v => !(v && String(v).trim());
+        const fill = (key, val) => { if (val && String(val).trim() && blank(data[key])) set(key, String(val)); };
+        fill('idNo', fd.idNo);
+        fill('orgName', fd.orgName);
+        fill('address', fd.address);
+        fill('contactPerson', fd.contactPerson);
+        fill('contactDetails', fd.contactNumbers);
+        fill('modeOfAudit', fd.modeOfAudit);
+        fill('onlineMeetingLink', fd.onlineMeetingLink);
+        fill('scopeOfCertification', fd.scopeOfCertification);
+        fill('iafCode', fd.iafCode);
+
+        // Language of Audit — also overwrite the plain "English" default.
+        if (fd.auditLanguage && String(fd.auditLanguage).trim() && (blank(data.auditLanguage) || data.auditLanguage === 'English')) {
+          set('auditLanguage', fd.auditLanguage);
+        }
+
+        // 1.12 Audit Dates — Stage-2 dates from F02, formatted "DD Mon - DD Mon YYYY".
+        const dates = fmtAuditDateRange(fd.stage2DateFrom, fd.stage2DateTo);
+        if (dates && blank(data.auditDates)) set('auditDates', dates);
+
+        // Proposed Next Audit Date — audit start date + 11 months.
+        const baseDate = fd.stage2DateFrom || fd.stage2DateTo;
+        const nextDate = addMonthsISO(baseDate, 11);
+        if (nextDate && blank(data.proposedNextAuditDate)) set('proposedNextAuditDate', nextDate);
+
+        // 2. Audit Team Details — pull the Stage-2 team from F02. Brings over members
+        // with an auditing role or assigned Stage-2 man-days; fills only when this
+        // form's team is still empty so manual edits are preserved.
+        const teamSrc = (fd.auditTeam || []).filter(a => a && a.name && String(a.name).trim() && (
+          ROLES.includes(a.role) ||
+          (a.stage2Days && String(a.stage2Days).trim() && String(a.stage2Days).trim() !== '0')
+        ));
+        const teamEmpty = !(data.auditTeam || []).some(a => a && a.name && String(a.name).trim());
+        if (teamSrc.length && teamEmpty) {
+          set('auditTeam', teamSrc.map(a => ({
+            name: String(a.name).trim(),
+            role: ROLES.includes(a.role) ? a.role : '',
+            competency: '',
+            stage2MD: a.stage2Days != null && String(a.stage2Days).trim() ? String(a.stage2Days) : '',
+          })));
+        }
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -170,8 +258,8 @@ function Stage2ReportBody({ data, set, clientInfo }) {
             </div>
 
             <SectionTitle>Audit Context</SectionTitle>
-            <FormRow cols={1}><FormField label="Audit Objectives"><FTextarea value={data.auditObjectives} onChange={v=>set('auditObjectives',v)} rows={3} placeholder="Describe audit objectives..." /></FormField></FormRow>
-            <FormRow cols={1}><FormField label="Audit Criteria"><FTextarea value={data.auditCriteria} onChange={v=>set('auditCriteria',v)} rows={3} placeholder="Applicable criteria..." /></FormField></FormRow>
+            <FormRow cols={1}><FormField label="Audit Objectives"><FTextarea value={AUDIT_OBJECTIVES} onChange={()=>{}} readOnly /></FormField></FormRow>
+            <FormRow cols={1}><FormField label="Audit Criteria"><FTextarea value={AUDIT_CRITERIA} onChange={()=>{}} readOnly /></FormField></FormRow>
             <FormRow cols={2}>
               <FormField label="Any deviation from the audit plan?"><FTextarea value={data.deviationFromPlan} onChange={v=>set('deviationFromPlan',v)} rows={2} /></FormField>
               <FormField label="Significant issues impacting audit programme?"><FTextarea value={data.significantIssues} onChange={v=>set('significantIssues',v)} rows={2} /></FormField>
