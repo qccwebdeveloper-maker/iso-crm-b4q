@@ -263,7 +263,7 @@ export function DynamicTable({ columns, rows, onAdd, onRemove, onCellChange, dis
         <table className="qms-dyn-table">
           <thead>
             <tr>
-              {inlineCols.map(c => <th key={c.key}>{c.label}</th>)}
+              {inlineCols.map(c => <th key={c.key} style={c.width ? { width: c.width } : undefined}>{c.label}</th>)}
               {showRemove && <th style={{ width: 40 }} />}
             </tr>
           </thead>
@@ -272,7 +272,7 @@ export function DynamicTable({ columns, rows, onAdd, onRemove, onCellChange, dis
               <React.Fragment key={ri}>
                 <tr>
                   {inlineCols.map(c => (
-                    <td key={c.key}>{renderField(c, row, ri, false)}</td>
+                    <td key={c.key} style={c.width ? { width: c.width } : undefined}>{renderField(c, row, ri, false)}</td>
                   ))}
                   {showRemove && (
                     <td>
