@@ -6,7 +6,7 @@ import{FileText,Download,Eye,Upload,Award}from 'lucide-react';
 
 // Only these two document types are uploadable / shown for clients
 const CLIENT_DOCS=[
-  {label:'Proof ID',key:'proofId',hint:'Identity / address proof (PDF or image)'},
+  {label:'Identity Proof',key:'proofId',hint:'Identity / address proof (PDF or image)'},
   {label:'Agreement Form',key:'agreement',hint:'Signed agreement document'},
 ];
 

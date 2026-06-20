@@ -11,13 +11,13 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
-      - key: CLOUDINARY_CLOUD_NAME
+      - key: AWS_ACCESS_KEY_ID
         sync: false
-      - key: CLOUDINARY_API_KEY
+      - key: AWS_SECRET_ACCESS_KEY
         sync: false
-      - key: CLOUDINARY_API_SECRET
+      - key: AWS_REGION
         sync: false
-      - key: CLOUDINARY_FOLDER
+      - key: S3_BUCKET
         sync: false
       - key: GMAIL_USER
         sync: false

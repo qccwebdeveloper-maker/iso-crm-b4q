@@ -66,8 +66,8 @@ body{font-family:Arial,sans-serif;background:#dce8f5;display:flex;flex-direction
 .btn-cl{padding:10px 20px;background:white;color:#334155;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;cursor:pointer}
 
 /* ── Certificate card (image background + overlays) ── */
-.cert{width:600px;height:849px;background:white;position:relative;padding:0;box-shadow:0 6px 32px rgba(0,0,0,.22);overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.cert-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:0}
+.cert{width:620px;aspect-ratio:1591/2263;background:white;position:relative;padding:0;box-shadow:0 6px 32px rgba(0,0,0,.22);overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cert-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
 .ov{position:absolute;z-index:1;text-align:center}
 
 /* Blue border system */
@@ -135,8 +135,8 @@ body{font-family:Arial,sans-serif;background:#dce8f5;display:flex;flex-direction
 @media print{
   body{background:none;padding:0}
   .no-print{display:none}
-  @page{size:A4;margin:0}
-  .cert{box-shadow:none;width:210mm;height:297mm}
+  @page{size:A4 portrait;margin:0}
+  .cert{box-shadow:none;width:209mm;height:auto;aspect-ratio:1591/2263;margin:0 auto}
 }
 </style>
 </head>
@@ -159,9 +159,9 @@ body{font-family:Arial,sans-serif;background:#dce8f5;display:flex;flex-direction
   </div>
 
   <!-- Management system type + ISO standard (masks the baked-in text, kept dynamic) -->
-  <div class="ov" style="top:36.2%;left:0;right:0;height:9.6%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2">
-    <div style="font-size:21px;font-weight:bold;color:#222;line-height:1.1">${msName}</div>
-    <div style="font-size:40px;font-weight:900;color:#1f7fd6;letter-spacing:1px;line-height:1.05;margin-top:2px">${standard}</div>
+  <div class="ov" style="top:34.3%;left:4%;right:4%;height:10%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2">
+    <div style="font-size:22px;font-weight:bold;color:#222;line-height:1.1">${msName}</div>
+    <div style="font-size:42px;font-weight:900;color:#1f7fd6;letter-spacing:1px;line-height:1.05;margin-top:2px">${standard}</div>
   </div>
 
   <!-- Scope (blank area under "for the following scope:") -->
