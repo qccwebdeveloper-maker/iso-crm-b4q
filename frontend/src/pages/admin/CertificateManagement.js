@@ -47,12 +47,11 @@ function generateCertificate(cert) {
   const issueDate   = fmt(cert.issueDate);
   const expiryDate  = fmt(cert.expiryDate);
   const origDate    = fmt(cert.originalCertDate || cert.issueDate);
-  const accred      = cert.accreditation || 'NABCB';
   const iafCode     = cert.iafCode || '';
   const address     = cert.address || '';
   const additionalSites = cert.additionalSites || '';
-  const auditorName = cert.auditorName || '';
   const msName      = msLabel(standard);
+  const bgUrl       = `${window.location.origin}/certificate-bg.jpg`;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -66,8 +65,10 @@ body{font-family:Arial,sans-serif;background:#dce8f5;display:flex;flex-direction
 .btn-dl{padding:10px 26px;background:#1a3a6b;color:white;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer}
 .btn-cl{padding:10px 20px;background:white;color:#334155;border:1.5px solid #cbd5e1;border-radius:7px;font-size:13px;cursor:pointer}
 
-/* ── Certificate card ── */
-.cert{width:600px;background:white;position:relative;padding:0;box-shadow:0 6px 32px rgba(0,0,0,.22)}
+/* ── Certificate card (image background + overlays) ── */
+.cert{width:600px;height:849px;background:white;position:relative;padding:0;box-shadow:0 6px 32px rgba(0,0,0,.22);overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cert-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:0}
+.ov{position:absolute;z-index:1;text-align:center}
 
 /* Blue border system */
 .b1{position:absolute;inset:6px;border:3px solid #1a5cb8;pointer-events:none;z-index:20}
@@ -134,7 +135,8 @@ body{font-family:Arial,sans-serif;background:#dce8f5;display:flex;flex-direction
 @media print{
   body{background:none;padding:0}
   .no-print{display:none}
-  .cert{box-shadow:none;width:100%}
+  @page{size:A4;margin:0}
+  .cert{box-shadow:none;width:210mm;height:297mm}
 }
 </style>
 </head>
@@ -146,142 +148,36 @@ body{font-family:Arial,sans-serif;background:#dce8f5;display:flex;flex-direction
 </div>
 
 <div class="cert">
-  <div class="b1"></div>
-  <div class="b2"></div>
+  <!-- Certificate background image -->
+  <img class="cert-bg" src="${bgUrl}" alt="Certificate"/>
 
-  <div class="inner">
-    <!-- Globe watermark SVG -->
-    <div class="globe-wrap">
-      <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="100" cy="100" r="96" stroke="#1565c0" stroke-width="4"/>
-        <ellipse cx="100" cy="100" rx="55" ry="96" stroke="#1565c0" stroke-width="2"/>
-        <ellipse cx="100" cy="100" rx="96" ry="38" stroke="#1565c0" stroke-width="2"/>
-        <line x1="4" y1="100" x2="196" y2="100" stroke="#1565c0" stroke-width="2"/>
-        <line x1="100" y1="4" x2="100" y2="196" stroke="#1565c0" stroke-width="2"/>
-        <ellipse cx="100" cy="100" rx="96" ry="70" stroke="#1565c0" stroke-width="1.5"/>
-        <ellipse cx="100" cy="100" rx="70" ry="96" stroke="#1565c0" stroke-width="1.5"/>
-      </svg>
-    </div>
-
-    <!-- Top row: QR | Title | Accred -->
-    <div class="top-row">
-      <!-- QR code SVG placeholder -->
-      <div class="qr-box">
-        <svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
-          <rect width="72" height="72" fill="white"/>
-          <rect x="2" y="2" width="30" height="30" rx="2" fill="none" stroke="#000" stroke-width="2"/>
-          <rect x="7" y="7" width="20" height="20" fill="#000" rx="1"/>
-          <rect x="9" y="9" width="16" height="16" fill="white"/>
-          <rect x="12" y="12" width="10" height="10" fill="#000"/>
-          <rect x="40" y="2" width="30" height="30" rx="2" fill="none" stroke="#000" stroke-width="2"/>
-          <rect x="45" y="7" width="20" height="20" fill="#000" rx="1"/>
-          <rect x="47" y="9" width="16" height="16" fill="white"/>
-          <rect x="50" y="12" width="10" height="10" fill="#000"/>
-          <rect x="2" y="40" width="30" height="30" rx="2" fill="none" stroke="#000" stroke-width="2"/>
-          <rect x="7" y="45" width="20" height="20" fill="#000" rx="1"/>
-          <rect x="9" y="47" width="16" height="16" fill="white"/>
-          <rect x="12" y="50" width="10" height="10" fill="#000"/>
-          <rect x="40" y="40" width="5" height="5" fill="#000"/><rect x="48" y="40" width="5" height="5" fill="#000"/>
-          <rect x="56" y="40" width="5" height="5" fill="#000"/><rect x="64" y="40" width="5" height="5" fill="#000"/>
-          <rect x="40" y="48" width="5" height="5" fill="#000"/><rect x="56" y="48" width="5" height="5" fill="#000"/>
-          <rect x="40" y="56" width="5" height="5" fill="#000"/><rect x="48" y="56" width="5" height="5" fill="#000"/>
-          <rect x="56" y="56" width="5" height="5" fill="#000"/><rect x="64" y="56" width="5" height="5" fill="#000"/>
-          <rect x="48" y="64" width="5" height="5" fill="#000"/><rect x="64" y="64" width="5" height="5" fill="#000"/>
-        </svg>
-      </div>
-
-      <!-- Certificate title -->
-      <div class="cert-title-wrap">
-        <div class="cert-script">Certificate</div>
-      </div>
-
-      <!-- Top right: accreditation -->
-      <div class="top-right">
-        <div style="font-weight:bold;color:#1a3a6b">${accred}</div>
-        <div>Accredited</div>
-        ${iafCode ? `<div>IAF: ${iafCode}</div>` : ''}
-      </div>
-    </div>
-
-    <!-- Certify line -->
-    <p class="certify-txt">This is to Certify that</p>
-
-    <!-- Organization -->
-    <div class="org-name">${orgName}</div>
-    ${address ? `<div class="org-site">Site 1 : ${address}</div>` : ''}
-    ${additionalSites ? `<div class="org-site">Site 2 : ${additionalSites}</div>` : ''}
-
-    <div class="mid-dot">.</div>
-
-    <!-- Compliance -->
-    <p class="compliance-txt">has been found in Compliance with requirements of</p>
-    <div class="ms-name">${msName}</div>
-    <div class="iso-big">${standard}</div>
-    <p class="scope-lbl">for the following scope:</p>
-    <div class="scope-txt">${scope}</div>
-
-    <!-- Bottom: details + signature -->
-    <div class="bottom">
-      <div class="cert-details">
-        <div><b>Certificate No.</b> &nbsp;:&nbsp; ${certNumber}</div>
-        <div><b>Original Certificate Date</b> &nbsp;:&nbsp; ${origDate}</div>
-        <div><b>Issue Date</b> &nbsp;:&nbsp; ${issueDate}</div>
-        <div><b>Expiry Date</b> &nbsp;:&nbsp; ${expiryDate}</div>
-        <div class="verify-txt">To check this certificate status visit:</div>
-        <div class="verify-link">"http://qcc.in/certifiedorganization.html"</div>
-      </div>
-
-      <div class="sig-area">
-        <div class="sig-line-top"></div>
-        <div class="sig-heading">Authorised Signature</div>
-        <div class="sig-company">Quality Control Certification</div>
-        <div class="sig-addr">
-          UK Office: 1929, Chynoweth House,<br/>
-          Trevissome Park, Truro-TR48UN, Cornwall, UK<br/>
-          India Office: 2nd Floor, Aman Market,<br/>
-          Narela Mandi, Delhi - 110 040, India
-        </div>
-      </div>
-    </div>
-
-    <!-- Stamp logos -->
-    <div class="stamps">
-      <!-- QCC Globe stamp -->
-      <div class="stamp-circle" style="border-color:#d4790a;color:#d4790a;width:60px;height:60px">
-        <svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" stroke="#d4790a" stroke-width="1.5" fill="none"/><ellipse cx="14" cy="14" rx="7" ry="13" stroke="#d4790a" stroke-width="1" fill="none"/><ellipse cx="14" cy="14" rx="13" ry="5" stroke="#d4790a" stroke-width="1" fill="none"/></svg>
-        <div style="margin-top:2px">Quality Control<br/>Certification</div>
-      </div>
-
-      <!-- UASL badge -->
-      <div class="stamp-circle" style="border-color:#1a3a6b;color:#1a3a6b;width:60px;height:60px">
-        <div style="font-size:9px;font-weight:900">UASL</div>
-        <div style="font-size:6.5px;text-align:center;margin-top:1px">QUALITY<br/>MANAGEMENT</div>
-      </div>
-
-      <!-- CERTIFIED stamp -->
-      <div class="stamp-circle" style="border-color:#1565c0;color:#1565c0;width:64px;height:64px;border-width:3px">
-        <div style="font-size:7px">QUALITY</div>
-        <div style="font-size:10px;font-weight:900;letter-spacing:1px">CERTIFIED</div>
-        <div style="font-size:7px">QUALITY CONTROL</div>
-      </div>
-
-      <!-- ISO standard stamp -->
-      <div class="stamp-circle" style="border-color:#1565c0;color:#1565c0;width:64px;height:64px;border-width:2px">
-        <div style="font-size:9px;font-weight:900">${(standard||'ISO').split(':')[0]}</div>
-        <div style="font-size:7px">:${(standard||'').split(':')[1]||''}</div>
-        <div style="font-size:7px;margin-top:2px">CERTIFIED</div>
-      </div>
-
-      <!-- Wax seal -->
-      <div style="width:58px;height:58px;background:radial-gradient(circle,#c0392b,#922b21);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:7.5px;font-weight:bold;text-align:center;line-height:1.3;border:2px solid #922b21;box-shadow:inset 0 2px 4px rgba(255,255,255,.2)">
-        <div>QCC<br/>CERTIFIED<br/>✓</div>
-      </div>
-    </div>
+  <!-- Organization name (blank area under "This is to Certify that") -->
+  <div class="ov" style="top:21%;left:6%;right:6%">
+    <div style="font-size:23px;font-weight:bold;color:#1a237e;line-height:1.25">${orgName}</div>
+    ${address ? `<div style="font-size:12px;font-weight:bold;color:#1a237e;margin-top:6px;line-height:1.4">${address}</div>` : ''}
+    ${additionalSites ? `<div style="font-size:11px;color:#1a237e;margin-top:3px;line-height:1.4">${additionalSites}</div>` : ''}
   </div>
 
-  <!-- Footer -->
-  <div class="cert-footer">
-    "Quality Control Certification (QCC)" accredited by "${accred}" This certificate remains the property of "QCC" to whom it must be returned on request.
+  <!-- Management system type + ISO standard (masks the baked-in text, kept dynamic) -->
+  <div class="ov" style="top:36.2%;left:0;right:0;height:9.6%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2">
+    <div style="font-size:21px;font-weight:bold;color:#222;line-height:1.1">${msName}</div>
+    <div style="font-size:40px;font-weight:900;color:#1f7fd6;letter-spacing:1px;line-height:1.05;margin-top:2px">${standard}</div>
+  </div>
+
+  <!-- Scope (blank area under "for the following scope:") -->
+  <div class="ov" style="top:51%;left:10%;right:10%">
+    <div style="font-size:13px;font-weight:bold;color:#1a237e;line-height:1.55">${scope}</div>
+  </div>
+
+  <!-- Certificate details (bottom-left blank area) -->
+  <div class="ov" style="top:69%;left:7%;width:52%;text-align:left;font-size:10px;color:#222;line-height:1.85">
+    <div><b>Certificate No.</b> : ${certNumber}</div>
+    <div><b>Original Issue Date</b> : ${origDate}</div>
+    <div><b>Issue Date</b> : ${issueDate}</div>
+    <div><b>Expiry Date</b> : ${expiryDate}</div>
+    ${iafCode ? `<div><b>IAF Code</b> : ${iafCode}</div>` : ''}
+    <div style="margin-top:5px;font-size:9px">To verify this certificate visit:</div>
+    <div style="font-size:9px;color:#1565c0;font-style:italic">"http://qcc.in/certifiedorganization.html"</div>
   </div>
 </div>
 </body>

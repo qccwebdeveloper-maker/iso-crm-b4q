@@ -5,14 +5,13 @@ import { FiPlusCircle, FiX } from 'react-icons/fi';
 const EMPTY_NC = {
   ncrNo: '', dept: '', auditType: 'Stage-2', clauseNo: '', detailsOfNC: '',
   rootCause: '', correction: '', correctiveAction: '', completionDate: '',
+  evaluationResult: '', evaluationAccepted: '',
+  confirmationResult: '', confirmationDate: '', confirmationOfficer: '', unsatisfiedReason: '',
 };
 
 const DEFAULT = {
   orgName: '', auditStandards: '',
   ncList: [{ ...EMPTY_NC }],
-  evaluationResult: '', evaluationAccepted: '',
-  confirmationOfficer: '', confirmationDate: '', confirmationResult: '',
-  unsatisfiedReason: '',
 };
 
 export default function Form13CARReport() {
@@ -101,6 +100,41 @@ export default function Form13CARReport() {
                     <FInput value={nc.completionDate} onChange={v => setNC(ri, 'completionDate', v)} type="date" />
                   </FormField>
                 </FormRow>
+
+                <SectionTitle>For Auditor(s) / QCC Use Only</SectionTitle>
+                <FormRow cols={1}>
+                  <FormField label="Evaluation Result of Corrective Action">
+                    <FTextarea value={nc.evaluationResult} onChange={v => setNC(ri, 'evaluationResult', v)} rows={3} placeholder="Auditor's evaluation of the corrective action..." />
+                  </FormField>
+                </FormRow>
+                <FormRow cols={1}>
+                  <FormField label="Accepted by Auditor">
+                    <FInput value={nc.evaluationAccepted} onChange={v => setNC(ri, 'evaluationAccepted', v)} placeholder="Auditor name" />
+                  </FormField>
+                </FormRow>
+
+                <SectionTitle>QCC Confirmation</SectionTitle>
+                <FormRow cols={2}>
+                  <FormField label="Confirmation Result">
+                    <FSelect value={nc.confirmationResult} onChange={v => setNC(ri, 'confirmationResult', v)} placeholder="Select result"
+                      options={['Satisfied','Unsatisfied']} />
+                  </FormField>
+                  <FormField label="Confirmation Date">
+                    <FInput value={nc.confirmationDate} onChange={v => setNC(ri, 'confirmationDate', v)} type="date" />
+                  </FormField>
+                </FormRow>
+                <FormRow cols={1}>
+                  <FormField label="Confirmation Officer">
+                    <FInput value={nc.confirmationOfficer} onChange={v => setNC(ri, 'confirmationOfficer', v)} placeholder="Confirmation officer name" />
+                  </FormField>
+                </FormRow>
+                {nc.confirmationResult === 'Unsatisfied' && (
+                  <FormRow cols={1}>
+                    <FormField label="Reason (if Unsatisfied)">
+                      <FTextarea value={nc.unsatisfiedReason} onChange={v => setNC(ri, 'unsatisfiedReason', v)} rows={3} placeholder="Describe reason for unsatisfied result..." />
+                    </FormField>
+                  </FormRow>
+                )}
               </div>
             ))}
 
@@ -108,41 +142,6 @@ export default function Form13CARReport() {
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--primary)', background: 'var(--primary-50, #eff6ff)', border: '1.5px solid var(--primary-200, #bfdbfe)', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', marginBottom: 8 }}>
               <FiPlusCircle size={15} /> Add Non-Conformity
             </button>
-
-            <SectionTitle>For Auditor(s) / QCC Use Only</SectionTitle>
-            <FormRow cols={1}>
-              <FormField label="Evaluation Result of Corrective Action">
-                <FTextarea value={data.evaluationResult} onChange={v => set('evaluationResult', v)} rows={3} placeholder="Auditor's evaluation of the corrective action..." />
-              </FormField>
-            </FormRow>
-            <FormRow cols={1}>
-              <FormField label="Accepted by Auditor">
-                <FInput value={data.evaluationAccepted} onChange={v => set('evaluationAccepted', v)} placeholder="Auditor name" />
-              </FormField>
-            </FormRow>
-
-            <SectionTitle>QCC Confirmation</SectionTitle>
-            <FormRow cols={2}>
-              <FormField label="Confirmation Result">
-                <FSelect value={data.confirmationResult} onChange={v => set('confirmationResult', v)} placeholder="Select result"
-                  options={['Satisfied','Unsatisfied']} />
-              </FormField>
-              <FormField label="Confirmation Date">
-                <FInput value={data.confirmationDate} onChange={v => set('confirmationDate', v)} type="date" />
-              </FormField>
-            </FormRow>
-            <FormRow cols={1}>
-              <FormField label="Confirmation Officer">
-                <FInput value={data.confirmationOfficer} onChange={v => set('confirmationOfficer', v)} placeholder="Confirmation officer name" />
-              </FormField>
-            </FormRow>
-            {data.confirmationResult === 'Unsatisfied' && (
-              <FormRow cols={1}>
-                <FormField label="Reason (if Unsatisfied)">
-                  <FTextarea value={data.unsatisfiedReason} onChange={v => set('unsatisfiedReason', v)} rows={3} placeholder="Describe reason for unsatisfied result..." />
-                </FormField>
-              </FormRow>
-            )}
           </div>
         );
       }}
