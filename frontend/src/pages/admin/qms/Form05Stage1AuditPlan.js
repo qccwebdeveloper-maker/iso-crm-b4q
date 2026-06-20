@@ -181,15 +181,15 @@ function Stage1Body({ data, set, clientInfo }) {
         });
         // Type of Audit is a read-only mirror of F02 — always reflect its value.
         if (fd.auditType !== undefined) set('auditType', fd.auditType || '');
-        // Audit team — carry over the auditors from F02 (name, role, total man-days)
+        // Audit team — carry over the auditors from F02 (name, role, Stage-1 man-days)
         // when none have been entered here yet.
         const team = (fd.auditTeam || [])
           .filter(m => (m.name && m.name.trim()) || (m.role && m.role.trim()));
         const hasTeam = (data.auditTeam || []).some(m => m.name && m.name.trim());
         if (team.length && !hasTeam) {
           set('auditTeam', team.map(m => {
-            const md = (parseFloat(m.stage1Days) || 0) + (parseFloat(m.stage2Days) || 0);
-            return { name: m.name || '', role: m.role || '', competency: '', manDays: md ? String(md) : '' };
+            const md = m.stage1Days != null && String(m.stage1Days).trim() ? String(m.stage1Days).trim() : '';
+            return { name: m.name || '', role: m.role || '', competency: '', manDays: md };
           }));
         }
       })
