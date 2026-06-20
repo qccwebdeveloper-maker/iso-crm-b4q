@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import axios from 'axios';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, StandardChips } from './QMSFormPage';
 
 const MS_TYPES  = ['Quality Management System','Environmental Management System','Occupational Health and Safety Management System','Food Safety Management System','Information Security Management System','Energy Management System'];
@@ -6,7 +7,7 @@ const MS_TYPES  = ['Quality Management System','Environmental Management System'
 const DEFAULT = {
   orgName: '', managementSystemType: 'Quality Management System',
   standard: '', scopeOfCertification: '',
-  confirmationPersonName: '', leadAuditor: '', stage2ClosingDate: '',
+  confirmationPersonName: '', leadAuditor: '',
   certIssueDate: '', certNo: '', selectedStandard: '',
   multiSiteLocations: '',
   additionalNotes: '',
@@ -20,12 +21,39 @@ export default function Form14DraftCertificate() {
       formTitle="Draft for Certificate Approval"
       defaultData={DEFAULT}
     >
-      {({ data, set }) => <CertBody data={data} set={set} />}
+      {({ data, set, clientInfo }) => <CertBody data={data} set={set} clientInfo={clientInfo} />}
     </QMSFormPage>
   );
 }
 
-function CertBody({ data, set }) {
+function CertBody({ data, set, clientInfo }) {
+  // Client Authorized Person ← F01 contact person; Assigned Lead Auditor ← F02 audit
+  // team member with the "Lead Auditor" role. Both fill only when blank here.
+  useEffect(() => {
+    const cid = clientInfo?.clientId;
+    if (!cid) return;
+    let cancelled = false;
+    const blank = v => !(v && String(v).trim());
+
+    axios.get(`/api/qms-forms/by-client/${cid}/1`)
+      .then(({ data: f1 }) => {
+        if (cancelled) return;
+        const cp = f1?.formData?.contactPerson;
+        if (cp && String(cp).trim() && blank(data.confirmationPersonName)) set('confirmationPersonName', String(cp).trim());
+      })
+      .catch(() => {});
+
+    axios.get(`/api/qms-forms/by-client/${cid}/2`)
+      .then(({ data: f2 }) => {
+        if (cancelled) return;
+        const lead = (f2?.formData?.auditTeam || []).find(a => a && a.role === 'Lead Auditor' && a.name && String(a.name).trim());
+        if (lead && blank(data.leadAuditor)) set('leadAuditor', String(lead.name).trim());
+      })
+      .catch(() => {});
+
+    return () => { cancelled = true; };
+  }, [clientInfo?.clientId]); // eslint-disable-line
+
   return (
         <div>
           <div style={{ background: '#eff6ff', borderRadius: 10, border: '1px solid #bfdbfe', padding: '14px 18px', marginBottom: 20, fontSize: 13, color: '#1e40af', lineHeight: 1.6 }}>
@@ -60,11 +88,6 @@ function CertBody({ data, set }) {
             </FormField>
             <FormField label="Assigned Lead Auditor">
               <FInput value={data.leadAuditor} onChange={v => set('leadAuditor', v)} placeholder="Lead auditor name" />
-            </FormField>
-          </FormRow>
-          <FormRow cols={1}>
-            <FormField label="Stage 2 Closing Date">
-              <FInput value={data.stage2ClosingDate} onChange={v => set('stage2ClosingDate', v)} type="date" />
             </FormField>
           </FormRow>
 

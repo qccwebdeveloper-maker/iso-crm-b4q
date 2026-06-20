@@ -10,7 +10,7 @@ const stdCode = (name) => {
   return m ? m[1] : String(name || '').slice(0, 6);
 };
 
-const ROLES = ['Lead Auditor','Auditor','Technical Expert','Observer','Guide'];
+const ROLES = ['Lead Auditor','Auditor','Technical Expert','Application & Report Reviewer','HOD','Guide','Observer'];
 
 const EMPTY_TEAM  = { name: '', role: '', competency: '', manDays: '' };
 

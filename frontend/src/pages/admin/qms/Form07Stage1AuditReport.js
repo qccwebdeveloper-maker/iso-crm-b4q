@@ -173,7 +173,7 @@ function Stage1ReportBody({ data, set, clientInfo }) {
       if ((next[name] || []).length) return;
       const cls = clausesForStandards(byName, name);
       if (cls.length) {
-        next[name] = cls.map(c => ({ clause: c.no, description: c.text, conformity: 'C', finding: '' }));
+        next[name] = cls.map(c => ({ clause: c.no, description: c.text, conformity: 'N/A', finding: '' }));
         changed = true;
       }
     });
@@ -411,7 +411,7 @@ function Stage1ReportBody({ data, set, clientInfo }) {
                                     <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--primary-dark)', whiteSpace: 'nowrap', verticalAlign: 'top' }}>{row.clause}</td>
                                     <td style={{ padding: '6px 10px', fontSize: 12, whiteSpace: 'pre-line', lineHeight: 1.55, minWidth: 220, verticalAlign: 'top' }}>{row.description}</td>
                                     <td style={{ padding: '6px 8px', verticalAlign: 'top' }}>
-                                      <select value={row.conformity||'C'} onChange={e=>setCL(name,ri,'conformity',e.target.value)}
+                                      <select value={row.conformity||'N/A'} onChange={e=>setCL(name,ri,'conformity',e.target.value)}
                                         style={{ padding: '4px 6px', border: '1.5px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none', background: 'white' }}>
                                         {CONFORMITY.map(c=><option key={c} value={c}>{c}</option>)}
                                       </select>

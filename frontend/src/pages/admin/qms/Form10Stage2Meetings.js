@@ -69,7 +69,7 @@ function Form10Body({ data, set, clientInfo }) {
       <SectionTitle>Participants</SectionTitle>
       <DynamicTable
         columns={[
-          { key: 'sNo',            label: 'S.No.',               minWidth: 50 },
+          { key: 'sNo',            label: 'S.No.',               minWidth: 44, width: 64 },
           { key: 'name',           label: 'Name',                minWidth: 160 },
           { key: 'position',       label: 'Position / Department', minWidth: 180 },
           { key: 'openingMeeting', label: 'Opening Meeting (Y/N)', type: 'select', options: YN_OPTS },

@@ -15,7 +15,7 @@ const ROLES = ['Lead Auditor','Auditor','Technical Expert','Application & Report
 const EMPTY_TEAM  = { name: '', role: '', stage2Days: '' };
 
 // Fixed standard statement — displayed read-only, not editable.
-const AUDIT_OBJECTIVES = 'Judging the Management System by checking system conformity and performance status regarding objective evidence as per ISO 9001 Standard\na. To assess conformity of the Client\'s Management system with the audit criteria\nb. To assess capacity of the client\'s criteria to meet its Objectives\nc. To identify areas of improvement in the Clients premises\nd. To make appropriate recommendation to the CB regarding client\'s certification.';
+const AUDIT_OBJECTIVES = 'To verify the effective implementation, adequacy, conformity and performance of the organization’s Management System during Stage–2 audit. The audit objective is to determine whether the implemented management system is capable of consistently meeting customer requirements, statutory and regulatory requirements, applicable legal obligations, and the organization’s own policies and objectives. The audit shall also evaluate process effectiveness, risk-based thinking, achievement of objectives, operational controls, monitoring and measurement results, internal audit effectiveness, management review outputs, corrective actions, continual improvement, and overall readiness for certification decision.';
 
 const DEFAULT = {
   idNo: '', orgName: '', address: '', contactPerson: '', contactDetails: '',
@@ -62,6 +62,12 @@ function Stage2PlanBody({ data, set, clientInfo }) {
       set('appStandards', liveApp);
     }
   }, [clientInfo, names.length]); // eslint-disable-line
+
+  // Audit Objectives is fixed, non-editable wording — keep it persisted so saved and
+  // exported plans always carry the standard text (covers older forms saved before).
+  useEffect(() => {
+    if (data.auditObjectives !== AUDIT_OBJECTIVES) set('auditObjectives', AUDIT_OBJECTIVES);
+  }, [data.auditObjectives]); // eslint-disable-line
 
   // Type of Audit is fetched from F02 (Application Review), filled when blank here.
   useEffect(() => {
@@ -158,7 +164,7 @@ function Stage2PlanBody({ data, set, clientInfo }) {
             </FormRow>
             <FormRow cols={1}>
               <FormField label="1.11 Audit Objectives">
-                <div className="qms-readonly-block">{data.auditObjectives || AUDIT_OBJECTIVES}</div>
+                <div className="qms-readonly-block">{AUDIT_OBJECTIVES}</div>
               </FormField>
             </FormRow>
 
