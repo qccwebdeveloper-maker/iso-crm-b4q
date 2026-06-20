@@ -2,20 +2,40 @@ import React, { useEffect } from 'react';
 import axios from 'axios';
 import QMSFormPage, { FormRow, FormField, FInput, FTextarea, FSelect, SectionTitle, StandardChips } from './QMSFormPage';
 
-/* Invisible helper: pulls the Type of Audit from F02 (Application Review) and fills
-   it here when blank. */
+/* Invisible helper: pulls the Type of Audit and reviewer name from F02 (Application
+   Review) and the Mode of Audit from F01 (Application Form). Audit Type always mirrors
+   F02; the reviewer name and mode fill in only when still blank here. */
 function AuditTypeFetcher({ clientInfo, data, set }) {
   useEffect(() => {
     const cid = clientInfo?.clientId;
     if (!cid) return;
     let cancelled = false;
+    const blank = v => !(v && String(v).trim());
+
     axios.get(`/api/qms-forms/by-client/${cid}/2`)
       .then(({ data: f2 }) => {
         if (cancelled) return;
-        const at = f2?.formData?.auditType;
-        if (at !== undefined) set('auditType', at || '');
+        const fd = f2?.formData || {};
+        if (fd.auditType !== undefined) set('auditType', fd.auditType || '');
+
+        // Reviewer name — team member with the "Application & Report Reviewer" role.
+        const reviewer = (fd.auditTeam || []).find(a => a && a.role === 'Application & Report Reviewer' && a.name && String(a.name).trim());
+        if (reviewer && blank(data.reviewerName)) set('reviewerName', String(reviewer.name).trim());
+
+        // Online Meeting Link — fetched from F02 when blank here.
+        if (fd.onlineMeetingLink && String(fd.onlineMeetingLink).trim() && blank(data.onlineMeetingLink)) set('onlineMeetingLink', String(fd.onlineMeetingLink).trim());
       })
       .catch(() => {});
+
+    // Mode of Audit comes from the Application Form (F01) — field "modeOfWorking".
+    axios.get(`/api/qms-forms/by-client/${cid}/1`)
+      .then(({ data: f1 }) => {
+        if (cancelled) return;
+        const mode = f1?.formData?.modeOfWorking;
+        if (mode && String(mode).trim() && blank(data.modeOfAudit)) set('modeOfAudit', String(mode).trim());
+      })
+      .catch(() => {});
+
     return () => { cancelled = true; };
   }, [clientInfo?.clientId]); // eslint-disable-line
   return null;
