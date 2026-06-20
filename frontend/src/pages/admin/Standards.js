@@ -1,10 +1,11 @@
-import React,{useState,useEffect}from 'react';import axios from 'axios';import Layout from '../../components/common/Layout';import toast from 'react-hot-toast';import{Plus,Edit,Trash2,BookOpen,ArrowLeft}from 'lucide-react';
+import React,{useState,useEffect}from 'react';import axios from 'axios';import Layout from '../../components/common/Layout';import toast from 'react-hot-toast';import{Plus,Edit,Trash2,BookOpen,ArrowLeft,GripVertical}from 'lucide-react';
 export default function AdminStandards(){
-  const[standards,setStandards]=useState([]);const[loading,setLoading]=useState(true);const[modal,setModal]=useState(null);const[saving,setSaving]=useState(false);const[form,setForm]=useState({name:'',clauses:[],active:true});
+  const[standards,setStandards]=useState([]);const[loading,setLoading]=useState(true);const[modal,setModal]=useState(null);const[saving,setSaving]=useState(false);const[form,setForm]=useState({name:'',clauses:[],active:true});const[dragIdx,setDragIdx]=useState(null);
   const load=()=>{setLoading(true);axios.get('/api/standards').then(r=>setStandards(r.data||[])).finally(()=>setLoading(false));};useEffect(load,[]);
   const addClause=()=>setForm(p=>({...p,clauses:[...(p.clauses||[]),{no:'',text:''}]}));
   const updClause=(i,k,v)=>setForm(p=>({...p,clauses:p.clauses.map((c,idx)=>idx===i?{...c,[k]:v}:c)}));
   const delClause=i=>setForm(p=>({...p,clauses:p.clauses.filter((_,idx)=>idx!==i)}));
+  const moveClause=(from,to)=>{if(from===to||from==null||to==null)return;setForm(p=>{const arr=[...(p.clauses||[])];const[m]=arr.splice(from,1);arr.splice(to,0,m);return{...p,clauses:arr};});};
   const save=async()=>{if(!form.name)return toast.error('Standard name required');const payload={...form,clauses:(form.clauses||[]).filter(c=>c.no||c.text)};setSaving(true);try{if(modal==='add')await axios.post('/api/standards',payload);else await axios.put(`/api/standards/${modal._id}`,payload);toast.success(modal==='add'?'Added':'Updated');setModal(null);load();}catch(e){toast.error(e.response?.data?.message||'Error');}finally{setSaving(false);}};
   const del=async id=>{if(!window.confirm('Delete?'))return;try{await axios.delete(`/api/standards/${id}`);toast.success('Deleted');load();}catch{toast.error('Failed');}};
 
@@ -23,7 +24,19 @@ export default function AdminStandards(){
         <div className="form-group">
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}><label className="form-label" style={{margin:0}}>Clauses</label><button type="button" className="btn btn-ghost btn-sm" onClick={addClause}><Plus size={13}/>Add Clause</button></div>
           {(form.clauses||[]).length===0&&<p style={{fontSize:12,color:'var(--gray-400)',margin:'4px 0'}}>No clauses added yet.</p>}
-          {(form.clauses||[]).map((c,i)=>(<div key={i} style={{display:'flex',gap:8,marginBottom:8,alignItems:'center'}}><input className="form-control" style={{flex:'0 0 100px'}} value={c.no} onChange={e=>updClause(i,'no',e.target.value)} placeholder="No."/><input className="form-control" style={{flex:1}} value={c.text} onChange={e=>updClause(i,'text',e.target.value)} placeholder="Clause text"/><button type="button" className="btn btn-danger btn-sm" onClick={()=>delClause(i)}><Trash2 size={13}/></button></div>))}
+          {(form.clauses||[]).length>0&&<p style={{fontSize:11,color:'var(--gray-400)',margin:'0 0 8px'}}>Tip: drag the <GripVertical size={11} style={{verticalAlign:'middle'}}/> handle to reorder clauses.</p>}
+          {(form.clauses||[]).map((c,i)=>(<div key={i}
+            onDragOver={e=>{e.preventDefault();if(dragIdx!==null&&dragIdx!==i){moveClause(dragIdx,i);setDragIdx(i);}}}
+            onDrop={e=>{e.preventDefault();setDragIdx(null);}}
+            style={{display:'flex',gap:8,marginBottom:8,alignItems:'center',borderRadius:6,
+              transition:'opacity .18s ease, transform .18s ease, box-shadow .18s ease',
+              ...(dragIdx===i?{opacity:.55,transform:'scale(1.015)',boxShadow:'0 4px 14px rgba(21,101,192,.18)',background:'var(--primary-50)'}:null)}}>
+            <span draggable
+              onDragStart={e=>{setDragIdx(i);e.dataTransfer.effectAllowed='move';}}
+              onDragEnd={()=>setDragIdx(null)}
+              title="Drag to reorder"
+              style={{cursor:'grab',display:'flex',alignItems:'center',color:'var(--gray-400)',padding:'0 2px',touchAction:'none'}}><GripVertical size={16}/></span>
+            <input className="form-control" style={{flex:'0 0 100px'}} value={c.no} onChange={e=>updClause(i,'no',e.target.value)} placeholder="No."/><input className="form-control" style={{flex:1}} value={c.text} onChange={e=>updClause(i,'text',e.target.value)} placeholder="Clause text"/><button type="button" className="btn btn-danger btn-sm" onClick={()=>delClause(i)}><Trash2 size={13}/></button></div>))}
         </div>
         <div style={{display:'flex',justifyContent:'flex-end',gap:10,marginTop:20,borderTop:'1px solid var(--gray-100)',paddingTop:18}}>
           <button className="btn btn-ghost" onClick={()=>setModal(null)}>Cancel</button>
