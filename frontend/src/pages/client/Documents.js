@@ -43,7 +43,7 @@ export function ClientDocuments(){
         apps.map(app=>(
           <div key={app._id} className="card" style={{marginBottom:16}}>
             <div className="card-hdr">
-              <div className="card-title"><span className="mono">{app.applicationId}</span> — {app.organizationName}</div>
+              <div className="card-title"><span className="mono">{app.client?.clientId || '—'}</span> — {app.organizationName}</div>
               <span className={`badge bdg-${app.status}`}>{app.status?.replace(/_/g,' ')}</span>
             </div>
             <div className="card-body">

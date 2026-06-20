@@ -65,7 +65,7 @@ export default function ClientTeamReports() {
                     fontSize:12, cursor:'pointer',
                   }}
                 >
-                  {a.applicationId} — {a.organizationName}
+                  {(a.client?.clientId || '—')} — {a.organizationName}
                 </button>
               ))}
             </div>
@@ -79,7 +79,7 @@ export default function ClientTeamReports() {
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontWeight:700,fontSize:13.5,color:'var(--text-1)'}}>{selected.organizationName}</div>
                   <div style={{fontSize:11,color:'var(--gray-400)',marginTop:2}}>
-                    {selected.applicationId} &nbsp;·&nbsp; {selected.isoStandard} &nbsp;·&nbsp;
+                    {(selected.client?.clientId || '—')} &nbsp;·&nbsp; {selected.isoStandard} &nbsp;·&nbsp;
                     <span className={`badge bdg-${selected.status}`} style={{fontSize:10,marginLeft:4}}>{selected.status?.replace(/_/g,' ')}</span>
                   </div>
                 </div>

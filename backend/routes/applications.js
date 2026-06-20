@@ -188,11 +188,13 @@ router.post('/:id/upload', protect, upload.single('document'), async (req, res) 
     const docType = req.body.docType || 'document';
     const folder  = 'iso-crm/documents';
 
-    let cloudUrl = null, publicId = null;
+    let cloudUrl = null, publicId = null, storageUrl = null, s3Key = null;
     try {
       const result = await uploadToS3(req.file.buffer, folder, req.file.originalname, req.file.mimetype);
-      cloudUrl  = result.secure_url;
-      publicId  = result.public_id;
+      cloudUrl   = result.secure_url;
+      publicId   = result.public_id;
+      s3Key      = result.s3_key;
+      storageUrl = result.storage_url;
     } catch (cloudErr) {
       console.warn('S3 unavailable, saving to local disk:', cloudErr.message);
       const safeName = `${Date.now()}-${req.file.originalname.replace(/\s+/g, '_')}`;
@@ -218,7 +220,7 @@ router.post('/:id/upload', protect, upload.single('document'), async (req, res) 
     // Log to DMS
     await Document.create({
       name: req.file.originalname, originalName: req.file.originalname,
-      path: cloudUrl, publicId, docType,
+      path: cloudUrl, publicId, s3Key, storageUrl, docType,
       applicationId: app.applicationId, application: app._id,
       clientId: app.client?.clientId, client: app.client?._id,
       uploadedBy: req.user._id, uploadedByName: req.user.name,
@@ -296,6 +298,7 @@ router.post('/:id/send-document', protect, upload.single('document'), async (req
       try {
         const result = await uploadToS3(req.file.buffer, 'iso-crm/documents', req.file.originalname, req.file.mimetype);
         fileUrl = result.secure_url;
+        const s3Key = result.s3_key, storageUrl = result.storage_url;
 
         // Save the document to the uploadedDocuments array and DMS
         const docType = req.body.docType || 'document';
@@ -308,7 +311,7 @@ router.post('/:id/send-document', protect, upload.single('document'), async (req
 
         await Document.create({
           name: req.file.originalname, originalName: req.file.originalname,
-          path: fileUrl, publicId: result.public_id, docType,
+          path: fileUrl, publicId: result.public_id, s3Key, storageUrl, docType,
           applicationId: app.applicationId, application: app._id,
           clientId: app.client?.clientId, client: app.client?._id,
           uploadedBy: req.user._id, uploadedByName: req.user.name,

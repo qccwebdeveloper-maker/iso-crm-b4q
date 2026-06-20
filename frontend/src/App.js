@@ -53,6 +53,7 @@ import ClientDashboard       from './pages/client/Dashboard';
 import ClientApplications    from './pages/client/Applications';
 import ClientApplicationDetail from './pages/client/ApplicationDetail';
 import ClientApplicationForm  from './pages/client/ApplicationForm';
+import ClientNewApplication   from './pages/client/NewApplicationForm';
 import ClientDocuments       from './pages/client/Documents';
 import ClientCertificates    from './pages/client/Certificates';
 import ClientFeedback        from './pages/client/Feedback';
@@ -146,9 +147,9 @@ function AppRoutes() {
       {/* ── Client ── */}
       <Route path="/client"                  element={<ProtectedRoute roles={['client']}><ClientDashboard /></ProtectedRoute>} />
       <Route path="/client/applications"     element={<ProtectedRoute roles={['client']}><ClientApplications /></ProtectedRoute>} />
-      <Route path="/client/applications/new" element={<ProtectedRoute roles={['client']}><AdminNewApplication /></ProtectedRoute>} />
+      <Route path="/client/applications/new" element={<ProtectedRoute roles={['client']}><ClientNewApplication /></ProtectedRoute>} />
       <Route path="/client/qms/form-01"      element={<ProtectedRoute roles={['client']}><ClientApplicationForm /></ProtectedRoute>} />
-      <Route path="/client/applications/:id/edit" element={<ProtectedRoute roles={['client']}><AdminNewApplication /></ProtectedRoute>} />
+      <Route path="/client/applications/:id/edit" element={<ProtectedRoute roles={['client']}><ClientNewApplication /></ProtectedRoute>} />
       <Route path="/client/applications/:id" element={<ProtectedRoute roles={['client']}><ClientApplicationDetail /></ProtectedRoute>} />
       <Route path="/client/documents"        element={<ProtectedRoute roles={['client']}><ClientDocuments /></ProtectedRoute>} />
       <Route path="/client/certificates"     element={<ProtectedRoute roles={['client']}><ClientCertificates /></ProtectedRoute>} />

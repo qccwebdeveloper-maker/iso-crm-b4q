@@ -194,13 +194,13 @@ export default function ClientApplicationDetail(){
   );
 
   return(
-    <Layout title={app.applicationId}>
+    <Layout title={app.client?.clientId || '—'}>
       <div className="page-hdr">
         <div style={{display:'flex',alignItems:'center',gap:12}}>
           <button className="btn btn-ghost btn-sm" onClick={()=>navigate('/client/applications')}><ArrowLeft size={14}/>Back</button>
           <div>
             <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-              <span className="mono">{app.applicationId}</span>
+              <span className="mono">{app.client?.clientId || '—'}</span>
               <span className={`badge bdg-${app.status}`}>{app.status?.replace(/_/g,' ')}</span>
             </div>
             <p className="page-subtitle">{app.organizationName} · {app.isoStandard}</p>
@@ -257,7 +257,7 @@ export default function ClientApplicationDetail(){
       {tab==='edit'&&(
         <div className="card">
           <div className="card-hdr" style={{justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
-            <div className="card-title"><Edit2 size={14} style={{color:'var(--primary)'}}/>Edit Application — {app.applicationId}</div>
+            <div className="card-title"><Edit2 size={14} style={{color:'var(--primary)'}}/>Edit Application — {app.client?.clientId || '—'}</div>
             <div style={{display:'flex',gap:8}}>
               <button className="btn btn-ghost btn-sm" onClick={()=>setTab('overview')}><X size={13}/>Cancel</button>
               <button className="btn btn-primary btn-sm" onClick={saveEdit} disabled={saving}><Save size={13}/>{saving?'Saving…':'Save'}</button>

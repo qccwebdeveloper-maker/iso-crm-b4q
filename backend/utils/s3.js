@@ -7,10 +7,12 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const s3 = new S3Client({ region: process.env.AWS_REGION });
 
 const BUCKET = process.env.S3_BUCKET;
+const REGION = process.env.AWS_REGION;
 
-// Upload a buffer to S3 (private object) and return a Cloudinary-compatible shape:
-//   secure_url → a relative API link the browser hits to get a fresh signed URL
-//   public_id  → the S3 object key (used later for delete)
+// Upload a buffer to S3 (private object) and return:
+//   secure_url  → relative API link the browser hits to get a fresh signed URL (stored as `path`)
+//   public_id / s3_key → the S3 object key (used for delete & presigning)
+//   storage_url → the raw S3 object URL (reference only; bucket is private, not directly openable)
 const uploadToS3 = async (buffer, folder = 'iso-crm/documents', originalname = 'file', mimetype = 'application/octet-stream') => {
   const safeName = `${Date.now()}-${originalname.replace(/\s+/g, '_')}`;
   const key = `${folder}/${safeName}`;
@@ -22,7 +24,12 @@ const uploadToS3 = async (buffer, folder = 'iso-crm/documents', originalname = '
     ContentType: mimetype,
   }));
 
-  return { secure_url: `/api/files/${key}`, public_id: key };
+  return {
+    secure_url:  `/api/files/${key}`,
+    public_id:   key,
+    s3_key:      key,
+    storage_url: `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`,
+  };
 };
 
 // Generate a short-lived presigned GET URL for a private object.
