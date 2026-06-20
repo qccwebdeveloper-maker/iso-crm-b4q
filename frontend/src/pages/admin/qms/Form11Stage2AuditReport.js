@@ -30,6 +30,16 @@ const fmtAuditDateRange = (from, to) => {
   return one ? `${one.d} ${one.mon} ${one.y}` : '';
 };
 
+/* Add a number of whole months to an ISO date (yyyy-mm-dd), returning ISO. */
+const addMonthsISO = (iso, n) => {
+  if (!iso) return '';
+  const [y, m, d] = String(iso).split('-').map(x => parseInt(x, 10));
+  if (!y || !m || !d) return '';
+  const dt = new Date(y, m - 1 + n, d);
+  const pad = x => String(x).padStart(2, '0');
+  return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+};
+
 const ROLES = ['Lead Auditor','Auditor','Technical Expert'];
 const NC_TYPES = ['Minor NC','Major NC'];
 const CONFORMITY = ['C','NC','O','OFI','N/A'];
@@ -152,6 +162,11 @@ function Stage2ReportBody({ data, set, clientInfo }) {
         // 1.12 Audit Dates — Stage-2 dates from F02, formatted "DD Mon - DD Mon YYYY".
         const dates = fmtAuditDateRange(fd.stage2DateFrom, fd.stage2DateTo);
         if (dates && blank(data.auditDates)) set('auditDates', dates);
+
+        // Proposed Next Audit Date — audit start date + 11 months.
+        const baseDate = fd.stage2DateFrom || fd.stage2DateTo;
+        const nextDate = addMonthsISO(baseDate, 11);
+        if (nextDate && blank(data.proposedNextAuditDate)) set('proposedNextAuditDate', nextDate);
 
         // 2. Audit Team Details — pull the Stage-2 team from F02. Brings over members
         // with an auditing role or assigned Stage-2 man-days; fills only when this

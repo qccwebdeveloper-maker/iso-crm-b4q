@@ -157,8 +157,7 @@ export default function Form15FinalReviewReport() {
                 <FInput value={data.auditType} disabled placeholder="Auto-filled from Application Review (F02)" />
               </FormField>
               <FormField label="Mode of Audit">
-                <FSelect value={data.modeOfAudit} onChange={v => set('modeOfAudit', v)} placeholder="Select"
-                  options={['Online','Onsite','Hybrid']} />
+                <FInput value={data.modeOfAudit} disabled placeholder="Auto-filled from Application Form" />
               </FormField>
             </FormRow>
             <FormRow cols={1}>
