@@ -603,11 +603,16 @@ export default function QMSFormPage({ formType, formCode, formTitle, defaultData
                   </div>
                   <div>
                     <div className="qms-client-name">
-                      {clientInfo.name || clientInfo.company || 'Client'}
+                      {clientInfo.company || clientInfo.organizationName || clientInfo.orgName || 'Organization'}
                     </div>
                     <div className="qms-client-id-txt">
-                      {clientInfo.company && clientInfo.name ? `${clientInfo.company} · ` : ''}
-                      ID: {clientInfo.clientId}
+                      ID:{' '}
+                      <span style={{
+                        background: 'var(--primary-100)', color: 'var(--primary-dark)',
+                        padding: '1px 8px', borderRadius: 6, fontWeight: 700, letterSpacing: '.02em',
+                      }}>
+                        {clientInfo.clientId || '—'}
+                      </span>
                     </div>
                   </div>
                 </div>
