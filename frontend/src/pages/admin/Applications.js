@@ -94,7 +94,7 @@ export default function AdminApplications() {
     <Layout title="Applications">
       <div className="page-hdr">
         <div><h1 className="page-title">All Applications</h1><p className="page-subtitle">{filtered.length} application{filtered.length!==1?'s':''} found</p></div>
-        <button className="btn btn-primary" onClick={() => navigate('/admin/applications/new')}><Plus size={14}/> New Application</button>
+        <button className="btn btn-primary" onClick={() => navigate('/admin/qms/form-01')}><Plus size={14}/> New Application</button>
       </div>
 
       <div className="card" style={{marginBottom:20}}>

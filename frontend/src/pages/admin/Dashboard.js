@@ -147,7 +147,7 @@ export default function AdminDashboard() {
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button className="btn btn-secondary" onClick={() => navigate('/admin/leads')}><FiTarget size={14}/> Leads</button>
-          <button className="btn btn-primary"   onClick={() => navigate('/admin/applications/new')}><FiPlus size={14}/> New Application</button>
+          <button className="btn btn-primary"   onClick={() => navigate('/admin/qms/form-01')}><FiPlus size={14}/> New Application</button>
         </div>
       </div>
 
@@ -223,7 +223,7 @@ export default function AdminDashboard() {
           {recent.length === 0 ? (
             <div className="empty-box" style={{ padding:'28px 20px' }}>
               <FiFileText size={28}/><h3>No applications yet</h3>
-              <button className="btn btn-primary btn-sm" style={{ marginTop:10 }} onClick={() => navigate('/admin/applications/new')}><FiPlus size={11}/> Create First</button>
+              <button className="btn btn-primary btn-sm" style={{ marginTop:10 }} onClick={() => navigate('/admin/qms/form-01')}><FiPlus size={11}/> Create First</button>
             </div>
           ) : recent.map(a => (
             <div key={a._id}
