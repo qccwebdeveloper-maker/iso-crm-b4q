@@ -1,0 +1,26 @@
+# Runs the whole CRM (frontend + backend). MongoDB Atlas & S3 are external — no DB service.
+#
+# Local testing:   docker compose up --build      (builds images locally, opens at http://localhost)
+# On EC2 (prod):    export ECR_REGISTRY=<acct>.dkr.ecr.ap-south-1.amazonaws.com
+#                   docker compose pull && docker compose up -d
+#
+# `build:` + `image:` together means the same file works both ways — locally it builds,
+# on EC2 `pull` fetches the prebuilt image so no source code is needed there.
+
+services:
+  backend:
+    build: ./backend
+    image: ${ECR_REGISTRY:-iso-crm}/iso-crm-backend:latest
+    restart: always
+    env_file: ./backend/.env
+    expose:
+      - "5000"            # internal only; reached via the frontend nginx proxy
+
+  frontend:
+    build: ./frontend
+    image: ${ECR_REGISTRY:-iso-crm}/iso-crm-frontend:latest
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

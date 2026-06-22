@@ -1,0 +1,49 @@
+name: Deploy to AWS
+
+# Auto-deploy on every push to the live branch.
+# NOTE: this repo's live branch is "master" (there is no "main").
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:        # allow manual runs from the Actions tab
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Credentials for the GitHub runner to push images to ECR
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: ecr
+
+      - name: Build & push images
+        env:
+          REG: ${{ steps.ecr.outputs.registry }}
+        run: |
+          docker build -t $REG/iso-crm-backend:latest  ./backend
+          docker build -t $REG/iso-crm-frontend:latest ./frontend
+          docker push $REG/iso-crm-backend:latest
+          docker push $REG/iso-crm-frontend:latest
+
+      # Pull the new images on the EC2 box and restart.
+      # The server authenticates to ECR with its own IAM role (no keys needed there).
+      - name: Deploy on EC2 over SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/app
+            aws ecr get-login-password --region ap-south-1 \
+              | docker login --username AWS --password-stdin 459742123022.dkr.ecr.ap-south-1.amazonaws.com
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
