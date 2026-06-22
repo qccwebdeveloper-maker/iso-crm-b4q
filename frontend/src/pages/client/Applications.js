@@ -23,7 +23,7 @@ export default function ClientApplications() {
 
   const filtered = apps.filter(a => {
     const q = search.toLowerCase();
-    return !q || a.applicationId?.toLowerCase().includes(q) || a.organizationName?.toLowerCase().includes(q);
+    return !q || (a.client?.clientId || user?.clientId || '').toLowerCase().includes(q) || a.organizationName?.toLowerCase().includes(q);
   });
 
   useEffect(() => setPage(1), [search]);

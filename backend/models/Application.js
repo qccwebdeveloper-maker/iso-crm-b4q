@@ -130,12 +130,13 @@ const applicationSchema = new mongoose.Schema({
   auditAcceptanceStatus: { type: String, enum: ['pending','accepted','rejected',null,''] },
   auditAcceptedDate:     { type: Date },
 
-  // ── Documents (Cloudinary URLs)
+  // ── Documents (S3 file links)
   applicationForm: { type: String },
   agreement:       { type: String },
   signedForm:      { type: String },
   auditReport:     { type: String },
   reviewReport:    { type: String },
+  proofId:         { type: String },
   certificate:     { url: { type: String }, issuedAt: { type: Date } },
   uploadedDocuments: [uploadedDocSchema],
 

@@ -7,7 +7,7 @@ const Document    = require('../models/Document');
 const User        = require('../models/User');
 const upload      = require('../middleware/upload');
 const { protect, authorize } = require('../middleware/auth');
-const { uploadToCloudinary } = require('../utils/cloudinary');
+const { uploadToS3 } = require('../utils/s3');
 
 const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -181,20 +181,22 @@ router.put('/:id/status', protect, async (req, res) => {
 // POST /api/applications/:id/upload
 router.post('/:id/upload', protect, upload.single('document'), async (req, res) => {
   try {
-    const app = await Application.findById(req.params.id);
+    const app = await Application.findById(req.params.id).populate('client', 'clientId name');
     if (!app) return res.status(404).json({ message: 'Not found' });
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
 
     const docType = req.body.docType || 'document';
     const folder  = 'iso-crm/documents';
 
-    let cloudUrl = null, publicId = null;
+    let cloudUrl = null, publicId = null, storageUrl = null, s3Key = null;
     try {
-      const result = await uploadToCloudinary(req.file.buffer, folder, req.file.originalname);
-      cloudUrl  = result.secure_url;
-      publicId  = result.public_id;
+      const result = await uploadToS3(req.file.buffer, folder, req.file.originalname, req.file.mimetype);
+      cloudUrl   = result.secure_url;
+      publicId   = result.public_id;
+      s3Key      = result.s3_key;
+      storageUrl = result.storage_url;
     } catch (cloudErr) {
-      console.warn('Cloudinary unavailable, saving to local disk:', cloudErr.message);
+      console.warn('S3 unavailable, saving to local disk:', cloudErr.message);
       const safeName = `${Date.now()}-${req.file.originalname.replace(/\s+/g, '_')}`;
       fs.writeFileSync(path.join(UPLOADS_DIR, safeName), req.file.buffer);
       cloudUrl = `/uploads/${safeName}`;
@@ -218,8 +220,9 @@ router.post('/:id/upload', protect, upload.single('document'), async (req, res) 
     // Log to DMS
     await Document.create({
       name: req.file.originalname, originalName: req.file.originalname,
-      path: cloudUrl, publicId, docType,
+      path: cloudUrl, publicId, s3Key, storageUrl, docType,
       applicationId: app.applicationId, application: app._id,
+      clientId: app.client?.clientId, client: app.client?._id,
       uploadedBy: req.user._id, uploadedByName: req.user.name,
       fileSize: req.file.size, mimeType: req.file.mimetype,
     });
@@ -283,7 +286,7 @@ router.post('/:id/accept-audit', protect, authorize('auditor', 'reviewer'), asyn
 // Accepts both JSON and multipart/form-data (with optional file)
 router.post('/:id/send-document', protect, upload.single('document'), async (req, res) => {
   try {
-    const app = await Application.findById(req.params.id).populate('client assignedAuditor assignedReviewer', 'name email _id');
+    const app = await Application.findById(req.params.id).populate('client assignedAuditor assignedReviewer', 'name email _id clientId');
     if (!app) return res.status(404).json({ message: 'Not found' });
 
     const message = req.body.message || '';
@@ -293,8 +296,9 @@ router.post('/:id/send-document', protect, upload.single('document'), async (req
     // Upload file to Cloudinary if one was attached
     if (req.file) {
       try {
-        const result = await uploadToCloudinary(req.file.buffer, 'iso-crm/documents', req.file.originalname);
+        const result = await uploadToS3(req.file.buffer, 'iso-crm/documents', req.file.originalname, req.file.mimetype);
         fileUrl = result.secure_url;
+        const s3Key = result.s3_key, storageUrl = result.storage_url;
 
         // Save the document to the uploadedDocuments array and DMS
         const docType = req.body.docType || 'document';
@@ -307,13 +311,14 @@ router.post('/:id/send-document', protect, upload.single('document'), async (req
 
         await Document.create({
           name: req.file.originalname, originalName: req.file.originalname,
-          path: fileUrl, publicId: result.public_id, docType,
+          path: fileUrl, publicId: result.public_id, s3Key, storageUrl, docType,
           applicationId: app.applicationId, application: app._id,
+          clientId: app.client?.clientId, client: app.client?._id,
           uploadedBy: req.user._id, uploadedByName: req.user.name,
           fileSize: req.file.size, mimeType: req.file.mimetype,
         });
       } catch (cloudErr) {
-        console.warn('[Cloudinary] upload failed, saving locally:', cloudErr.message);
+        console.warn('[S3] upload failed, saving locally:', cloudErr.message);
         const safeName = `${Date.now()}-${req.file.originalname.replace(/\s+/g, '_')}`;
         fs.writeFileSync(path.join(UPLOADS_DIR, safeName), req.file.buffer);
         fileUrl = `/uploads/${safeName}`;
@@ -328,6 +333,7 @@ router.post('/:id/send-document', protect, upload.single('document'), async (req
           name: req.file.originalname, originalName: req.file.originalname,
           path: fileUrl, publicId: safeName, docType,
           applicationId: app.applicationId, application: app._id,
+          clientId: app.client?.clientId, client: app.client?._id,
           uploadedBy: req.user._id, uploadedByName: req.user.name,
           fileSize: req.file.size, mimeType: req.file.mimetype,
         });

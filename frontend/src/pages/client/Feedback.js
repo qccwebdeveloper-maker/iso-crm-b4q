@@ -27,7 +27,7 @@ export default function ClientFeedback(){
               <div className="form-group"><label className="form-label">Application *</label>
                 <select className="form-control" value={form.appId} onChange={e=>setForm(p=>({...p,appId:e.target.value}))} required>
                   <option value="">Select Application</option>
-                  {apps.map(a=><option key={a._id} value={a._id}>{a.applicationId} — {a.organizationName}</option>)}
+                  {apps.map(a=><option key={a._id} value={a._id}>{(a.client?.clientId || '—')} — {a.organizationName}</option>)}
                 </select>
               </div>
               <div className="form-group"><label className="form-label">Rating</label>

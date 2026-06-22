@@ -31,16 +31,13 @@ const NAV = {
     ]},
 
     { sec: 'Documents & Comm.', items: [
-      { to: '/admin/send-client',   icon: FiSend,  label: 'Send to Client' },
-      { to: '/admin/send-auditor',  icon: FiSend,  label: 'Send to Auditor' },
-      { to: '/admin/send-reviewer', icon: FiSend,  label: 'Send to Reviewer' },
       { to: '/admin/certificates',  icon: FiAward, label: 'Certificates' },
       { to: '/admin/payments',      icon: FiCreditCard, label: 'Payment Tracking' },
     ]},
     { sec: 'Leads', items: [
       { to: '/admin/leads', icon: FiTarget, label: 'Lead Management', badge: 'NEW' },
     ]},
-    { sec: 'QMS Forms', collapsible: true, key: 'qmsForms', items: [
+    { sec: 'QMS Forms', items: [
       { to: '/admin/qms/form-01', icon: FiFileText, label: 'F01 · Application Form' },
       { to: '/admin/qms/form-02', icon: FiFileText, label: 'F02 · Application Review' },
       { to: '/admin/qms/form-03', icon: FiFileText, label: 'F03 · Audit Planning 3yr' },

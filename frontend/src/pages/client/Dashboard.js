@@ -138,7 +138,7 @@ export default function ClientDashboard() {
       <div className="card" style={{marginBottom:18}}>
         <div className="card-hdr">
           <div className="card-title"><CheckCircle size={14} style={{color:'var(--primary)'}}/>Certification Progress</div>
-          {latestApp && <span style={{fontSize:10, color:'var(--gray-400)'}}>{latestApp.applicationId}</span>}
+          {latestApp && <span style={{fontSize:10, color:'var(--gray-400)'}}>{latestApp.client?.clientId || '—'}</span>}
         </div>
 
         {latestApp && stageInfo ? (
@@ -228,7 +228,7 @@ export default function ClientDashboard() {
             <table className="tbl" style={{minWidth:700}}>
               <thead>
                 <tr>
-                  <th style={{width:120}}>App ID</th>
+                  <th style={{width:120}}>Client ID</th>
                   <th>Organization</th>
                   <th style={{width:130}}>ISO Standard</th>
                   <th style={{width:160}}>Progress</th>
@@ -241,7 +241,7 @@ export default function ClientDashboard() {
               <tbody>
                 {recentApps.map(app => (
                   <tr key={app._id}>
-                    <td><span className="mono">{app.applicationId}</span></td>
+                    <td><span className="mono">{app.client?.clientId || '—'}</span></td>
                     <td>
                       <div style={{fontWeight:600, fontSize:13, color:'var(--text-1)'}}>{app.organizationName}</div>
                       {app.city && <div style={{fontSize:10.5, color:'var(--gray-400)', marginTop:1}}>{app.city}{app.state ? `, ${app.state}` : ''}</div>}
@@ -296,7 +296,7 @@ export default function ClientDashboard() {
         <div className="card" style={{marginBottom:0}}>
           <div className="card-hdr">
             <div className="card-title"><ClipboardCheck size={14} style={{color:'var(--primary)'}}/>Assigned Team</div>
-            {latestApp && <span style={{fontSize:10, color:'var(--gray-400)'}}>{latestApp.applicationId}</span>}
+            {latestApp && <span style={{fontSize:10, color:'var(--gray-400)'}}>{latestApp.client?.clientId || '—'}</span>}
           </div>
           {latestApp ? (
             [
@@ -386,7 +386,7 @@ export default function ClientDashboard() {
         <div className="modal-bg" onClick={() => setEditModal(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-head">
-              <div className="modal-title"><Edit size={14} style={{color:'var(--primary)', marginRight:7, verticalAlign:'middle'}}/>Edit — {editModal.applicationId}</div>
+              <div className="modal-title"><Edit size={14} style={{color:'var(--primary)', marginRight:7, verticalAlign:'middle'}}/>Edit — {editModal.client?.clientId || '—'}</div>
               <button className="modal-close" onClick={() => setEditModal(null)}><X size={14}/></button>
             </div>
             <div className="modal-body">
@@ -418,7 +418,7 @@ export default function ClientDashboard() {
               <div className="form-group"><label className="form-label">Application *</label>
                 <select className="form-control" value={fbForm.appId} onChange={e => setFbForm(p => ({...p, appId:e.target.value}))}>
                   <option value="">— Select Application —</option>
-                  {apps.map(a => <option key={a._id} value={a._id}>{a.applicationId} — {a.organizationName}</option>)}
+                  {apps.map(a => <option key={a._id} value={a._id}>{(a.client?.clientId || '—')} — {a.organizationName}</option>)}
                 </select>
               </div>
               <div className="form-group">

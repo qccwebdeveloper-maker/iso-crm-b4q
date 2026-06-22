@@ -6,7 +6,7 @@ import{FileText,Download,Eye,Upload,Award}from 'lucide-react';
 
 // Only these two document types are uploadable / shown for clients
 const CLIENT_DOCS=[
-  {label:'Proof ID',key:'proofId',hint:'Identity / address proof (PDF or image)'},
+  {label:'Identity Proof',key:'proofId',hint:'Identity / address proof (PDF or image)'},
   {label:'Agreement Form',key:'agreement',hint:'Signed agreement document'},
 ];
 
@@ -43,7 +43,7 @@ export function ClientDocuments(){
         apps.map(app=>(
           <div key={app._id} className="card" style={{marginBottom:16}}>
             <div className="card-hdr">
-              <div className="card-title"><span className="mono">{app.applicationId}</span> — {app.organizationName}</div>
+              <div className="card-title"><span className="mono">{app.client?.clientId || '—'}</span> — {app.organizationName}</div>
               <span className={`badge bdg-${app.status}`}>{app.status?.replace(/_/g,' ')}</span>
             </div>
             <div className="card-body">
