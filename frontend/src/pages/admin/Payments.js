@@ -356,7 +356,7 @@ export default function AdminPayments() {
                     <select className="form-control" value={manualPaymentForm.applicationId} onChange={e => setManualPaymentForm(p => ({ ...p, applicationId: e.target.value }))}>
                       <option value="">— Select Application —</option>
                       {apps.map(app => (
-                        <option key={app._id} value={app._id}>{app.applicationId} - {app.organizationName}</option>
+                        <option key={app._id} value={app._id}>{(app.client?.clientId || '—')} - {app.organizationName}</option>
                       ))}
                     </select>
                   </div>
