@@ -8,7 +8,7 @@ import {
 
 const FORMS = [
   { no: 'AUD-F-01', name: 'Query Follow Up', rev: '0', remarks: 'Refer Separate File', category: 'Pre-Application', status: 'active', link: '/admin/leads' },
-  { no: 'AUD-F-02', name: 'Request for Proposal cum Application Form', rev: 'Rev.:01', remarks: '', category: 'Application', status: 'active', link: '/admin/applications/new' },
+  { no: 'AUD-F-02', name: 'Request for Proposal cum Application Form', rev: 'Rev.:01', remarks: '', category: 'Application', status: 'active', link: '/admin/qms/form-01' },
   { no: 'AUD-F-03', name: 'Application Review & Audit Planning', rev: 'Rev.:02', remarks: '', category: 'Planning', status: 'active', link: '/admin/applications' },
   { no: 'AUD-F-03-01', name: 'Audit Planning (Part 2)', rev: 'Rev.:02', remarks: '', category: 'Planning', status: 'active', link: '/admin/applications' },
   { no: 'AUD-F-03A', name: 'Audit Planning for 3 Years', rev: 'Rev.:01', remarks: '', category: 'Planning', status: 'active', link: '/admin/audit-stage1' },

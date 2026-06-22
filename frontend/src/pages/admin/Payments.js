@@ -141,8 +141,8 @@ export default function AdminPayments() {
                   <thead>
                     <tr>
                       <th>Name</th>
-                      <th>Transaction ID</th>
-                      <th>Application</th>
+                      <th>Reference No</th>
+                      <th>Client ID</th>
                       <th>Amount</th>
                       <th>Status</th>
                       <th>Date</th>
@@ -154,7 +154,7 @@ export default function AdminPayments() {
                       <tr key={payment._id}>
                         <td><strong>{payment.name}</strong></td>
                         <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{payment.transactionId}</td>
-                        <td>{payment.applicationId ? apps.find(a => a._id === payment.applicationId)?.applicationId || 'Linked App' : '—'}</td>
+                        <td>{payment.applicationId ? apps.find(a => a._id === payment.applicationId)?.client?.clientId || 'Linked' : '—'}</td>
                         <td style={{ fontWeight: 600 }}>₹{payment.amount}</td>
                         <td>
                           <span className={`badge ${payment.paymentStatus === 'received' ? 'bdg-approved' : payment.paymentStatus === 'partially_received' ? 'bdg-audit_stage2' : 'bdg-submitted'}`}>
@@ -206,7 +206,7 @@ export default function AdminPayments() {
                 <table className="tbl">
                   <thead>
                     <tr>
-                      <th>Application</th>
+                      <th>Client ID</th>
                       <th>Organization</th>
                       <th>Amount</th>
                       <th>Status</th>
@@ -217,7 +217,7 @@ export default function AdminPayments() {
                   <tbody>
                     {applicationPayments.map(app => (
                       <tr key={app._id}>
-                        <td><strong>{app.applicationId}</strong></td>
+                        <td><strong>{app.client?.clientId || '—'}</strong></td>
                         <td>{app.organizationName}</td>
                         <td style={{ fontWeight: 600 }}>₹{app.paymentAmount || 0}</td>
                         <td>
@@ -246,7 +246,7 @@ export default function AdminPayments() {
             <div className="modal-bg" onClick={() => setPaymentModal(null)}>
               <div className="modal-box" onClick={e => e.stopPropagation()}>
                 <div className="modal-head">
-                  <div className="modal-title"><CreditCard size={15} style={{ color:'var(--primary)', marginRight:7, verticalAlign:'middle' }}/>Update Payment — {paymentModal.applicationId}</div>
+                  <div className="modal-title"><CreditCard size={15} style={{ color:'var(--primary)', marginRight:7, verticalAlign:'middle' }}/>Update Payment — {paymentModal.client?.clientId || '—'}</div>
                   <button className="modal-close" onClick={() => setPaymentModal(null)}>✕</button>
                 </div>
                 <div className="modal-body">
@@ -311,11 +311,11 @@ export default function AdminPayments() {
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Transaction ID *</label>
+                    <label className="form-label">Reference No *</label>
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="e.g., TXN123456"
+                      placeholder="e.g., REF123456"
                       value={manualPaymentForm.transactionId}
                       onChange={e => setManualPaymentForm(p => ({ ...p, transactionId: e.target.value }))}
                     />
@@ -356,7 +356,7 @@ export default function AdminPayments() {
                     <select className="form-control" value={manualPaymentForm.applicationId} onChange={e => setManualPaymentForm(p => ({ ...p, applicationId: e.target.value }))}>
                       <option value="">— Select Application —</option>
                       {apps.map(app => (
-                        <option key={app._id} value={app._id}>{app.applicationId} - {app.organizationName}</option>
+                        <option key={app._id} value={app._id}>{(app.client?.clientId || '—')} - {app.organizationName}</option>
                       ))}
                     </select>
                   </div>

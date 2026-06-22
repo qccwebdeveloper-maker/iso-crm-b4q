@@ -7,7 +7,7 @@ import {
   FiFileText, FiUsers, FiBarChart2, FiLogOut, FiBell, FiMenu, FiX,
   FiStar, FiMessageSquare, FiAward, FiFolder, FiSettings, FiPlus,
   FiCamera, FiTarget, FiTrendingUp, FiUserCheck, FiBookOpen,
-  FiSend, FiAlertTriangle, FiCheckSquare, FiChevronDown, FiActivity,
+  FiSend, FiAlertTriangle, FiChevronDown, FiActivity,
   FiSearch, FiCreditCard, FiClipboard
 } from 'react-icons/fi';
 
@@ -26,7 +26,6 @@ const NAV = {
     ]},
 
     { sec: 'Applications', items: [
-      { to: '/admin/approval-pending',      icon: FiCheckSquare,   label: 'Approval Pending' },
       { to: '/admin/feedback',              icon: FiMessageSquare, label: 'Reviews & Feedback' },
     ]},
 
