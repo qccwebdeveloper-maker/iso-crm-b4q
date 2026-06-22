@@ -141,7 +141,7 @@ export default function AdminPayments() {
                   <thead>
                     <tr>
                       <th>Name</th>
-                      <th>Transaction ID</th>
+                      <th>Reference No</th>
                       <th>Client ID</th>
                       <th>Amount</th>
                       <th>Status</th>
@@ -311,11 +311,11 @@ export default function AdminPayments() {
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Transaction ID *</label>
+                    <label className="form-label">Reference No *</label>
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="e.g., TXN123456"
+                      placeholder="e.g., REF123456"
                       value={manualPaymentForm.transactionId}
                       onChange={e => setManualPaymentForm(p => ({ ...p, transactionId: e.target.value }))}
                     />
