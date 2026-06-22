@@ -21,9 +21,12 @@ const populateFields = [
 // GET /api/leads
 router.get('/', protect, authorize('admin', 'sales'), async (req, res) => {
   try {
+    // Sales and admin both see all leads (the sales dashboard is a team-wide view:
+    // unassigned counter, team performance, full pipeline). Optional ?mine=true lets a
+    // sales user narrow to just the leads assigned to them.
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
-    if (req.user.role === 'sales') filter.assignedTo = req.user._id;
+    if (req.user.role === 'sales' && req.query.mine === 'true') filter.assignedTo = req.user._id;
     const leads = await Lead.find(filter).populate(populateFields).sort({ createdAt: -1 });
     res.json(leads);
   } catch (err) { res.status(500).json({ message: err.message }); }

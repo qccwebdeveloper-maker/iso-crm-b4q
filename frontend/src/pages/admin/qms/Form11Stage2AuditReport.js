@@ -83,7 +83,7 @@ const DEFAULT = {
 };
 
 const REC_OPTS = [
-  { value: 'certified',   label: 'Recommended for Certification — The QMS complies with requirements.' },
+  { value: 'certified',   label: 'Recommended for Certification — The Management System complies with requirements.' },
   { value: 'minor_nc',    label: 'Recommended with Minor NC — Certification recommended upon off-site verification within 60 days.' },
   { value: 'major_nc',    label: 'Not recommended due to Major NC — Follow-up assessment required within 60 days.' },
   { value: 'suspend',     label: 'Not Recommended / Suspension / Withdrawal / Surveillance / Re-Certification.' },
