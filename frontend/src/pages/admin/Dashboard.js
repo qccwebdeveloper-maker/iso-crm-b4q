@@ -94,7 +94,7 @@ export default function AdminDashboard() {
   const avgRating    = feedbacks.length ? (feedbacks.reduce((s, f) => s + (f.rating || 0), 0) / feedbacks.length).toFixed(1) : '—';
 
   const kpis = [
-    { label: 'Total Applications', value: stats.totalApplications, icon: FiFileText,   color: 'orange', to: '/admin/applications' },
+    { label: 'Total Applications', value: stats.totalApplications, icon: FiFileText,   color: 'orange', to: '/admin/qms/form-01' },
     { label: 'Active Clients',     value: stats.clients,           icon: FiUsers,       color: 'blue',   to: '/admin/users' },
     { label: 'Auditors',           value: auditorList.length,      icon: FiClipboard,   color: 'purple', to: '/admin/auditors' },
     { label: 'Certified',          value: certified,               icon: FiAward,       color: 'gold',   to: '/admin/applications' },
