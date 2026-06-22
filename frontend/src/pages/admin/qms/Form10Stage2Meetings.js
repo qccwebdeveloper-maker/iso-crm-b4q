@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
+import { Users } from 'lucide-react';
 import QMSFormPage, { FormRow, FormField, FInput, SectionTitle, DynamicTable, StandardChips } from './QMSFormPage';
 
 const YN_OPTS = ['Yes','No'];
@@ -32,6 +34,27 @@ function Form10Body({ data, set, clientInfo }) {
     set('participants', p);
   };
 
+  // True once the auditor has typed at least one participant on this form.
+  const hasParticipantData = () =>
+    (data.participants || []).some(p => p && (p.name?.trim() || p.position?.trim()));
+
+  // Copy the participant list from F06 (Stage-1 Meetings) onto this form.
+  const applyParticipants = (list, { silent } = {}) => {
+    const cleaned = (Array.isArray(list) ? list : [])
+      .filter(p => p && (p.name?.trim() || p.position?.trim()))
+      .map((p, i) => ({
+        sNo: String(i + 1),
+        name: p.name || '',
+        position: p.position || '',
+        openingMeeting: p.openingMeeting || '',
+        closingMeeting: p.closingMeeting || '',
+      }));
+    if (cleaned.length === 0) return false;
+    set('participants', cleaned);
+    if (!silent) toast.success(`Imported ${cleaned.length} participant(s) from F06`);
+    return true;
+  };
+
   // Fetch the Stage-2 audit dates from F02 (Application Review) and fill them here
   // when still blank, without overwriting dates already entered on this form.
   useEffect(() => {
@@ -51,6 +74,34 @@ function Form10Body({ data, set, clientInfo }) {
     return () => { cancelled = true; };
   }, [clientInfo?.clientId]); // eslint-disable-line
 
+  // Auto-prefill participants from F06 (Stage-1 Meetings) when this form's list
+  // is still empty — the Stage-2 meeting usually has the same attendees.
+  useEffect(() => {
+    const cid = clientInfo?.clientId;
+    if (!cid || hasParticipantData()) return;
+    let cancelled = false;
+    axios.get(`/api/qms-forms/by-client/${cid}/6`)
+      .then(({ data: f6 }) => {
+        if (cancelled || hasParticipantData()) return;
+        applyParticipants(f6?.formData?.participants, { silent: true });
+      })
+      .catch(() => { /* no F06 yet — keep defaults */ });
+    return () => { cancelled = true; };
+  }, [clientInfo?.clientId]); // eslint-disable-line
+
+  // Manual re-import (overwrites the current list with F06's attendees).
+  const importFromF06 = () => {
+    const cid = clientInfo?.clientId;
+    if (!cid) { toast.error('No client selected'); return; }
+    axios.get(`/api/qms-forms/by-client/${cid}/6`)
+      .then(({ data: f6 }) => {
+        if (!applyParticipants(f6?.formData?.participants)) {
+          toast.error('No participants found in F06 (Stage-1 Meetings)');
+        }
+      })
+      .catch(() => toast.error('Could not load F06 (Stage-1 Meetings)'));
+  };
+
   return (
     <div>
       <SectionTitle>Meeting Details</SectionTitle>
@@ -67,6 +118,12 @@ function Form10Body({ data, set, clientInfo }) {
       </FormRow>
 
       <SectionTitle>Participants</SectionTitle>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+        <button type="button" className="btn btn-secondary btn-sm" onClick={importFromF06}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <Users size={13} /> Import participants from F06 (Stage-1)
+        </button>
+      </div>
       <DynamicTable
         columns={[
           { key: 'sNo',            label: 'S.No.',               minWidth: 44, width: 64 },
