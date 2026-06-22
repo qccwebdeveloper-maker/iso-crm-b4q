@@ -82,6 +82,7 @@ const DEFAULT = {
   checklists: {},
 };
 
+
 const REC_OPTS = [
   { value: 'certified',   label: 'Recommended for Certification — The Management System complies with requirements.' },
   { value: 'minor_nc',    label: 'Recommended with Minor NC — Certification recommended upon off-site verification within 60 days.' },
