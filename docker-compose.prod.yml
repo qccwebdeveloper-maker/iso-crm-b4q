@@ -1,0 +1,50 @@
+# PRODUCTION compose (EC2) — adds a Caddy TLS edge for HTTPS.
+#
+# This is a COMPLETE production stack (use it INSTEAD of docker-compose.yml on EC2).
+# It is identical to docker-compose.yml except:
+#   - frontend is internal-only (expose, not published) — Caddy is the public edge
+#   - a "caddy" service owns ports 80 + 443 and auto-gets a Let's Encrypt cert
+#
+# Local development is UNAFFECTED: `docker compose up --build` still uses the plain
+# docker-compose.yml (this file is only loaded when you ask for it explicitly or via
+# COMPOSE_FILE — see the EC2 runbook).
+#
+# On EC2, select this file once by adding to ~/app/.env:
+#     COMPOSE_FILE=docker-compose.prod.yml
+# then the normal `docker compose pull && docker compose up -d` (and the CI/CD
+# pipeline) will use it automatically — no workflow change needed.
+
+services:
+  backend:
+    build: ./backend
+    image: ${ECR_REGISTRY:-iso-crm}/iso-crm-backend:latest
+    restart: always
+    env_file: ./backend/.env
+    expose:
+      - "5000"            # internal only; reached via the frontend nginx proxy
+
+  frontend:
+    build: ./frontend
+    image: ${ECR_REGISTRY:-iso-crm}/iso-crm-frontend:latest
+    restart: always
+    expose:
+      - "80"              # internal only — Caddy terminates TLS and proxies to it
+    depends_on:
+      - backend
+
+  caddy:
+    image: caddy:2
+    restart: always
+    ports:
+      - "80:80"           # HTTP (ACME challenge + auto-redirect to HTTPS)
+      - "443:443"         # HTTPS
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data       # persists certificates — DO NOT delete this volume
+      - caddy_config:/config
+    depends_on:
+      - frontend
+
+volumes:
+  caddy_data:
+  caddy_config:

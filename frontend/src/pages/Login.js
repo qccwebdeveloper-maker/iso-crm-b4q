@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import {
-  User, Search, BarChart2, Shield, ShieldCheck, Lock,
+  User, Search, BarChart2, Shield, Lock,
   Eye, EyeOff, AlertTriangle, CheckCircle, CheckCircle2,
   ArrowRight, ArrowLeft, ClipboardList, Mail,
   Loader2,
@@ -307,11 +307,6 @@ export default function Login() {
               {/* Admin OTP login */}
               {loginMode === 'admin' && (
                 <div>
-                  <div style={{ background: '#e3f2fd', border: '1px solid #90caf9', borderRadius: 10, padding: '10px 13px', marginBottom: 16, fontSize: 11.5, color: '#0d47a1', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                    <ShieldCheck size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-                    <span><strong>Admin access only</strong> — A 6-digit OTP will be sent to your registered email address.</span>
-                  </div>
-
                   {!otpSent ? (
                     <>
                       <Field label="Admin Email Address" required>
@@ -379,7 +374,7 @@ export default function Login() {
                 <div>
                   <form onSubmit={handleClientLogin}>
                     <Field label="Client ID" required>
-                      <FInput type="text" placeholder="Enter your Client ID (e.g. CLT-DEMO-001)"
+                      <FInput type="text" placeholder="Enter your Client ID"
                         value={email} onChange={e => setEmail(e.target.value)} />
                     </Field>
                     <Field label="Password" required>
