@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import {
@@ -118,7 +118,13 @@ function OtpInput({ value, onChange }) {
 // ═══════════════════════════════════════════════
 export default function Login() {
   const [tab, setTab] = useState('login');
-  const [loginMode, setLoginMode] = useState('client');
+  // Role is chosen by the URL path: /login/admin | /login/client | /login/auditor | /login/sales.
+  // Bare /login defaults to client.
+  const { role } = useParams();
+  const initialMode = ['admin', 'auditor', 'sales', 'client'].includes(role) ? role : 'client';
+  const [loginMode, setLoginMode] = useState(initialMode);
+  const showRoleTabs = false;                  // single-form login per link — hide the role switcher
+  const allowRegister = initialMode === 'client'; // only clients can self-register (Create Account)
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -278,7 +284,7 @@ export default function Login() {
           </div>
 
           {/* Tabs */}
-          {tab !== 'success' && (
+          {tab !== 'success' && allowRegister && (
             <div style={S.tabs}>
               {tabBtn('login', 'Sign In')}
               {tabBtn('register', 'Create Account')}
@@ -297,12 +303,14 @@ export default function Login() {
           {/* ────── LOGIN TAB ────── */}
           {tab === 'login' && (
             <>
-              <div style={{ display: 'flex', gap: 7, marginBottom: 18, flexWrap: 'wrap' }}>
-                {modePill('client',  <><User size={12} /> Client</>)}
-                {modePill('auditor', <><Search size={12} /> Auditor</>)}
-                {modePill('sales',   <><BarChart2 size={12} /> Sales</>)}
-                {modePill('admin',   <><Shield size={12} /> Admin OTP</>)}
-              </div>
+              {showRoleTabs && (
+                <div style={{ display: 'flex', gap: 7, marginBottom: 18, flexWrap: 'wrap' }}>
+                  {modePill('client',  <><User size={12} /> Client</>)}
+                  {modePill('auditor', <><Search size={12} /> Auditor</>)}
+                  {modePill('sales',   <><BarChart2 size={12} /> Sales</>)}
+                  {modePill('admin',   <><Shield size={12} /> Admin OTP</>)}
+                </div>
+              )}
 
               {/* Admin OTP login */}
               {loginMode === 'admin' && (
@@ -425,7 +433,7 @@ export default function Login() {
           )}
 
           {/* ────── REGISTER TAB ────── */}
-          {tab === 'register' && (
+          {tab === 'register' && allowRegister && (
             <form onSubmit={handleRegister}>
               <div style={{ background: '#e3f2fd', border: '1px solid #90caf9', borderRadius: 10, padding: '10px 13px', marginBottom: 18, fontSize: 11.5, color: '#0d47a1', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                 <ClipboardList size={15} style={{ flexShrink: 0, marginTop: 1 }} />
