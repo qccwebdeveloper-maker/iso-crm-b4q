@@ -142,12 +142,12 @@ export default function Login() {
   const { login, loginWithToken } = useAuth();
   const navigate = useNavigate();
 
-  // Ping Render directly (not via Vercel proxy) to wake it from sleep.
-  // Render free tier sleeps after 15 min; cold start takes ~30-60 sec.
+  // Health check against the same origin (nginx proxies /api -> backend),
+  // so there's no CORS and no external cold-start to wait on.
   useEffect(() => {
     const warmUp = async () => {
       try {
-        await axios.get('https://iso-crm-new-8.onrender.com/api/health', { timeout: 70000 });
+        await axios.get('/api/health', { timeout: 70000 });
       } catch { /* ignore — server is up or unreachable */ }
       setServerReady(true);
     };
@@ -288,7 +288,7 @@ export default function Login() {
           {!serverReady && (
             <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: '9px 14px', marginBottom: 14, fontSize: 12, color: '#92400e', display: 'flex', alignItems: 'center', gap: 8 }}>
               <Loader2 size={13} style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
-              Connecting to server… (first load may take ~30 sec)
+              Connecting to server…
             </div>
           )}
           <Alert type="error" msg={err} />
