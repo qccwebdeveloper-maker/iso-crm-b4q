@@ -16,6 +16,8 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const allowedOrigins = [
   'https://iso-crm-new-r6ca.vercel.app',
+  'http://crm.qccertification.com',
+  'https://crm.qccertification.com',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 // Allow localhost / 127.0.0.1 with or without a port (e.g. http://localhost:3000 for the
