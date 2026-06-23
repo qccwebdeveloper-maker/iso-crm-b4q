@@ -96,6 +96,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to={dest} replace /> : <Login />} />
+      <Route path="/login/:role" element={user ? <Navigate to={dest} replace /> : <Login />} />
       <Route path="/" element={<RoleRedirect />} />
 
       {/* ── Admin ── */}
