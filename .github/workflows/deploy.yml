@@ -42,8 +42,9 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/app
+            export ECR_REGISTRY=459742123022.dkr.ecr.ap-south-1.amazonaws.com
             aws ecr get-login-password --region ap-south-1 \
               | docker login --username AWS --password-stdin 459742123022.dkr.ecr.ap-south-1.amazonaws.com
             docker compose pull
-            docker compose up -d
+            docker compose up -d --force-recreate
             docker image prune -f
