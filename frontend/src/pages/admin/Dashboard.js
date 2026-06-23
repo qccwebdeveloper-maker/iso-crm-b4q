@@ -94,7 +94,7 @@ export default function AdminDashboard() {
   const avgRating    = feedbacks.length ? (feedbacks.reduce((s, f) => s + (f.rating || 0), 0) / feedbacks.length).toFixed(1) : '—';
 
   const kpis = [
-    { label: 'Total Applications', value: stats.totalApplications, icon: FiFileText,   color: 'orange', to: '/admin/applications' },
+    { label: 'Total Applications', value: stats.totalApplications, icon: FiFileText,   color: 'orange', to: '/admin/qms/form-01' },
     { label: 'Active Clients',     value: stats.clients,           icon: FiUsers,       color: 'blue',   to: '/admin/users' },
     { label: 'Auditors',           value: auditorList.length,      icon: FiClipboard,   color: 'purple', to: '/admin/auditors' },
     { label: 'Certified',          value: certified,               icon: FiAward,       color: 'gold',   to: '/admin/applications' },
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button className="btn btn-secondary" onClick={() => navigate('/admin/leads')}><FiTarget size={14}/> Leads</button>
-          <button className="btn btn-primary"   onClick={() => navigate('/admin/applications/new')}><FiPlus size={14}/> New Application</button>
+          <button className="btn btn-primary"   onClick={() => navigate('/admin/qms/form-01')}><FiPlus size={14}/> New Application</button>
         </div>
       </div>
 
@@ -223,7 +223,7 @@ export default function AdminDashboard() {
           {recent.length === 0 ? (
             <div className="empty-box" style={{ padding:'28px 20px' }}>
               <FiFileText size={28}/><h3>No applications yet</h3>
-              <button className="btn btn-primary btn-sm" style={{ marginTop:10 }} onClick={() => navigate('/admin/applications/new')}><FiPlus size={11}/> Create First</button>
+              <button className="btn btn-primary btn-sm" style={{ marginTop:10 }} onClick={() => navigate('/admin/qms/form-01')}><FiPlus size={11}/> Create First</button>
             </div>
           ) : recent.map(a => (
             <div key={a._id}

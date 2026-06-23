@@ -18,10 +18,13 @@ const allowedOrigins = [
   'https://iso-crm-new-r6ca.vercel.app',
   process.env.CLIENT_URL,
 ].filter(Boolean);
+// Allow localhost / 127.0.0.1 with or without a port (e.g. http://localhost:3000 for the
+// CRA dev server, or http://localhost on port 80 from the nginx Docker container).
+const isLocalhost = (o) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o);
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
-    if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return cb(null, true);
+    if (isLocalhost(origin)) return cb(null, true);
     if (allowedOrigins.includes(origin)) return cb(null, true);
     return cb(new Error('CORS: origin not allowed'));
   },

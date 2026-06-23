@@ -33,7 +33,7 @@ export default function AdminApplications() {
 
   const filtered = apps.filter(a => {
     const q = search.toLowerCase();
-    return (!q||a.applicationId?.toLowerCase().includes(q)||a.organizationName?.toLowerCase().includes(q)||a.client?.name?.toLowerCase().includes(q))
+    return (!q||(a.client?.clientId||'').toLowerCase().includes(q)||a.organizationName?.toLowerCase().includes(q)||a.client?.name?.toLowerCase().includes(q))
       && (!statusF||a.status===statusF);
   });
 
@@ -60,11 +60,11 @@ export default function AdminApplications() {
       <>
         <div className="tbl-wrap">
           <table className="tbl">
-            <thead><tr><th>App ID</th><th>Organization</th><th>Client</th><th>Standard</th><th>Status</th><th>Auditor</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Client ID</th><th>Organization</th><th>Client</th><th>Standard</th><th>Status</th><th>Auditor</th><th>Date</th><th>Actions</th></tr></thead>
             <tbody>
               {paged.map(app=>(
                 <tr key={app._id}>
-                  <td><span className="mono">{app.applicationId}</span></td>
+                  <td><span className="mono">{app.client?.clientId || '—'}</span></td>
                   <td style={{fontWeight:600,maxWidth:160}}>{app.organizationName}</td>
                   <td><div style={{display:'flex',alignItems:'center',gap:7}}><div className="avatar" style={{width:24,height:24,fontSize:10}}>{app.client?.name?.[0]}</div><span style={{fontSize:12.5}}>{app.client?.name}</span></div></td>
                   <td><span className="badge bdg-info" style={{fontSize:10}}>{app.isoStandard}</span></td>
@@ -94,7 +94,7 @@ export default function AdminApplications() {
     <Layout title="Applications">
       <div className="page-hdr">
         <div><h1 className="page-title">All Applications</h1><p className="page-subtitle">{filtered.length} application{filtered.length!==1?'s':''} found</p></div>
-        <button className="btn btn-primary" onClick={() => navigate('/admin/applications/new')}><Plus size={14}/> New Application</button>
+        <button className="btn btn-primary" onClick={() => navigate('/admin/qms/form-01')}><Plus size={14}/> New Application</button>
       </div>
 
       <div className="card" style={{marginBottom:20}}>
@@ -119,7 +119,7 @@ export default function AdminApplications() {
         <div className="modal-bg" onClick={()=>setAssignModal(null)}>
           <div className="modal-box" onClick={e=>e.stopPropagation()}>
             <div className="modal-head">
-              <div className="modal-title"><UserCheck size={16} style={{color:'var(--primary)',marginRight:8,verticalAlign:'middle'}}/>Assign Team — {assignModal.applicationId}</div>
+              <div className="modal-title"><UserCheck size={16} style={{color:'var(--primary)',marginRight:8,verticalAlign:'middle'}}/>Assign Team — {assignModal.client?.clientId || '—'}</div>
               <button className="modal-close" onClick={()=>setAssignModal(null)}>✕</button>
             </div>
             <div className="modal-body">
