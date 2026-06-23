@@ -1,0 +1,16 @@
+# Caddy edge config — terminates HTTPS and forwards to the existing nginx frontend.
+# Caddy automatically obtains & auto-renews a free Let's Encrypt certificate.
+#
+# This sits IN FRONT of the current stack and changes nothing about the app:
+#   Internet --(443 TLS)--> Caddy --> frontend(nginx:80) --> backend(:5000)
+# The nginx container keeps doing its SPA fallback + /api + /uploads proxying.
+
+{
+    # Let's Encrypt sends cert-expiry / renewal notices here.
+    email qcc.webdeveloper@gmail.com
+}
+
+crm.qccertification.com {
+    encode gzip
+    reverse_proxy frontend:80
+}
