@@ -13,7 +13,7 @@ const REGION = process.env.AWS_REGION;
 //   secure_url  → relative API link the browser hits to get a fresh signed URL (stored as `path`)
 //   public_id / s3_key → the S3 object key (used for delete & presigning)
 //   storage_url → the raw S3 object URL (reference only; bucket is private, not directly openable)
-const uploadToS3 = async (buffer, folder = 'iso-crm/documents', originalname = 'file', mimetype = 'application/octet-stream') => {
+const uploadToS3 = async (buffer, folder = 'b4q-crm/documents', originalname = 'file', mimetype = 'application/octet-stream') => {
   const safeName = `${Date.now()}-${originalname.replace(/\s+/g, '_')}`;
   const key = `${folder}/${safeName}`;
 
