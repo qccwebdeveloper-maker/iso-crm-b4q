@@ -13,13 +13,23 @@ const certSchema = new mongoose.Schema({
   auditorName:      { type: String },
   auditorRole:      { type: String, enum: ['Lead Auditor','Auditor','Technical Expert',''] },
   iafCode:          { type: String },
-  accreditation:    { type: String, default: 'NABCB' },
+  accreditation:    { type: String, default: 'UAF' },
   certNumber:       { type: String, required: true, unique: true },
+  clientId:         { type: String },
   issueDate:        { type: Date },
   expiryDate:       { type: Date },
-  surveillanceDate: { type: Date },
+  surveillanceDate: { type: Date },   // 1st surveillance due
+  surveillanceDate2:{ type: Date },   // 2nd surveillance due
   originalCertDate: { type: Date },
   notes:            { type: String },
+  // Layout — vertical position (% from top) of text blocks on the certificate
+  orgTop:           { type: Number },
+  addressTop:       { type: Number },
+  scopeTop:         { type: Number },
+  // Layout — font size (px in the 900px render) of text blocks
+  orgSize:          { type: Number },
+  addressSize:      { type: Number },
+  scopeSize:        { type: Number },
   linkedApplication:{ type: mongoose.Schema.Types.ObjectId, ref: 'Application', default: null },
 }, { timestamps: true });
 
