@@ -17,7 +17,7 @@ const Standard    = require('./models/Standard');
 const Role        = require('./models/Role');
 const CertSetting = require('./models/CertSetting');
  
-// const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/iso-crm';
+
 const MONGO_URI = process.env.MONGODB_URI;
 
 // insertMany skips pre-save hooks — hash passwords manually

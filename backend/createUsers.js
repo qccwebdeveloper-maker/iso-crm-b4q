@@ -12,7 +12,7 @@ const mongoose = require('mongoose');
 const bcrypt   = require('bcryptjs');
 const User     = require('./models/User');
 
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/iso-crm';
+const MONGO_URI = process.env.MONGODB_URI;
 
 // One account per requested role. Edit emails/passwords here if you like.
 const ACCOUNTS = [
