@@ -17,7 +17,7 @@
 services:
   backend:
     build: ./backend
-    image: ${ECR_REGISTRY:-iso-crm}/iso-crm-backend:latest
+    image: ${ECR_REGISTRY:-b4q-crm}/b4q-crm-backend:latest
     restart: always
     env_file: ./backend/.env
     expose:
@@ -25,7 +25,7 @@ services:
 
   frontend:
     build: ./frontend
-    image: ${ECR_REGISTRY:-iso-crm}/iso-crm-frontend:latest
+    image: ${ECR_REGISTRY:-b4q-crm}/b4q-crm-frontend:latest
     restart: always
     expose:
       - "80"              # internal only — Caddy terminates TLS and proxies to it

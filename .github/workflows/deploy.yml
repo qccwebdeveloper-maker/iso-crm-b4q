@@ -27,10 +27,10 @@ jobs:
         env:
           REG: ${{ steps.ecr.outputs.registry }}
         run: |
-          docker build -t $REG/iso-crm-backend:latest  ./backend
-          docker build -t $REG/iso-crm-frontend:latest ./frontend
-          docker push $REG/iso-crm-backend:latest
-          docker push $REG/iso-crm-frontend:latest
+          docker build -t $REG/b4q-crm-backend:latest  ./backend
+          docker build -t $REG/b4q-crm-frontend:latest ./frontend
+          docker push $REG/b4q-crm-backend:latest
+          docker push $REG/b4q-crm-frontend:latest
 
       # Pull the new images on the EC2 box and restart.
       # The server authenticates to ECR with its own IAM role (no keys needed there).
