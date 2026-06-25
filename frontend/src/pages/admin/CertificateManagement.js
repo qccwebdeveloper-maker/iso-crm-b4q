@@ -38,7 +38,7 @@ function msLabel(standard) {
   return 'Management System';
 }
 
-/* ─── Certificate HTML generator (matches QCC design) ─── */
+/* ─── Certificate HTML generator (matches B4Q design) ─── */
 function generateCertificate(cert) {
   const orgName     = cert.orgName || cert.organizationName || 'Your Organization Name';
   const standard    = cert.standard || '';
@@ -104,7 +104,7 @@ body{font-family:Arial,sans-serif;background:#dce8f5;display:flex;flex-direction
 .ms-name{text-align:center;font-size:15px;font-weight:bold;color:#1a237e;margin:2px 0;position:relative;z-index:1}
 
 /* Big ISO number */
-.iso-big{text-align:center;font-size:52px;font-weight:900;color:#1565c0;letter-spacing:2px;line-height:1.1;margin:4px 0;position:relative;z-index:1}
+.iso-big{text-align:center;font-size:52px;font-weight:900;color:#1e2a8f;letter-spacing:2px;line-height:1.1;margin:4px 0;position:relative;z-index:1}
 
 /* Scope */
 .scope-lbl{text-align:center;font-size:11.5px;color:#333;margin:4px 0;position:relative;z-index:1}
@@ -115,7 +115,7 @@ body{font-family:Arial,sans-serif;background:#dce8f5;display:flex;flex-direction
 .cert-details{font-size:10px;color:#333;line-height:1.9}
 .cert-details b{font-size:10.5px}
 .verify-txt{font-size:9px;color:#333;margin-top:6px}
-.verify-link{font-size:9px;color:#1565c0;font-style:italic}
+.verify-link{font-size:9px;color:#1e2a8f;font-style:italic}
 
 /* Signature area */
 .sig-area{text-align:right;font-size:10px;color:#333}
@@ -177,7 +177,7 @@ body{font-family:Arial,sans-serif;background:#dce8f5;display:flex;flex-direction
     <div><b>Expiry Date</b> : ${expiryDate}</div>
     ${iafCode ? `<div><b>IAF Code</b> : ${iafCode}</div>` : ''}
     <div style="margin-top:5px;font-size:9px">To verify this certificate visit:</div>
-    <div style="font-size:9px;color:#1565c0;font-style:italic">"http://qcc.in/certifiedorganization.html"</div>
+    <div style="font-size:9px;color:#1e2a8f;font-style:italic">"http://b4q.in/certifiedorganization.html"</div>
   </div>
 </div>
 </body>
@@ -251,7 +251,7 @@ function CertForm({ data, set, isEdit }) {
       <SectionBand title="Certificate Details" />
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:16 }}>
         <FG label="Certificate Number" required>
-          <input className="form-control" value={data.certNumber||''} onChange={e=>set('certNumber',e.target.value)} placeholder="QCC-2024-001" />
+          <input className="form-control" value={data.certNumber||''} onChange={e=>set('certNumber',e.target.value)} placeholder="B4Q-2024-001" />
         </FG>
         <FG label="IAF Code">
           <input className="form-control" value={data.iafCode||''} onChange={e=>set('iafCode',e.target.value)} placeholder="e.g. 33" />
@@ -310,7 +310,7 @@ export default function CertificateManagement() {
   const [viewModal,   setViewModal]   = useState(null);
   const [deleteId,    setDeleteId]    = useState(null);
   const [setting,     setSetting]     = useState({
-    title:'Certificate of Registration', authority:'QC Certification Pvt Ltd',
+    title:'Certificate of Registration', authority:'B4Q Management Limited Pvt Ltd',
     validityYears:3, footerText:'This certificate is subject to certification body regulations.', accreditation:'NABCB',
   });
 

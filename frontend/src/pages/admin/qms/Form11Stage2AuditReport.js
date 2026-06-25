@@ -45,7 +45,7 @@ const NC_TYPES = ['Minor NC','Major NC'];
 const CONFORMITY = ['C','NC','O','OFI','N/A'];
 const SURV_CHECKS = [
   'Closure of Previous NC & its effectiveness',
-  'Compliance of use of QCC logo/marks & Applicable AB logo / marks, if applicable',
+  'Compliance of use of B4Q logo/marks & Applicable AB logo / marks, if applicable',
   'Any changes with respect to management system',
   'Any Complaints / interested party feedback',
   'Any Change in Scope',  

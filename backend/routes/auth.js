@@ -236,7 +236,7 @@ router.post('/admin', async (req, res) => {
     }
 
     await User.create({
-      name:     'QCC Admin',
+      name:     'B4Q Admin',
       email,
       password: await hashPw(password),
       role:     'admin',

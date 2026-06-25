@@ -22,7 +22,7 @@ const connectDB = async (retries = 5) => {
   for (let i = 1; i <= retries; i++) {
     try {
       const conn = await mongoose.connect(
-        process.env.MONGODB_URI || 'mongodb+srv://qccwebdeveloper_db:iso_crm_qcc_101@cluster0.nhou9fq.mongodb.net/?appName=Cluster0',
+        process.env.MONGODB_URI,
         {
           serverSelectionTimeoutMS: 15000, // keep selecting through an election
           retryWrites: true,               // auto-retry writes against the new primary

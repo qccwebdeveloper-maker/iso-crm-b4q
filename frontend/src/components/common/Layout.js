@@ -282,11 +282,11 @@ export default function Layout({ children, title }) {
         {/* Logo */}
         <div className="sidebar-top">
           <div className="logo-mark">
-            <img src="/QC.png" alt="QC Certification" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+            <img src="/b4q-logo.png" alt="B4Q Management Limited" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="logo-text-top">QC Certification</div>
-            <div className="logo-text-sub">ISO CRM Platform</div>
+            <div className="logo-text-top">B4Q Management Limited</div>
+            <div className="logo-text-sub">CRM Platform</div>
           </div>
           {/* Mobile close button */}
           <button className="sidebar-close-btn" onClick={() => setOpen(false)} aria-label="Close sidebar">

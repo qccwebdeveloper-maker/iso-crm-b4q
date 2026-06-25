@@ -490,7 +490,7 @@ export default function ApplicationReviewForm() {
           {/* Conflict of Interest */}
           <div style={{ margin: '16px 0 12px', padding: '12px 14px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, fontSize: 12, color: 'var(--gray-600)', lineHeight: 1.6 }}>
             <span style={{ fontWeight: 700, color: '#92400e' }}>Conflict of Interest Declaration: </span>
-            I confirm that I don't have any relevant interest of below: — I didn't work with the applied/client organization in the recent two years. — I and QCC didn't supply any consulting, training and internal audit for the applied/client organization in the recent two years.
+            I confirm that I don't have any relevant interest of below: — I didn't work with the applied/client organization in the recent two years. — I and B4Q didn't supply any consulting, training and internal audit for the applied/client organization in the recent two years.
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '0 24px' }}>

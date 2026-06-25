@@ -307,7 +307,7 @@ export default function Form02ApplicationReview() {
               <strong>I confirm that I don't have any relevant interest as below:</strong>
               <ul style={{ margin: '8px 0 0 18px', padding: 0 }}>
                 <li>I didn't work with the applied / client organization in the recent two years.</li>
-                <li>I and QCC didn't supply any consulting, training or internal audit for the applied / client organization in the recent two years.</li>
+                <li>I and B4Q didn't supply any consulting, training or internal audit for the applied / client organization in the recent two years.</li>
               </ul>
             </div>
             <FormRow cols={1}>

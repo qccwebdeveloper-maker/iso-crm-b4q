@@ -154,7 +154,7 @@ export default function AdminDashboard() {
       {/* Welcome Banner */}
       <div className="welcome-card">
         <div className="wc-text" style={{ position:'relative', zIndex:1 }}>
-          <h2>ISO Certification CRM</h2>
+          <h2>B4Q Management Limited</h2>
           <p>{apps.filter(a => a.status === 'submitted').length} new submissions · {unassigned.length} need auditor assignment</p>
         </div>
         <div className="wc-stats">
@@ -196,15 +196,15 @@ export default function AdminDashboard() {
                 <AreaChart data={monthly}>
                   <defs>
                     <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#1565c0" stopOpacity={0.18}/>
-                      <stop offset="95%" stopColor="#1565c0" stopOpacity={0}/>
+                      <stop offset="5%"  stopColor="#1e2a8f" stopOpacity={0.18}/>
+                      <stop offset="95%" stopColor="#1e2a8f" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e3f2fd"/>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#eef0fb"/>
                   <XAxis dataKey="name" tick={{ fontSize:10 }}/>
                   <YAxis tick={{ fontSize:10 }}/>
-                  <Tooltip contentStyle={{ borderRadius:10, border:'1px solid #90caf9', fontSize:12 }}/>
-                  <Area type="monotone" dataKey="Apps" stroke="#1565c0" fill="url(#ag)" strokeWidth={2}/>
+                  <Tooltip contentStyle={{ borderRadius:10, border:'1px solid #b1bbec', fontSize:12 }}/>
+                  <Area type="monotone" dataKey="Apps" stroke="#1e2a8f" fill="url(#ag)" strokeWidth={2}/>
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -300,11 +300,11 @@ export default function AdminDashboard() {
             {(stats.statusCounts || []).length > 0 ? (
               <ResponsiveContainer width="100%" height={170}>
                 <BarChart data={(stats.statusCounts || []).map(s => ({ name: s._id.replace(/_/g,' '), count: s.count }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e3f2fd"/>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#eef0fb"/>
                   <XAxis dataKey="name" tick={{ fontSize:9 }}/>
                   <YAxis tick={{ fontSize:10 }}/>
-                  <Tooltip contentStyle={{ borderRadius:10, border:'1px solid #90caf9', fontSize:12 }}/>
-                  <Bar dataKey="count" fill="#1565c0" radius={[4,4,0,0]}/>
+                  <Tooltip contentStyle={{ borderRadius:10, border:'1px solid #b1bbec', fontSize:12 }}/>
+                  <Bar dataKey="count" fill="#1e2a8f" radius={[4,4,0,0]}/>
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -404,7 +404,7 @@ export default function AdminDashboard() {
             style={{
               width:46, height:26, borderRadius:13, border:'none',
               cursor: savingOtp ? 'default' : 'pointer',
-              background: otpEnabled ? 'var(--primary, #1565c0)' : '#d1d5db',
+              background: otpEnabled ? 'var(--primary, #1e2a8f)' : '#d1d5db',
               position:'relative', transition:'background .2s', flexShrink:0,
               opacity: savingOtp ? 0.7 : 1,
             }}

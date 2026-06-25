@@ -1,10 +1,10 @@
 @echo off
-title ISO CRM — Startup
+title B4Q Management Limited CRM — Startup
 color 0A
 
 echo.
 echo  ============================================
-echo   QCC ISO CRM — Starting All Services
+echo   B4Q Management Limited CRM — Starting All Services
 echo  ============================================
 echo.
 

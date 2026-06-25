@@ -63,9 +63,9 @@ function Form04Inner({ data, set, clientInfo }) {
         <p>• I confirm that I don't have any relevant interest as below:</p>
         <ul style={{ marginLeft: 20, marginTop: 4 }}>
           <li>I didn't work with the applied / client organization in recent two years.</li>
-          <li>I and QCC didn't supply any consulting, training and internal audit for the applied / client organization in recent two years.</li>
+          <li>I and B4Q didn't supply any consulting, training and internal audit for the applied / client organization in recent two years.</li>
         </ul>
-        <p>• I will act in accordance with QCC policy & procedures and won't reveal any secret information without approval of QCC and interested parties, conduct activities in accurate and impartial manner.</p>
+        <p>• I will act in accordance with B4Q policy & procedures and won't reveal any secret information without approval of B4Q and interested parties, conduct activities in accurate and impartial manner.</p>
         <p>• I will keep all other gained information through audit as confidential.</p>
         <p>• I shall perform my duties in accordance with ISO 19011.</p>
         <p style={{ marginTop: 8 }}><strong>I assure that if different from above, I'll be responsible for all relevant matters.</strong></p>

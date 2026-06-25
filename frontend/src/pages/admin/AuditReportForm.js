@@ -144,7 +144,7 @@ export default function AuditReportForm() {
                 {reportId ? 'Edit Audit Report' : 'New QMS Audit Report'}
               </h2>
               <p style={{ margin: 0, fontSize: 12, color: 'var(--gray-500)' }}>
-                Quality Control Certification — Complete Audit Documentation Package
+                B4Q Management Limited — Complete Audit Documentation Package
               </p>
             </div>
           </div>

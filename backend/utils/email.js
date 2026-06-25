@@ -24,7 +24,7 @@ async function sendMail({ to, subject, html }) {
       socketTimeout:     15000,
     });
     try {
-      await t.sendMail({ from: `"QC Certification CRM" <${brevoUser}>`, to, subject, html });
+      await t.sendMail({ from: `"B4Q Management Limited CRM" <${brevoUser}>`, to, subject, html });
       console.log(`✅ Email sent via Brevo → ${to}`);
       return { ok: true, via: 'brevo' };
     } catch (e) {
@@ -41,7 +41,7 @@ async function sendMail({ to, subject, html }) {
     const fromAddress = process.env.RESEND_FROM || 'onboarding@resend.dev';
 
     const { data, error } = await resend.emails.send({
-      from: `QC Certification CRM <${fromAddress}>`,
+      from: `B4Q Management Limited CRM <${fromAddress}>`,
       to:   [to],
       subject,
       html,
@@ -67,7 +67,7 @@ async function sendMail({ to, subject, html }) {
     });
     try {
       await t.verify();
-      await t.sendMail({ from: `"QC Certification CRM" <${gmailUser}>`, to, subject, html });
+      await t.sendMail({ from: `"B4Q Management Limited CRM" <${gmailUser}>`, to, subject, html });
       console.log(`✅ Email sent via Gmail → ${to}`);
       return { ok: true, via: 'gmail' };
     } catch (e) {
@@ -83,7 +83,7 @@ async function sendMail({ to, subject, html }) {
     host: 'smtp.ethereal.email', port: 587, secure: false,
     auth: { user: acc.user, pass: acc.pass },
   });
-  const info = await t2.sendMail({ from: `"QC Certification CRM" <${acc.user}>`, to, subject, html });
+  const info = await t2.sendMail({ from: `"B4Q Management Limited CRM" <${acc.user}>`, to, subject, html });
   const url  = nodemailer.getTestMessageUrl(info);
   console.log('\n📬 Ethereal Preview URL:', url, '\n');
   return { ok: true, via: 'ethereal', previewUrl: url };
@@ -104,15 +104,15 @@ function otpHtml(name, otp, mins) {
     body { margin:0; padding:0; background:#f0f4f8; font-family:Arial,Helvetica,sans-serif; }
     .wrapper { width:100%; background:#f0f4f8; padding:32px 16px; box-sizing:border-box; }
     .card { background:#ffffff; border:1px solid #dde3ea; border-radius:10px; overflow:hidden; max-width:520px; margin:0 auto; }
-    .header { background:#1565c0; padding:28px 36px; }
+    .header { background:#1e2a8f; padding:28px 36px; }
     .header-title { margin:0; font-size:20px; font-weight:bold; color:#ffffff; }
-    .header-sub { margin:5px 0 0; font-size:12px; color:#bbdefb; }
+    .header-sub { margin:5px 0 0; font-size:12px; color:#d7dcf5; }
     .body { padding:32px 36px; }
     .greeting { margin:0 0 6px; font-size:16px; color:#111111; }
     .info { margin:0 0 24px; font-size:14px; color:#555555; line-height:1.7; }
-    .otp-box { background:#eef4ff; border:2px solid #1565c0; border-radius:8px; padding:28px 16px; text-align:center; margin-bottom:24px; }
-    .otp-label { margin:0 0 10px; font-size:11px; font-weight:bold; letter-spacing:2px; text-transform:uppercase; color:#1565c0; }
-    .otp-code { margin:0; font-size:44px; font-weight:bold; letter-spacing:14px; color:#0d47a1; font-family:'Courier New',Courier,monospace; line-height:1.1; }
+    .otp-box { background:#eef4ff; border:2px solid #1e2a8f; border-radius:8px; padding:28px 16px; text-align:center; margin-bottom:24px; }
+    .otp-label { margin:0 0 10px; font-size:11px; font-weight:bold; letter-spacing:2px; text-transform:uppercase; color:#1e2a8f; }
+    .otp-code { margin:0; font-size:44px; font-weight:bold; letter-spacing:14px; color:#141d68; font-family:'Courier New',Courier,monospace; line-height:1.1; }
     .otp-expiry { margin:12px 0 0; font-size:12px; color:#777777; }
     .notice { font-size:13px; color:#666666; line-height:1.6; margin:0; }
     .footer { background:#f8f9fb; border-top:1px solid #dde3ea; padding:16px 36px; }
@@ -141,8 +141,8 @@ function otpHtml(name, otp, mins) {
 
       <!-- Header -->
       <div class="header">
-        <p class="header-title">QC Certification</p>
-        <p class="header-sub">ISO Certification Management Platform</p>
+        <p class="header-title">B4Q Management Limited</p>
+        <p class="header-sub">CRM Platform</p>
       </div>
 
       <!-- Body -->
@@ -168,7 +168,7 @@ function otpHtml(name, otp, mins) {
 
       <!-- Footer -->
       <div class="footer">
-        <p>&copy; ${new Date().getFullYear()} QC Certification &middot; ISO CRM Platform. All rights reserved.</p>
+        <p>&copy; ${new Date().getFullYear()} B4Q Management Limited &middot; CRM Platform. All rights reserved.</p>
       </div>
 
     </div>
@@ -188,11 +188,11 @@ function welcomeHtml(name, clientId, email, password) {
 <table width="100%" cellpadding="0" cellspacing="0" style="padding:48px 16px;background:#eef2f7;">
 <tr><td align="center">
 <table width="520" cellpadding="0" cellspacing="0"
-  style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(21,101,192,.15);">
+  style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(30,42,143,.15);">
   <tr>
-    <td style="background:linear-gradient(135deg,#1565c0,#0d47a1);padding:34px 40px;text-align:center;">
-      <div style="font-size:22px;font-weight:900;color:#fff;letter-spacing:.5px;">QC Certification</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:5px;">ISO Certification Management Platform</div>
+    <td style="background:linear-gradient(135deg,#1e2a8f,#141d68);padding:34px 40px;text-align:center;">
+      <div style="font-size:22px;font-weight:900;color:#fff;letter-spacing:.5px;">B4Q Management Limited</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:5px;">CRM Platform</div>
     </td>
   </tr>
   <tr>
@@ -203,10 +203,10 @@ function welcomeHtml(name, clientId, email, password) {
         You can now log in and start your ISO certification journey.
       </p>
       <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);border:2px solid #90caf9;
+        <tr><td style="background:linear-gradient(135deg,#eef0fb,#d7dcf5);border:2px solid #b1bbec;
                         border-radius:14px;padding:26px;">
           <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-                      color:#1565c0;margin-bottom:14px;">Your Login Credentials</div>
+                      color:#1e2a8f;margin-bottom:14px;">Your Login Credentials</div>
           <table width="100%" cellpadding="7">
             <tr>
               <td style="font-size:12px;color:#64748b;font-weight:600;width:110px;">Client ID</td>
@@ -218,7 +218,7 @@ function welcomeHtml(name, clientId, email, password) {
             </tr>
             <tr>
               <td style="font-size:12px;color:#64748b;font-weight:600;">Password</td>
-              <td style="font-size:13px;font-weight:800;color:#0d47a1;font-family:'Courier New',monospace;">${password}</td>
+              <td style="font-size:13px;font-weight:800;color:#141d68;font-family:'Courier New',monospace;">${password}</td>
             </tr>
           </table>
         </td></tr>
@@ -232,7 +232,7 @@ function welcomeHtml(name, clientId, email, password) {
   </tr>
   <tr>
     <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 40px;text-align:center;">
-      <p style="margin:0;font-size:12px;font-weight:600;color:#64748b;">QC Certification &middot; ISO CRM Platform</p>
+      <p style="margin:0;font-size:12px;font-weight:600;color:#64748b;">B4Q Management Limited &middot; CRM Platform</p>
       <p style="margin:5px 0 0;font-size:11px;color:#94a3b8;">&copy; ${new Date().getFullYear()} All rights reserved.</p>
     </td>
   </tr>
@@ -249,14 +249,14 @@ function welcomeHtml(name, clientId, email, password) {
 const sendOtpEmail = ({ to, name, otp, expiresInMinutes = 10 }) =>
   sendMail({
     to,
-    subject: `${otp} — Your QC Certification Admin OTP`,
+    subject: `${otp} — Your B4Q Management Limited Admin OTP`,
     html:    otpHtml(name, otp, expiresInMinutes),
   });
 
 const sendWelcomeEmail = ({ to, name, clientId, email, password }) =>
   sendMail({
     to,
-    subject: 'Welcome to QC Certification CRM — Account Activated',
+    subject: 'Welcome to B4Q Management Limited CRM — Account Activated',
     html:    welcomeHtml(name, clientId, email, password),
   });
 

@@ -29,7 +29,7 @@ const COUNTRY_CODES = [
   {code:'+974',country:'Qatar'},{code:'+977',country:'Nepal'},
 ];
 const EMP_ROWS = ['Top Management','Production Area / Service','Quality Control / Technical','Administration','Other'];
-const EMP_COLS = ['Full Time','Part Time','Performing Same type of Job','Temporary Unskilled Workers','Effective No. Filled by QCC'];
+const EMP_COLS = ['Full Time','Part Time','Performing Same type of Job','Temporary Unskilled Workers','Effective No. Filled by B4Q'];
 const LOCATION_CONDITIONS = ['Special countermeasure area','Protection area of source water','Industrial complex','City'];
 const emptyRow = () => Array(EMP_COLS.length).fill(0);
 
@@ -209,7 +209,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
     set('empTable', t);
   };
   const colTotal  = (col) => (data.empTable||[]).reduce((a,r)=>a+(r?.[col]||0),0);
-  // Total no. of employees = total of the "Effective No. Filled by QCC" column (last column)
+  // Total no. of employees = total of the "Effective No. Filled by B4Q" column (last column)
   const effectiveTotal = () => colTotal(EMP_COLS.length - 1);
   const scrollTo  = (id)  => { const el=document.getElementById('f01-'+id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); };
 
@@ -305,7 +305,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
           <SecCard id="f01-basic-info" title="Basic Information">
             <div style={{background:'linear-gradient(135deg,var(--primary-50),white)',border:'1.5px solid var(--primary-200)',borderRadius:10,padding:'12px 18px',marginBottom:22,textAlign:'center'}}>
               <div style={{fontWeight:800,fontSize:15,color:'var(--text-1)',marginBottom:2}}>Request for Proposal cum Application Form</div>
-              <div style={{fontSize:11.5,color:'var(--gray-500)'}}>QC Certification · ISO Certification Management</div>
+              <div style={{fontSize:11.5,color:'var(--gray-500)'}}>B4Q Management Limited</div>
             </div>
             <Row>
               <FG label="REFNO">
@@ -543,7 +543,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                   <YNRow key={field} label={label} field={field} form={data} set={set}/>
                 ))}
                 <div style={{padding:'9px 14px',display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-                  <span style={{fontSize:12.5,color:'var(--text-1)',flex:1}}>Percentage level of integration (decided by QCC):</span>
+                  <span style={{fontSize:12.5,color:'var(--text-1)',flex:1}}>Percentage level of integration (decided by B4Q):</span>
                   <input className="form-control" style={{width:160}} placeholder="e.g. 80%" value={data.integrationPercentage||''} onChange={e=>set('integrationPercentage',e.target.value)}/>
                 </div>
               </div>
@@ -1037,7 +1037,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                     <TCell head>Part Time</TCell>
                     <TCell head>Performing Same type of Job</TCell>
                     <TCell head>Temporary Unskilled Workers</TCell>
-                    <TCell head>Effective No. Filled by QCC</TCell>
+                    <TCell head>Effective No. Filled by B4Q</TCell>
                   </tr>
                 </thead>
                 <tbody>
@@ -1070,7 +1070,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                 <thead>
                   <tr style={{background:'var(--primary-50)'}}>
                     <th colSpan={2} style={{padding:'10px 12px',textAlign:'left',fontSize:12.5,fontWeight:700,color:'var(--primary-dark)',border:'1px solid var(--primary-100)'}}>
-                      A representative number of sites have been sampled by the QCC, taking into account:
+                      A representative number of sites have been sampled by the B4Q, taking into account:
                     </th>
                   </tr>
                   <tr style={{background:'#f8fafc'}}>
@@ -1155,7 +1155,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                 In case, if you have more site's, kindly fill this annexure per site.
               </div>
               <div style={{background:'#e8f0fe',borderBottom:'1px solid var(--primary-200)',padding:'11px 16px',fontSize:12.5,fontWeight:600,color:'#1e3a5f',textAlign:'center',lineHeight:1.5}}>
-                Application submission: I declare that above information is true as per my best knowledge &amp; QCC can use for ISO Certification purposes
+                Application submission: I declare that above information is true as per my best knowledge &amp; B4Q can use for ISO Certification purposes
               </div>
               <div className="decl-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',borderBottom:'1px solid var(--primary-100)'}}>
                 <div style={{padding:'10px 16px',borderRight:'1px solid var(--primary-100)'}}>
@@ -1185,7 +1185,7 @@ export function Form01Inner({ data, set, onSaveDraft, onSave, saving }) {
                 <textarea className="form-control" rows={2} placeholder="Any supplemental information required…" value={data.supplementInfo||''} onChange={e=>set('supplementInfo',e.target.value)}/>
               </div>
               <div style={{background:'var(--primary-50)',padding:'8px 16px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:6}}>
-                <span style={{fontSize:11,fontWeight:700,color:'var(--primary-dark)'}}>Quality Control Certification</span>
+                <span style={{fontSize:11,fontWeight:700,color:'var(--primary-dark)'}}>B4Q Management Limited</span>
                 <span style={{fontSize:10.5,color:'var(--gray-500)'}}>AUD-F-02-Request for Proposal cum Application Form / Rev.: 03</span>
               </div>
             </div>

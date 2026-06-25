@@ -50,7 +50,7 @@ router.get('/client/:clientId', protect, authorize('admin'), async (req, res) =>
     if (fd.contactPerson) out.contactPerson = fd.contactPerson;
     const f1Phone = `${fd.countryCode || ''} ${fd.mobileNumber || ''}`.trim();
     if (fd.mobileNumber)  out.phone = f1Phone;
-    // Total employees = sum of the "Effective No. Filled by QCC" column (last
+    // Total employees = sum of the "Effective No. Filled by B4Q" column (last
     // column) of F01's employee table — used as No. of Persons under Certification.
     const empTable = Array.isArray(fd.empTable) ? fd.empTable : [];
     out.empTotal = empTable.reduce(

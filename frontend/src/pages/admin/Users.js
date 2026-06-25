@@ -20,7 +20,7 @@ function CopyBtn({ text }) {
   };
   return (
     <button onClick={copy} title="Copy"
-      style={{ background: done ? '#16a34a' : '#e3f2fd', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: done ? '#fff' : '#1565c0', fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4, transition: 'all .15s' }}>
+      style={{ background: done ? '#16a34a' : '#eef0fb', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: done ? '#fff' : '#1e2a8f', fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4, transition: 'all .15s' }}>
       <Copy size={11} /> {done ? 'Copied!' : 'Copy'}
     </button>
   );
@@ -155,7 +155,7 @@ export default function AdminUsers() {
                         <div style={{ fontWeight: 600, color: 'var(--primary)' }}>{u.name}</div>
                         <div style={{ fontSize: 11, color: 'var(--gray-400)' }}>{u.email}</div>
                         {u.clientId && (
-                          <div style={{ fontSize: 10, color: '#1565c0', fontWeight: 700, fontFamily: 'monospace', marginTop: 2 }}>
+                          <div style={{ fontSize: 10, color: '#1e2a8f', fontWeight: 700, fontFamily: 'monospace', marginTop: 2 }}>
                             ID: {u.clientId}
                           </div>
                         )}
@@ -163,7 +163,7 @@ export default function AdminUsers() {
                     </div>
                   </td>
                   {activeTab === 'pending' && (
-                    <td style={{ fontSize: 12, fontFamily: 'monospace', fontWeight: 600, color: '#1565c0' }}>{u.clientId || '—'}</td>
+                    <td style={{ fontSize: 12, fontFamily: 'monospace', fontWeight: 600, color: '#1e2a8f' }}>{u.clientId || '—'}</td>
                   )}
                   <td><span className={`badge bdg-${u.role}`}>{u.role}</span></td>
                   <td style={{ fontSize: 13 }}>{u.company || '—'}</td>
@@ -225,10 +225,10 @@ export default function AdminUsers() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 0, background: '#e3f2fd', borderRadius: 10, padding: 3, marginBottom: 16, border: '1px solid #90caf9', width: 'fit-content' }}>
+      <div style={{ display: 'flex', gap: 0, background: '#eef0fb', borderRadius: 10, padding: 3, marginBottom: 16, border: '1px solid #b1bbec', width: 'fit-content' }}>
         {[['all', 'All Users'], ['pending', `Pending Approval${pending.length ? ` (${pending.length})` : ''}`]].map(([id, label]) => (
           <button key={id} onClick={() => setActiveTab(id)}
-            style={{ padding: '7px 16px', border: 'none', borderRadius: 8, background: activeTab === id ? 'linear-gradient(135deg,#1565c0,#0d47a1)' : 'transparent', color: activeTab === id ? 'white' : '#9ca3af', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap' }}>
+            style={{ padding: '7px 16px', border: 'none', borderRadius: 8, background: activeTab === id ? 'linear-gradient(135deg,#1e2a8f,#141d68)' : 'transparent', color: activeTab === id ? 'white' : '#9ca3af', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap' }}>
             {label}
           </button>
         ))}
@@ -284,7 +284,7 @@ export default function AdminUsers() {
                     <span>Password{modal !== 'add' ? ' (blank = keep)' : ' *'}</span>
                     {modal === 'add' && form.role === 'client' && (
                       <button type="button" onClick={() => setForm(p => ({ ...p, password: genPassword() }))}
-                        style={{ background: 'none', border: 'none', color: '#1565c0', cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', gap: 3, fontWeight: 600 }}>
+                        style={{ background: 'none', border: 'none', color: '#1e2a8f', cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', gap: 3, fontWeight: 600 }}>
                         <RefreshCw size={11} /> Generate
                       </button>
                     )}
@@ -319,10 +319,10 @@ export default function AdminUsers() {
               </div>
 
               {modal === 'add' && form.role === 'client' && (
-                <div style={{ background: '#e3f2fd', border: '1.5px solid #90caf9', borderRadius: 10, padding: '12px 14px', marginTop: 4 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#1565c0', marginBottom: 4 }}>Client ID — Auto Generated</div>
+                <div style={{ background: '#eef0fb', border: '1.5px solid #b1bbec', borderRadius: 10, padding: '12px 14px', marginTop: 4 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#1e2a8f', marginBottom: 4 }}>Client ID — Auto Generated</div>
                   <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>
-                    A unique Client ID in the format <strong style={{ fontFamily: 'monospace', color: '#0d47a1' }}>YEAR + 4 digits</strong> (e.g. <strong style={{ fontFamily: 'monospace' }}>20261234</strong>) will be created automatically.
+                    A unique <strong style={{ fontFamily: 'monospace', color: '#141d68' }}>4-digit Client ID</strong> (e.g. <strong style={{ fontFamily: 'monospace' }}>3333</strong>) will be created automatically.
                     The Client ID and password will be shown after saving so you can share them with the client.
                   </div>
                 </div>
@@ -341,7 +341,7 @@ export default function AdminUsers() {
       {credsModal && (
         <div className="modal-bg" onClick={() => setCredsModal(null)}>
           <div className="modal-box" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-head" style={{ background: 'linear-gradient(135deg,#1565c0,#0d47a1)', borderRadius: '12px 12px 0 0' }}>
+            <div className="modal-head" style={{ background: 'linear-gradient(135deg,#1e2a8f,#141d68)', borderRadius: '12px 12px 0 0' }}>
               <div className="modal-title" style={{ color: '#fff' }}>Client Created Successfully</div>
               <button className="modal-close" style={{ color: '#fff' }} onClick={() => setCredsModal(null)}>✕</button>
             </div>
@@ -353,10 +353,10 @@ export default function AdminUsers() {
                 </p>
               </div>
 
-              <div style={{ background: '#e3f2fd', border: '2px solid #1565c0', borderRadius: 10, padding: '16px 18px', marginBottom: 12 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: '#1565c0', marginBottom: 6 }}>Client ID (Login Username)</div>
+              <div style={{ background: '#eef0fb', border: '2px solid #1e2a8f', borderRadius: 10, padding: '16px 18px', marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: '#1e2a8f', marginBottom: 6 }}>Client ID (Login Username)</div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                  <span style={{ fontSize: 26, fontWeight: 900, letterSpacing: 4, fontFamily: 'monospace', color: '#0d47a1' }}>{credsModal.clientId}</span>
+                  <span style={{ fontSize: 26, fontWeight: 900, letterSpacing: 4, fontFamily: 'monospace', color: '#141d68' }}>{credsModal.clientId}</span>
                   <CopyBtn text={credsModal.clientId} />
                 </div>
               </div>

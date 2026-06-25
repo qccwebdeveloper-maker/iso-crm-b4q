@@ -16,9 +16,9 @@ const Observation = require('./models/Observation');
 const Standard    = require('./models/Standard');
 const Role        = require('./models/Role');
 const CertSetting = require('./models/CertSetting');
-
+ 
 // const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/iso-crm';
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://qccwebdeveloper_db:iso_crm_qcc_101@cluster0.nhou9fq.mongodb.net/?appName=Cluster0';
+const MONGO_URI = process.env.MONGODB_URI;
 
 // insertMany skips pre-save hooks — hash passwords manually
 const h = (pw) => bcrypt.hashSync(pw, 10);
@@ -42,7 +42,7 @@ async function seed() {
     // ── Admin
     {
       name: 'Admin User', email: 'qcc.webdeveloper@gmail.com', password: h('admin123'),
-      role: 'admin', company: 'QC Certification', phone: '9000000001',
+      role: 'admin', company: 'B4Q Management Limited', phone: '9000000001',
       isActive: true, pendingApproval: false,
     },
 
@@ -126,11 +126,11 @@ async function seed() {
     // ── Sales (2)
     {
       name: 'Sales Manager', email: 'sales@crm.com', password: h('sales123'),
-      role: 'sales', company: 'QC Cert', phone: '9000000005', isActive: true,
+      role: 'sales', company: 'B4Q Management Limited', phone: '9000000005', isActive: true,
     },
     {
-      name: 'Vikram Patel', email: 'vikram@qccert.com', password: h('sales123'),
-      role: 'sales', company: 'QC Cert', phone: '9844332211', isActive: true,
+      name: 'Vikram Patel', email: 'vikram@b4q.com', password: h('sales123'),
+      role: 'sales', company: 'B4Q Management Limited', phone: '9844332211', isActive: true,
     },
   ]);
 
@@ -221,7 +221,7 @@ async function seed() {
       progressStages: ['submitted', 'under_review', 'audit_stage1', 'audit_stage2', 'approved', 'certified'],
       paymentStatus: 'received', paymentAmount: 60000, paymentDate: new Date('2024-09-28'),
       feedbacks: [
-        { from: u['ravi@greenenergy.com']._id, role: 'client', message: 'Excellent service! The audit team was professional and thorough. Highly recommend QCC.', rating: 5, createdAt: new Date('2024-11-16') },
+        { from: u['ravi@greenenergy.com']._id, role: 'client', message: 'Excellent service! The audit team was professional and thorough. Highly recommend B4Q.', rating: 5, createdAt: new Date('2024-11-16') },
       ],
       auditNotes: 'All stages complete. Environmental aspects properly managed.',
       reviewNotes: 'Approved by HOD. All requirements met.',
@@ -380,7 +380,7 @@ async function seed() {
       email: 'meena@freshfarm.com', mobile: '9445566778', city: 'Coimbatore', state: 'Tamil Nadu', country: 'India',
       isoStandard: 'ISO 22000:2018', source: 'Referral', status: 'qualified', priority: 'high',
       notes: 'Food safety for organic products. Very positive response. Ready to sign agreement.',
-      assignedTo: u['vikram@qccert.com']._id,
+      assignedTo: u['vikram@b4q.com']._id,
     },
     {
       leadId: 'LEAD-004', companyName: 'GreenTech Solutions', contactPerson: 'Anil Verma',
@@ -401,14 +401,14 @@ async function seed() {
       email: 'deepak@powergen.com', mobile: '9001122334', city: 'Kolkata', state: 'West Bengal', country: 'India',
       isoStandard: 'ISO 50001:2018', source: 'Email Campaign', status: 'lost', priority: 'low',
       notes: 'Budget constraints cited. Follow up in Q2 next year.',
-      assignedTo: u['vikram@qccert.com']._id,
+      assignedTo: u['vikram@b4q.com']._id,
     },
     {
       leadId: 'LEAD-007', companyName: 'Apex Auto Components', contactPerson: 'Suresh Babu',
       email: 'suresh@apexauto.com', mobile: '9123456780', city: 'Chennai', state: 'Tamil Nadu', country: 'India',
       isoStandard: 'ISO 9001:2015', source: 'Trade Show', status: 'contacted', priority: 'medium',
       notes: 'Met at Auto Expo 2024. Interested in IATF 16949 / ISO 9001 for automotive.',
-      assignedTo: u['vikram@qccert.com']._id,
+      assignedTo: u['vikram@b4q.com']._id,
     },
     {
       leadId: 'LEAD-008', companyName: 'BioPharm Research Ltd', contactPerson: 'Dr. Anjali Shah',
@@ -495,7 +495,7 @@ async function seed() {
       contactPerson: 'Ravi Kumar', designation: 'CEO',
       contactNumber: '9922334455', email: 'ravi@greenenergy.com',
       auditorName: 'Sarah Auditor', auditorRole: 'Lead Auditor',
-      iafCode: '39', accreditation: 'NABCB', certNumber: 'QCC-EMS-2024-001',
+      iafCode: '39', accreditation: 'NABCB', certNumber: 'B4Q-EMS-2024-001',
       issueDate: new Date('2024-11-15'),
       expiryDate: new Date('2027-11-14'),
       surveillanceDate: new Date('2025-11-15'),
@@ -510,7 +510,7 @@ async function seed() {
       contactPerson: 'John Client', designation: 'MD',
       contactNumber: '9000000002', email: 'client@crm.com',
       auditorName: 'Ramesh Verma', auditorRole: 'Lead Auditor',
-      iafCode: '17', accreditation: 'NABCB', certNumber: 'QCC-QMS-2023-088',
+      iafCode: '17', accreditation: 'NABCB', certNumber: 'B4Q-QMS-2023-088',
       issueDate: new Date('2023-06-10'),
       expiryDate: new Date('2026-06-09'),
       surveillanceDate: new Date('2025-06-10'),
@@ -524,7 +524,7 @@ async function seed() {
       contactPerson: 'Priya Sharma', designation: 'CTO',
       contactNumber: '9811223344', email: 'priya@xyzit.com',
       auditorName: 'Ramesh Verma', auditorRole: 'Lead Auditor',
-      iafCode: '33', accreditation: 'UKAS', certNumber: 'QCC-ISMS-2024-012',
+      iafCode: '33', accreditation: 'UKAS', certNumber: 'B4Q-ISMS-2024-012',
       issueDate: new Date('2024-08-20'),
       expiryDate: new Date('2027-08-19'),
       surveillanceDate: new Date('2025-08-20'),
@@ -539,7 +539,7 @@ async function seed() {
       contactPerson: 'Rohit Malhotra', designation: 'Director',
       contactNumber: '9112233445', email: 'rohit@techbridge.com',
       auditorName: 'Anita Desai', auditorRole: 'Lead Auditor',
-      iafCode: '33', accreditation: 'NABCB', certNumber: 'QCC-QMS-2024-056',
+      iafCode: '33', accreditation: 'NABCB', certNumber: 'B4Q-QMS-2024-056',
       issueDate: new Date('2024-03-15'),
       expiryDate: new Date('2027-03-14'),
       surveillanceDate: new Date('2025-03-15'),
@@ -552,7 +552,7 @@ async function seed() {
       contactPerson: 'Sunil Gupta', designation: 'QA Director',
       contactNumber: '9223344556', email: 'sunil@sunrisepharma.com',
       auditorName: 'Sarah Auditor', auditorRole: 'Lead Auditor',
-      iafCode: '30', accreditation: 'NABCB', certNumber: 'QCC-QMS-2022-034',
+      iafCode: '30', accreditation: 'NABCB', certNumber: 'B4Q-QMS-2022-034',
       issueDate: new Date('2022-09-01'),
       expiryDate: new Date('2025-08-31'),
       surveillanceDate: new Date('2025-03-01'),
@@ -643,9 +643,9 @@ async function seed() {
   // ─────────────────────────────────────────────
   await CertSetting.create({
     title: 'Certificate of Registration',
-    authority: 'Quality Control Certification (QCC)',
+    authority: 'B4Q Management Limited',
     validityYears: 3,
-    footerText: '"Quality Control Certification (QCC)" accredited by the respective accreditation body. This certificate remains the property of QCC to whom it must be returned on request.',
+    footerText: '"B4Q Management Limited" accredited by the respective accreditation body. This certificate remains the property of B4Q to whom it must be returned on request.',
     accreditation: 'NABCB',
   });
 
@@ -665,7 +665,7 @@ async function seed() {
   console.log('  reviewer@crm.com     / reviewer123 (Mike Reviewer)');
   console.log('  kavita@reviewpro.com / reviewer123 (Kavita Menon)');
   console.log('  sales@crm.com        / sales123    (Sales Manager)');
-  console.log('  vikram@qccert.com    / sales123    (Vikram Patel)');
+  console.log('  vikram@b4q.com    / sales123    (Vikram Patel)');
   console.log('─────────────────────────────────────────');
 
   await mongoose.disconnect();

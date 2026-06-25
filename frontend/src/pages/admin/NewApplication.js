@@ -39,7 +39,7 @@ const COUNTRY_CODES = [
   {code:'+974',country:'Qatar'},{code:'+977',country:'Nepal'},
 ];
 const EMP_ROWS = ['Top Management','Production Area / Service','Quality Control / Technical','Administration','Other'];
-const EMP_COLS = ['Full Time','Part Time','Performing Same type of Job','Temporary Unskilled Workers','Effective No. Filled by QCC'];
+const EMP_COLS = ['Full Time','Part Time','Performing Same type of Job','Temporary Unskilled Workers','Effective No. Filled by B4Q'];
 const LOCATION_CONDITIONS = ['Special countermeasure area','Protection area of source water','Industrial complex','City'];
 const emptyRow = () => Array(EMP_COLS.length).fill(0);
 
@@ -274,7 +274,7 @@ export default function AdminNewApplication() {
             </button>
             <div>
               <h1 className="page-title">{isEdit?'Edit Application':isClient?'Apply for ISO Certification':'New Application'}</h1>
-              <p className="page-subtitle">Request for Proposal cum Application Form — QC Certification</p>
+              <p className="page-subtitle">Request for Proposal cum Application Form — B4Q Management Limited</p>
             </div>
           </div>
           <button className="btn btn-secondary" onClick={()=>submit(true)} disabled={saving}>
@@ -331,7 +331,7 @@ export default function AdminNewApplication() {
             <SecCard id="basic-info" title="Basic Information">
               <div style={{background:'linear-gradient(135deg,var(--primary-50),white)',border:'1.5px solid var(--primary-200)',borderRadius:10,padding:'12px 18px',marginBottom:22,textAlign:'center'}}>
                 <div style={{fontWeight:800,fontSize:15,color:'var(--text-1)',marginBottom:2}}>Request for Proposal cum Application Form</div>
-                <div style={{fontSize:11.5,color:'var(--gray-500)'}}>QC Certification · ISO Certification Management</div>
+                <div style={{fontSize:11.5,color:'var(--gray-500)'}}>B4Q Management Limited</div>
               </div>
               {!isClient&&(
                 <Row>
@@ -571,7 +571,7 @@ export default function AdminNewApplication() {
                     <YNRow key={field} label={label} field={field} form={form} set={set}/>
                   ))}
                   <div style={{padding:'9px 14px',display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-                    <span style={{fontSize:12.5,color:'var(--text-1)',flex:1}}>Percentage level of integration (decided by QCC):</span>
+                    <span style={{fontSize:12.5,color:'var(--text-1)',flex:1}}>Percentage level of integration (decided by B4Q):</span>
                     <input className="form-control" style={{width:160}} placeholder="e.g. 80%" value={form.integrationPercentage} onChange={e=>set('integrationPercentage',e.target.value)}/>
                   </div>
                 </div>
@@ -885,7 +885,7 @@ export default function AdminNewApplication() {
 
                 {/* Declaration statement */}
                 <div style={{background:'#e8f0fe',borderBottom:'1px solid var(--primary-200)',padding:'11px 16px',fontSize:12.5,fontWeight:600,color:'#1e3a5f',textAlign:'center',lineHeight:1.5}}>
-                  Application submission: I declare that above information is true as per my best knowledge &amp; QCC can use for ISO Certification purposes
+                  Application submission: I declare that above information is true as per my best knowledge &amp; B4Q can use for ISO Certification purposes
                 </div>
 
                 {/* Date + Representative Name */}
@@ -925,7 +925,7 @@ export default function AdminNewApplication() {
 
                 {/* Footer */}
                 <div style={{background:'var(--primary-50)',padding:'8px 16px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:6}}>
-                  <span style={{fontSize:11,fontWeight:700,color:'var(--primary-dark)'}}>Quality Control Certification</span>
+                  <span style={{fontSize:11,fontWeight:700,color:'var(--primary-dark)'}}>B4Q Management Limited</span>
                   <span style={{fontSize:10.5,color:'var(--gray-500)'}}>AUD-F-02-Request for Proposal cum Application Form / Rev.: 03</span>
                 </div>
 

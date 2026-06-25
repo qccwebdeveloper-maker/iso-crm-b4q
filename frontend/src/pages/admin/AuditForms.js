@@ -89,7 +89,7 @@ export default function AuditForms() {
             </div>
             <div>
               <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: 'var(--gray-800)' }}>QMS Audit Format Index</h2>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--gray-500)' }}>Quality Control Certification — Complete Audit Documentation Package</p>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--gray-500)' }}>B4Q Management Limited — Complete Audit Documentation Package</p>
             </div>
           </div>
           <div style={{ marginTop: 8, padding: '8px 14px', background: '#fff7ed', borderRadius: 8, border: '1px solid #fed7aa', fontSize: 12, color: '#9a3412', display: 'inline-flex', gap: 8 }}>

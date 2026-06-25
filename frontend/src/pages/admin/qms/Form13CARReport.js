@@ -101,7 +101,7 @@ export default function Form13CARReport() {
                   </FormField>
                 </FormRow>
 
-                <SectionTitle>For Auditor(s) / QCC Use Only</SectionTitle>
+                <SectionTitle>For Auditor(s) / B4Q Use Only</SectionTitle>
                 <FormRow cols={1}>
                   <FormField label="Evaluation Result of Corrective Action">
                     <FTextarea value={nc.evaluationResult} onChange={v => setNC(ri, 'evaluationResult', v)} rows={3} placeholder="Auditor's evaluation of the corrective action..." />
@@ -113,7 +113,7 @@ export default function Form13CARReport() {
                   </FormField>
                 </FormRow>
 
-                <SectionTitle>QCC Confirmation</SectionTitle>
+                <SectionTitle>B4Q Confirmation</SectionTitle>
                 <FormRow cols={2}>
                   <FormField label="Confirmation Result">
                     <FSelect value={nc.confirmationResult} onChange={v => setNC(ri, 'confirmationResult', v)} placeholder="Select result"

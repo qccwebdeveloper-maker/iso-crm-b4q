@@ -10,7 +10,7 @@ const ISO_LIST=['ISO 9001:2015','ISO 14001:2015','ISO 45001:2018','ISO 22000:201
 const APP_TYPES=['Initial','Surveillance','Re-certification','Un-Announced','Follow-up'];
 const ACCRED=['USF','UASL'];
 const EMP_ROWS=['Top Management','Production Area / Service','Quality Control / Technical','Administration','Other'];
-const EMP_COLS=['Full Time','Part Time','Performing Same type of Job','Temporary Unskilled Workers','Effective No. Filled by QCC'];
+const EMP_COLS=['Full Time','Part Time','Performing Same type of Job','Temporary Unskilled Workers','Effective No. Filled by B4Q'];
 const LOC_CONDS=['Special countermeasure area','Protection area of source water','Industrial complex','City'];
 const COUNTRY_CODES=[
   {code:'+1',country:'US/Canada'},{code:'+7',country:'Russia'},{code:'+20',country:'Egypt'},
@@ -470,7 +470,7 @@ export default function ClientApplicationDetail(){
                 <YNRow key={field} label={label} field={field} form={ef} onChange={set}/>
               ))}
               <div style={{padding:'9px 14px',display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-                <span style={{fontSize:12.5,flex:1}}>Percentage level of integration (decided by QCC):</span>
+                <span style={{fontSize:12.5,flex:1}}>Percentage level of integration (decided by B4Q):</span>
                 <input className="form-control" style={{width:160}} placeholder="e.g. 80%" value={ef.integrationPercentage||''} onChange={e=>set('integrationPercentage',e.target.value)}/>
               </div>
             </div>

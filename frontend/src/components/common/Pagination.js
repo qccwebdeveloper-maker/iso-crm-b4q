@@ -25,7 +25,7 @@ export default function Pagination({ total, page, perPage, onChange }) {
         minWidth: 32, height: 32, padding: '0 8px',
         border: active ? 'none' : '1px solid var(--gray-200)',
         borderRadius: 7,
-        background: active ? 'linear-gradient(135deg,#1565c0,#0d47a1)' : '#fff',
+        background: active ? 'linear-gradient(135deg,#1e2a8f,#141d68)' : '#fff',
         color: active ? '#fff' : disabled ? 'var(--gray-300)' : 'var(--gray-600)',
         fontSize: 13, fontWeight: active ? 700 : 500,
         cursor: disabled ? 'not-allowed' : 'pointer',

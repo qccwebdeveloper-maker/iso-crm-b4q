@@ -20,24 +20,24 @@ const ISO_STANDARDS = [
 const S = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%, #e8f0fe 100%)',
+    background: 'linear-gradient(135deg, #eef0fb 0%, #d7dcf5 50%, #e8f0fe 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     padding: 20, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
-  blob1: { position: 'fixed', top: -120, right: -120, width: 500, height: 500, borderRadius: '50%', background: 'rgba(21,101,192,0.07)', pointerEvents: 'none' },
-  blob2: { position: 'fixed', bottom: -80, left: -80, width: 350, height: 350, borderRadius: '50%', background: 'rgba(13,71,161,0.05)', pointerEvents: 'none' },
-  card: { background: 'white', borderRadius: 24, padding: '34px 32px 28px', boxShadow: '0 20px 60px rgba(21,101,192,0.14)', border: '1.5px solid #90caf9' },
+  blob1: { position: 'fixed', top: -120, right: -120, width: 500, height: 500, borderRadius: '50%', background: 'rgba(30,42,143,0.07)', pointerEvents: 'none' },
+  blob2: { position: 'fixed', bottom: -80, left: -80, width: 350, height: 350, borderRadius: '50%', background: 'rgba(238,59,52,0.05)', pointerEvents: 'none' },
+  card: { background: 'white', borderRadius: 24, padding: '34px 32px 28px', boxShadow: '0 20px 60px rgba(30,42,143,0.14)', border: '1.5px solid #b1bbec' },
   logoWrap: { textAlign: 'center', marginBottom: 24 },
-  logoIcon: { width: 64, height: 64, borderRadius: '50%', background: '#ffffff', border: '2px solid #bbdefb', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 20px rgba(21,101,192,0.18)', overflow: 'hidden' },
+  logoIcon: { width: 64, height: 64, borderRadius: '50%', background: '#ffffff', border: '2px solid #d7dcf5', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 20px rgba(30,42,143,0.18)', overflow: 'hidden' },
   h1: { fontSize: 19, fontWeight: 800, color: '#0d1b2a', margin: '0 0 3px' },
-  sub: { fontSize: 11.5, color: '#1565c0', margin: 0, fontWeight: 600 },
-  tabs: { display: 'flex', background: '#e3f2fd', borderRadius: 11, padding: 3, marginBottom: 22, border: '1px solid #90caf9' },
-  label: { display: 'block', fontSize: 10.5, fontWeight: 700, color: '#0d47a1', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '.06em' },
-  btnMain: { width: '100%', padding: '12px 0', border: 'none', borderRadius: 11, color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', background: 'linear-gradient(135deg,#1565c0,#0d47a1)', boxShadow: '0 4px 14px rgba(21,101,192,0.32)', transition: 'opacity .15s' },
+  sub: { fontSize: 11.5, color: '#1e2a8f', margin: 0, fontWeight: 600 },
+  tabs: { display: 'flex', background: '#eef0fb', borderRadius: 11, padding: 3, marginBottom: 22, border: '1px solid #b1bbec' },
+  label: { display: 'block', fontSize: 10.5, fontWeight: 700, color: '#141d68', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '.06em' },
+  btnMain: { width: '100%', padding: '12px 0', border: 'none', borderRadius: 11, color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', background: 'linear-gradient(135deg,#1e2a8f,#141d68)', boxShadow: '0 4px 14px rgba(30,42,143,0.32)', transition: 'opacity .15s' },
 };
 
 function inp(focused) {
-  return { width: '100%', padding: '10px 13px', border: `1.5px solid ${focused ? '#1565c0' : '#90caf9'}`, borderRadius: 9, fontSize: 13, outline: 'none', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", boxSizing: 'border-box', background: '#f0f4f8', color: '#0d1b2a', transition: 'border .15s' };
+  return { width: '100%', padding: '10px 13px', border: `1.5px solid ${focused ? '#1e2a8f' : '#b1bbec'}`, borderRadius: 9, fontSize: 13, outline: 'none', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", boxSizing: 'border-box', background: '#f0f4f8', color: '#0d1b2a', transition: 'border .15s' };
 }
 
 function FInput({ type = 'text', placeholder, value, onChange, required = true, name, onEnter }) {
@@ -56,7 +56,7 @@ function FInput({ type = 'text', placeholder, value, onChange, required = true, 
 function Field({ label, required, children }) {
   return (
     <div style={{ marginBottom: 13 }}>
-      <label style={S.label}>{label}{required && <span style={{ color: '#1565c0' }}> *</span>}</label>
+      <label style={S.label}>{label}{required && <span style={{ color: '#1e2a8f' }}> *</span>}</label>
       {children}
     </div>
   );
@@ -107,7 +107,7 @@ function OtpInput({ value, onChange }) {
           <input key={i} ref={el => (refs.current[i] = el)}
             type="text" inputMode="numeric" maxLength={1} value={digit}
             onChange={e => handleChange(e, i)} onKeyDown={e => handleKey(e, i)} onPaste={handlePaste}
-            style={{ width: 42, height: 50, textAlign: 'center', fontSize: 22, fontWeight: 800, border: `2px solid ${digit ? '#1565c0' : '#90caf9'}`, borderRadius: 11, outline: 'none', background: digit ? '#e3f2fd' : '#f0f4f8', color: '#0d47a1', fontFamily: 'monospace', transition: 'all .15s' }}
+            style={{ width: 42, height: 50, textAlign: 'center', fontSize: 22, fontWeight: 800, border: `2px solid ${digit ? '#1e2a8f' : '#b1bbec'}`, borderRadius: 11, outline: 'none', background: digit ? '#eef0fb' : '#f0f4f8', color: '#141d68', fontFamily: 'monospace', transition: 'all .15s' }}
           />
         );
       })}
@@ -253,14 +253,14 @@ export default function Login() {
 
   const tabBtn = (id, label) => (
     <button onClick={() => { setTab(id); clear(); }}
-      style={{ flex: 1, padding: '8px 0', border: 'none', borderRadius: 9, background: tab === id ? 'linear-gradient(135deg,#1565c0,#0d47a1)' : 'transparent', color: tab === id ? 'white' : '#9ca3af', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}>
+      style={{ flex: 1, padding: '8px 0', border: 'none', borderRadius: 9, background: tab === id ? 'linear-gradient(135deg,#1e2a8f,#141d68)' : 'transparent', color: tab === id ? 'white' : '#9ca3af', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}>
       {label}
     </button>
   );
 
   const modePill = (id, label) => (
     <button onClick={() => { setLoginMode(id); clear(); setOtpSent(false); setOtp('      '); setAdminEmail(''); setPreviewUrl(''); setOtpVia(''); setEmail(''); setPassword(''); }}
-      style={{ flex: 1, padding: '7px 4px', border: `1.5px solid ${loginMode === id ? '#1565c0' : '#bbdefb'}`, borderRadius: 9, background: loginMode === id ? '#e3f2fd' : 'transparent', color: loginMode === id ? '#1565c0' : '#9ca3af', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+      style={{ flex: 1, padding: '7px 4px', border: `1.5px solid ${loginMode === id ? '#1e2a8f' : '#d7dcf5'}`, borderRadius: 9, background: loginMode === id ? '#eef0fb' : 'transparent', color: loginMode === id ? '#1e2a8f' : '#9ca3af', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
       {label}
     </button>
   );
@@ -275,12 +275,12 @@ export default function Login() {
           {/* Logo */}
           <div style={S.logoWrap}>
             <div style={S.logoIcon}>
-              <img src="/QC.png" alt="QC Certification"
+              <img src="/b4q-logo.png" alt="B4Q Management Limited"
                 style={{ width: 56, height: 56, objectFit: 'contain' }}
-                onError={e => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#1565c0;font-size:18px;font-weight:900">QC</span>'; }} />
+                onError={e => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span style="color:#1e2a8f;font-size:18px;font-weight:900">B4Q</span>'; }} />
             </div>
-            <h1 style={S.h1}>QC Certification CRM</h1>
-            <p style={S.sub}>ISO Certification Management Platform</p>
+            <h1 style={S.h1}>B4Q Management Limited</h1>
+            <p style={S.sub}>CRM Platform</p>
           </div>
 
           {/* Tabs */}
@@ -345,7 +345,7 @@ export default function Login() {
                           </div>
                         ) : previewUrl ? (
                           <a href={previewUrl} target="_blank" rel="noreferrer"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '8px 18px', background: 'linear-gradient(135deg,#1565c0,#0d47a1)', color: 'white', borderRadius: 9, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '8px 18px', background: 'linear-gradient(135deg,#1e2a8f,#141d68)', color: 'white', borderRadius: 9, fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
                             <Mail size={13} /> Click here to view your OTP
                           </a>
                         ) : (
@@ -364,12 +364,12 @@ export default function Login() {
                       </button>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <button onClick={() => { setOtpSent(false); setOtp('      '); setPreviewUrl(''); setOtpVia(''); clear(); }}
-                          style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1565c0', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1e2a8f', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}>
                           <ArrowLeft size={12} /> Change email
                         </button>
                         {timer > 0
                           ? <span style={{ fontSize: 11.5, color: '#9ca3af' }}>Resend in {timer}s</span>
-                          : <button onClick={handleSendOtp} style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1565c0', cursor: 'pointer', fontFamily: 'inherit' }}>Resend OTP</button>
+                          : <button onClick={handleSendOtp} style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#1e2a8f', cursor: 'pointer', fontFamily: 'inherit' }}>Resend OTP</button>
                         }
                       </div>
                     </>
@@ -435,7 +435,7 @@ export default function Login() {
           {/* ────── REGISTER TAB ────── */}
           {tab === 'register' && allowRegister && (
             <form onSubmit={handleRegister}>
-              <div style={{ background: '#e3f2fd', border: '1px solid #90caf9', borderRadius: 10, padding: '10px 13px', marginBottom: 18, fontSize: 11.5, color: '#0d47a1', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <div style={{ background: '#eef0fb', border: '1px solid #b1bbec', borderRadius: 10, padding: '10px 13px', marginBottom: 18, fontSize: 11.5, color: '#141d68', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                 <ClipboardList size={15} style={{ flexShrink: 0, marginTop: 1 }} />
                 <span><strong>New Client Registration</strong> — fill all fields to create your account. Admin will activate it shortly.</span>
               </div>
@@ -479,7 +479,7 @@ export default function Login() {
               </div>
 
               <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', margin: '0 0 14px' }}>
-                <span style={{ color: '#1565c0' }}>*</span> Required Field
+                <span style={{ color: '#1e2a8f' }}>*</span> Required Field
               </p>
               <button type="submit" disabled={loading} style={{ ...S.btnMain, opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
                 {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={14} />}
@@ -488,7 +488,7 @@ export default function Login() {
               <p style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 14, marginBottom: 0 }}>
                 Already have an account?{' '}
                 <button type="button" onClick={() => { setTab('login'); clear(); }}
-                  style={{ background: 'none', border: 'none', color: '#1565c0', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Sign In</button>
+                  style={{ background: 'none', border: 'none', color: '#1e2a8f', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Sign In</button>
               </p>
             </form>
           )}
@@ -497,7 +497,7 @@ export default function Login() {
           {tab === 'success' && (
             <div style={{ textAlign: 'center', padding: '8px 0 12px' }}>
               <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>
-                <CheckCircle2 size={52} color="#1565c0" strokeWidth={1.5} />
+                <CheckCircle2 size={52} color="#1e2a8f" strokeWidth={1.5} />
               </div>
               <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0d1b2a', margin: '0 0 8px' }}>Thank You for Registering!</h2>
               <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 18px', lineHeight: 1.5 }}>
@@ -518,8 +518,8 @@ export default function Login() {
         </div>
 
         {tab !== 'success' && (
-          <p style={{ textAlign: 'center', fontSize: 11, color: '#1565c0', marginTop: 13, marginBottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-            <Lock size={11} /> Secure platform · ISO Certification Management
+          <p style={{ textAlign: 'center', fontSize: 11, color: '#1e2a8f', marginTop: 13, marginBottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <Lock size={11} /> Secure platform
           </p>
         )}
       </div>

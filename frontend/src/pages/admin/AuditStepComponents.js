@@ -182,7 +182,7 @@ export function Step1({ d, set }) {
     <div>
       <SectionHdr code="AUD-F-02 §2.1" title="Organization Information" />
       <div className="aud-g2">
-        <Field label="REF NO."><Inp value={d.refNo} onChange={v => set('refNo', v)} placeholder="QCC-2024-001" /></Field>
+        <Field label="REF NO."><Inp value={d.refNo} onChange={v => set('refNo', v)} placeholder="B4Q-2024-001" /></Field>
         <Field label="Name of Organization" required><Inp value={d.orgName} onChange={v => set('orgName', v)} placeholder="Company Pvt. Ltd." /></Field>
         <Field label="Address" col="1/-1"><Txt value={d.address} onChange={v => set('address', v)} rows={2} placeholder="Full address..." /></Field>
         <Field label="Additional Sites / Addresses, If any" col="1/-1"><Txt value={d.additionalSites} onChange={v => set('additionalSites', v)} rows={2} placeholder="Branch addresses if any..." /></Field>
@@ -524,13 +524,13 @@ export function Step7({ d, set }) {
     <div>
       <SectionHdr code="AUD-F-21" title="Draft for Certificate Approval" />
       <div className="aud-g2">
-        <Field label="QCC Hereby Certifies That the" col="1/-1">
+        <Field label="B4Q Hereby Certifies That the" col="1/-1">
           <Sel value={d.certSystem} onChange={v => set('certSystem', v)} options={['Quality Management System', 'Environmental Management System', 'Occupational Health & Safety MS', 'Information Security MS', 'Food Safety MS', 'AI Management System', 'Anti-Bribery MS', 'Educational Organization MS']} />
         </Field>
         <Field label="Has Been Assessed as per Requirements of" col="1/-1"><Inp value={d.certReqStandard} onChange={v => set('certReqStandard', v)} placeholder="ISO 9001:2015" /></Field>
         <Field label="For the Scope of" col="1/-1"><Txt value={d.certScope} onChange={v => set('certScope', v)} rows={2} placeholder="Design, Development and Provision of Software Services" /></Field>
         <Field label="Certificate Issue Date"><Inp value={d.certIssueDate} onChange={v => set('certIssueDate', v)} type="date" /></Field>
-        <Field label="Certificate Number"><Inp value={d.certNumber} onChange={v => set('certNumber', v)} placeholder="QCC-2024-001-ISO9001" /></Field>
+        <Field label="Certificate Number"><Inp value={d.certNumber} onChange={v => set('certNumber', v)} placeholder="B4Q-2024-001-ISO9001" /></Field>
         <Field label="Client Authorized Person Name"><Inp value={d.clientAuthPerson} onChange={v => set('clientAuthPerson', v)} /></Field>
         <Field label="Audit Team Leader"><Inp value={d.auditTeamLeader} onChange={v => set('auditTeamLeader', v)} /></Field>
       </div>
@@ -576,7 +576,7 @@ export function PreviewModal({ data, onClose }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
           <div>
             <div style={{ fontWeight: 800, fontSize: 17, color: '#1e293b', marginBottom: 3 }}>QMS Audit Report — Preview</div>
-            <div style={{ fontSize: 11.5, color: '#64748b' }}>QC Certification · Complete Audit Documentation</div>
+            <div style={{ fontSize: 11.5, color: '#64748b' }}>B4Q Management Limited · Complete Audit Documentation</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => window.print()} style={{ padding: '8px 18px', borderRadius: 8, border: '1.5px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Print</button>
